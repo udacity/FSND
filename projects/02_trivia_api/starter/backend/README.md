@@ -38,15 +38,19 @@ psql trivia < trivia.psql
 
 ## Running the server
 
-From within the `./src` directory first ensure you are working using your created virtual environment.
+From within the `backend` directory first ensure you are working using your created virtual environment.
 
 To run the server, execute:
 
 ```bash
-flask run --reload
+export FLASK_APP=flaskr
+export FLASK_ENV=development
+flask run
 ```
 
-The `--reload` flag will detect file changes and restart the server automatically.
+Setting the `FLASK_ENV` variable to `development` will detect file changes and restart the server automatically.
+
+Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` directory and the `__init__.py` file to find the application. 
 
 ## Tasks
 
