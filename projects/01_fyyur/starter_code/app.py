@@ -43,6 +43,10 @@ def index():
 
 @app.route('/venues')
 def venues():
+  """
+  Get a list of all venues
+  :return: List[Dict]
+  """
   data = []
   venues = Venue.query.all()
   for venue in venues:
@@ -59,6 +63,10 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
+  """
+  Search for a specific venue
+  :return: Dict
+  """
   venues = Venue.query.all()
   found = [venue for venue in venues if request.form.get('search_term').lower() in venue.name.lower()]
   response = {
@@ -73,6 +81,12 @@ def search_venues():
 
 
 def get_past_up_shows(shows):
+  """
+  A function that get a shows object and returns a tuple of lists of
+  upcoming and past shows
+  :param shows: Shows model
+  :return: Tuple[List, List]
+  """
   past_shows, upcoming_shows = [], []
   for show in shows:
     artist = Artist.query.get(show.artist_id)
@@ -88,7 +102,7 @@ def get_past_up_shows(shows):
         "artist_image_link": "NA",
         "start_time": "NA"
       }]
-    if  dateutil.parser.parse(show.show_time) < datetime.now():
+    if dateutil.parser.parse(show.show_time) < datetime.now():
       past_shows.append(
         {
         "artist_id": artist.id,
@@ -111,6 +125,11 @@ def get_past_up_shows(shows):
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
+  """
+  Show a specific venue
+  :param venue_id: int
+  :return: List[Dict]
+  """
   shows = Shows.query.filter(Shows.venue_id == venue_id).all()
   past_shows, upcoming_shows = get_past_up_shows(shows)
   data = []
@@ -141,11 +160,19 @@ def show_venue(venue_id):
 
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
+  """
+  A function to get the form for creating a new venue
+  :return:
+  """
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+  """
+  A function to submit a new venue
+  :return: None
+  """
   try:
     venue = Venue(
       name=request.form.get('name'),
@@ -166,6 +193,11 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
+  """
+  A function to delete a venue.
+  :param venue_id: int
+  :return: None
+  """
   v = Venue.query.get(venue_id)
   db.session.delete(v)
   return None
@@ -174,6 +206,10 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
+  """
+  A function to list all artists
+  :return: List[Dict]
+  """
   data = []
   artists = Artist.query.all()
   for artist in artists:
@@ -185,6 +221,10 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
+  """
+  A function to search a specific artist
+  :return: Dict
+  """
   artists = Artist.query.all()
   found = [artist for artist in artists if request.form.get('search_term').lower() in artist.name.lower()]
   response={
@@ -199,6 +239,11 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
+  """
+  A function to display a specific artist
+  :param artist_id: int
+  :return: Dict
+  """
   artist = Artist.query.filter(Artist.id == artist_id).first()
   past_shows, upcoming_shows = get_past_up_shows(artist.venues)
   data = {
@@ -221,6 +266,11 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
+  """
+  A function to edit an artist
+  :param artist_id: int
+  :return: Dict
+  """
   form = ArtistForm()
   a = Artist.query.get(artist_id).first()
   artist={
@@ -240,6 +290,11 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
+  """
+  A function to update the artist info
+  :param artist_id: int
+  :return: None
+  """
   artist = Artist.query.get(artist_id)
   artist.name = request.form.get('name')
   artist.city = request.form.get('city')
@@ -253,6 +308,11 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
+  """
+  A function to display venue info to be edited
+  :param venue_id: int
+  :return: Dict
+  """
   form = VenueForm()
   v = Venue.query.get(venue_id)
   venue={
@@ -273,6 +333,11 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
+  """
+  A function to update venue in database
+  :param venue_id: int
+  :return: None
+  """
   v = Venue.query.get(venue_id)
   v.name = request.form.get('name')
   v.city = request.form.get('city')
@@ -288,11 +353,19 @@ def edit_venue_submission(venue_id):
 
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
+  """
+  A function to display create artist form
+  :return: None
+  """
   form = ArtistForm()
   return render_template('forms/new_artist.html', form=form)
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
+  """
+  A function to update artist info in DB
+  :return: None
+  """
   try:
     artist = Artist(
       name=request.form.get('name'),
@@ -316,6 +389,10 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
+  """
+  A function to show all shows
+  :return: List[Dict]
+  """
   shows = db.session.query(Shows).join(Artist).all()
   data = []
   for show in shows:
@@ -335,12 +412,19 @@ def shows():
 
 @app.route('/shows/create')
 def create_shows():
-  # renders form. do not touch.
+  """
+  A function to render new show form
+  :return:
+  """
   form = ShowForm()
   return render_template('forms/new_show.html', form=form)
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
+  """
+  A function to update show info in DB
+  :return: None
+  """
   try:
     shows = Shows(
       venue_id=request.form.get('venue_id'),
