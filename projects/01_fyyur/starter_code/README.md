@@ -129,8 +129,15 @@ To start and run the local development server,
   ```
   $ pip install -r requirements.txt
   ```
+  
+3. Create and update Databse:
+  ```
+  flask db init
+  flask db migrate
+  flask db upgarde
+  ```
 
-3. Run the development server:
+4. Run the development server:
   ```
   $ export FLASK_APP=myapp
   $ export FLASK_ENV=development # enables debug mode
