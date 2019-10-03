@@ -37,49 +37,6 @@ app.jinja_env.filters['datetime'] = format_datetime
 def index():
   return render_template('pages/home.html')
 
-
-#  Venues
-#  ----------------------------------------------------------------
-
-@app.route('/venues')
-def venues():
-  """
-  Get a list of all venues
-  :return: List[Dict]
-  """
-  data = []
-  venues = Venue.query.all()
-  for venue in venues:
-    artists = db.session.query(Artist).join(Shows).filter(Shows.venue_id == venue.id).all()
-    data.append({
-      "city": venue.city,
-      "state": venue.state,
-      "venues": [{
-        "id": artist.id,
-        "name": artist.name,
-        "num_upcoming_shows": len(artists),
-      } for artist in artists]})
-  return render_template('pages/venues.html', areas=data)
-
-@app.route('/venues/search', methods=['POST'])
-def search_venues():
-  """
-  Search for a specific venue
-  :return: Dict
-  """
-  venues = Venue.query.all()
-  found = [venue for venue in venues if request.form.get('search_term').lower() in venue.name.lower()]
-  response = {
-    "count": len(found),
-    "data": [{
-      "id": venue.id,
-      "name": venue.name,
-      "num_upcoming_shows": 0
-    } for venue in found]
-  }
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
-
-
 def get_past_up_shows(shows):
   """
   A function that get a shows object and returns a tuple of lists of
@@ -121,6 +78,52 @@ def get_past_up_shows(shows):
       }
     )
   return past_shows, upcoming_shows
+
+#  Venues
+#  ----------------------------------------------------------------
+
+@app.route('/venues')
+def venues():
+  """
+  Get a list of all venues
+  :return: List[Dict]
+  """
+  data = []
+  venues = Venue.query.group_by(Venue.id, Venue.city).all()
+  for venue in venues:
+    data.append({
+      "city": venue.city,
+      "state": venue.state,
+      "venues": []})
+  for venue in venues:
+    for d in data:
+      if venue.city == d.get("city"):
+          shows = Shows.query.filter(Shows.venue_id == venue.id)
+          _, a = get_past_up_shows(shows)
+          d["venues"].append({
+                            "id": venue.id,
+                            "name": venue.name,
+                            "num_upcoming_shows": a,
+                            })
+  return render_template('pages/venues.html', areas=data)
+
+@app.route('/venues/search', methods=['POST'])
+def search_venues():
+  """
+  Search for a specific venue
+  :return: Dict
+  """
+  venues = Venue.query.all()
+  found = [venue for venue in venues if request.form.get('search_term').lower() in venue.name.lower()]
+  response = {
+    "count": len(found),
+    "data": [{
+      "id": venue.id,
+      "name": venue.name,
+      "num_upcoming_shows": 0
+    } for venue in found]
+  }
+  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 
 @app.route('/venues/<int:venue_id>')
