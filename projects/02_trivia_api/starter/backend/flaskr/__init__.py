@@ -1,18 +1,59 @@
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import random
 
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+
+def paginate_questions(request, selection):
+  page = request.args.get('page', 1, type=int)
+  start = (page - 1) * QUESTIONS_PER_PAGE
+  end = start + QUESTIONS_PER_PAGE
+
+  books = [book.format() for book in selection]
+  current_books = books[start:end]
+
+  return current_books
+
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
   setup_db(app)
-  
+  cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+  @app.after_request
+  def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
+    return response
+
+  @app.route('/categories')
+  @cross_origin()
+  def categories():
+    cats = Category.query.all()
+    current_cats = paginate_questions(request, cats)
+    return jsonify({
+            'success': True,
+            'categories': current_cats,
+            'total_books': len(cats)
+      }), 200
+
+
+  @app.route('/questions')
+  @cross_origin()
+  def questions():
+    cats = Category.query.all()
+    current_cats = paginate_questions(request, cats)
+    return jsonify({
+            'success': True,
+            'categories': current_cats,
+            'total_books': len(cats)
+      }), 200
+
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
