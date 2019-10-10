@@ -41,7 +41,7 @@ class Question(db.Model):
   def insert(self):
     db.session.add(self)
     db.session.commit()
-  
+
   def update(self):
     db.session.commit()
 

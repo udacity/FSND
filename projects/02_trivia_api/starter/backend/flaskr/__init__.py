@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
 import random
@@ -10,6 +10,12 @@ QUESTIONS_PER_PAGE = 10
 
 
 def paginate_questions(request, selection):
+  """
+  A function to paginate response
+  :param request: Any
+  :param selection: List
+  :return: List
+  """
   page = request.args.get('page', 1, type=int)
   start = (page - 1) * QUESTIONS_PER_PAGE
   end = start + QUESTIONS_PER_PAGE
@@ -20,6 +26,11 @@ def paginate_questions(request, selection):
   return current_books
 
 def create_app(test_config=None):
+  """
+  Function to create the main app
+  :param test_config:
+  :return:
+  """
   # create and configure the app
   app = Flask(__name__)
   setup_db(app)
@@ -30,6 +41,22 @@ def create_app(test_config=None):
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
     return response
+
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+      "success": False,
+      "error": 404,
+      "message": "Not found"
+    }), 404
+  
+  @app.errorhandler(422)
+  def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 422,
+        "message": "Not found"
+    }), 422
 
   @app.route('/categories')
   @cross_origin()
@@ -42,17 +69,53 @@ def create_app(test_config=None):
             'total_books': len(cats)
       }), 200
 
-
-  @app.route('/questions')
+  @app.route('/questions', methods=['GET', 'POST'])
   @cross_origin()
   def questions():
-    cats = Category.query.all()
-    current_cats = paginate_questions(request, cats)
-    return jsonify({
-            'success': True,
-            'categories': current_cats,
-            'total_books': len(cats)
-      }), 200
+    if request.method == 'POST':
+     q = request.args.get('question')
+     a = request.args.get('answer')
+     c = request.args.get('category')
+     d = request.args.get('difficulty')
+     question = Question(
+       question=q,
+       answer=a,
+       category=c,
+       difficulty=d
+     )
+     question.update()
+     return jsonify({'success': True}), 200
+    else:
+      questions = Question.query.all()
+      questions_paginated = paginate_questions(request, questions)
+      questions_formatted = [[q.get("question"), q.get(
+          "answer"), q.get("category"), q.get("difficulty")] for q in questions_paginated]
+      categories = Category.query.all()
+      formatted_categories = [category.format() for category in categories]
+      formatted_categories = [c.get("type") for c in formatted_categories]
+      return jsonify({
+        'success': True,
+        'questions': questions_formatted,
+        'total_questions': len(questions),
+        'categories': formatted_categories,
+        'current_category': formatted_categories
+        }), 200
+
+  @app.route('/questions/<int:question_id>', methods=['GET', 'DELETE', 'POST'])
+  @cross_origin()
+  def question(question_id):
+    try:
+      question = Question.query.get(question_id)
+      if request.method == 'GET':
+        return jsonify({
+          'success': True,
+          'question': question.format()
+        })
+      elif request.method == 'DELETE':
+        question.delete()
+        return jsonify({'success': True}), 200
+    except:
+      abort(404)
 
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
