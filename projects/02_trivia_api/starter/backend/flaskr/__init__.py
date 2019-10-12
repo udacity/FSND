@@ -62,10 +62,11 @@ def create_app(test_config=None):
   @cross_origin()
   def categories():
     cats = Category.query.all()
-    current_cats = paginate_questions(request, cats)
+    cats_formatted = [c.format() for c in cats]
+    categories_formatted = [(c.get('id'), c.get('type')) for c in cats_formatted]
     return jsonify({
             'success': True,
-            'categories': current_cats,
+            'categories': categories_formatted,
             'total_books': len(cats)
       }), 200
 
@@ -85,6 +86,20 @@ def create_app(test_config=None):
      )
      question.update()
      return jsonify({'success': True}), 200
+    elif request.method == 'POST' and request.args.get('search'):
+      search_term = request.args.get('search')
+      search = f"%{search_term}%"
+      questions = Question.query.filter(Question.question.like(search)).all()
+      questions_formatted = [q.format() for q in questions]
+      categories = Category.query.all()
+      formatted_categories = [category.format() for category in categories]
+      formatted_categories = [c.get("type") for c in formatted_categories]
+      return jsonify({
+        'questions': questions_formatted,
+        'totalQuestions': len(questions),
+        'categories': formatted_categories,
+        'currentCategory': formatted_categories
+                     })
     else:
       questions = Question.query.all()
       questions_paginated = paginate_questions(request, questions)
@@ -94,12 +109,11 @@ def create_app(test_config=None):
       formatted_categories = [category.format() for category in categories]
       formatted_categories = [c.get("type") for c in formatted_categories]
       return jsonify({
-        'success': True,
         'questions': questions_formatted,
-        'total_questions': len(questions),
-        'categories': formatted_categories,
-        'current_category': formatted_categories
-        }), 200
+        'totalQuestions': len(questions),
+        'categories': formatted_categories ,
+        'currentCategory': formatted_categories
+                     })
 
   @app.route('/questions/<int:question_id>', methods=['GET', 'DELETE', 'POST'])
   @cross_origin()
@@ -117,92 +131,32 @@ def create_app(test_config=None):
     except:
       abort(404)
 
-  '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-  '''
+  @app.route('/categories/<int:category_id>/question')
+  @cross_origin()
+  def categories_id_question(category_id):
+    cat = Category.query.get(category_id).first()
+    cat_type = cat.type
+    questions = Question.question.filter(Question.category==cat_type).all()
+    questions_formatted = [q.format() for q in questions]
+    questions_formatted_tuple = [[q.get("question"), q.get(
+          "answer"), q.get("category"), q.get("difficulty")] for q in questions_formatted]
+    return jsonify({
+      'questions': questions_formatted_tuple,
+      'totalQuestions': len(questions),
+      'currentCategory': cat_type
+    })
 
-  '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
-  '''
+  @app.route('/quizzes', methods=['POST'])
+  @cross_origin()
+  def quizzez():
+    category_id = request.args.get('id')
+    cat = Category.query.get(category_id).first()
+    cat_type = cat.type
+    questions = Question.question.filter(Question.category==cat_type).all()
+    questions_formatted = [q.format() for q in questions]
+    questions_formatted_tuple = [[q.get("question"), q.get(
+          "answer"), q.get("category"), q.get("difficulty")] for q in questions_formatted]
 
-  '''
-  @TODO: 
-  Create an endpoint to handle GET requests 
-  for all available categories.
-  '''
-
-
-  '''
-  @TODO: 
-  Create an endpoint to handle GET requests for questions, 
-  including pagination (every 10 questions). 
-  This endpoint should return a list of questions, 
-  number of total questions, current category, categories. 
-
-  TEST: At this point, when you start the application
-  you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
-  Clicking on the page numbers should update the questions. 
-  '''
-
-  '''
-  @TODO: 
-  Create an endpoint to DELETE question using a question ID. 
-
-  TEST: When you click the trash icon next to a question, the question will be removed.
-  This removal will persist in the database and when you refresh the page. 
-  '''
-
-  '''
-  @TODO: 
-  Create an endpoint to POST a new question, 
-  which will require the question and answer text, 
-  category, and difficulty score.
-
-  TEST: When you submit a question on the "Add" tab, 
-  the form will clear and the question will appear at the end of the last page
-  of the questions list in the "List" tab.  
-  '''
-
-  '''
-  @TODO: 
-  Create a POST endpoint to get questions based on a search term. 
-  It should return any questions for whom the search term 
-  is a substring of the question. 
-
-  TEST: Search by any phrase. The questions list will update to include 
-  only question that include that string within their question. 
-  Try using the word "title" to start. 
-  '''
-
-  '''
-  @TODO: 
-  Create a GET endpoint to get questions based on category. 
-
-  TEST: In the "List" tab / main screen, clicking on one of the 
-  categories in the left column will cause only questions of that 
-  category to be shown. 
-  '''
-
-
-  '''
-  @TODO: 
-  Create a POST endpoint to get questions to play the quiz. 
-  This endpoint should take category and previous question parameters 
-  and return a random questions within the given category, 
-  if provided, and that is not one of the previous questions. 
-
-  TEST: In the "Play" tab, after a user selects "All" or a category,
-  one question at a time is displayed, the user is allowed to answer
-  and shown whether they were correct or not. 
-  '''
-
-  '''
-  @TODO: 
-  Create error handlers for all expected errors 
-  including 404 and 422. 
-  '''
-  
   return app
 
     
