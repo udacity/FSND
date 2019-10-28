@@ -1,1 +1,20 @@
 
+2019-10-18 13:21:10,754 INFO: errors [in C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\app.py:520]
+2019-10-18 13:21:30,742 INFO: errors [in C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\app.py:520]
+2019-10-18 14:03:24,236 ERROR: Exception on /venues/create [GET] [in C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\venv\lib\site-packages\flask\app.py:1891]
+Traceback (most recent call last):
+  File "C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\venv\lib\site-packages\flask\app.py", line 2446, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\venv\lib\site-packages\flask\app.py", line 1951, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\venv\lib\site-packages\flask\app.py", line 1820, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\venv\lib\site-packages\flask\_compat.py", line 39, in reraise
+    raise value
+  File "C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\venv\lib\site-packages\flask\app.py", line 1949, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\venv\lib\site-packages\flask\app.py", line 1935, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "C:\Users\pc\Desktop\FSND\projects\01_fyyur\starter_code\app.py", line 230, in create_venue_form
+    return render_template('forms/new_venue.html', form=form)
+NameError: name 'VenueForm' is not defined
