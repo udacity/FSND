@@ -70,7 +70,15 @@
 2019-11-06 13:00:27,569 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
 2019-11-06 13:00:45,105 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
 2019-11-06 13:14:31,209 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
-<<<<<<< HEAD
 2019-11-06 13:23:52,293 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
-=======
->>>>>>> added venue addition and listing
+2019-11-06 13:47:41,259 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+2019-11-06 13:47:42,207 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+2019-11-06 13:48:58,226 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+2019-11-06 13:48:59,150 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+2019-11-06 14:11:31,074 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+2019-11-06 14:12:13,021 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:580]
+2019-11-06 14:12:53,093 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:581]
+2019-11-06 14:13:33,700 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:581]
+2019-11-06 14:16:15,985 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:584]
+2019-11-06 14:22:38,947 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+2019-11-06 14:22:41,260 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
