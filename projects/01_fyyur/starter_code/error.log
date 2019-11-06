@@ -70,4 +70,7 @@
 2019-11-06 13:00:27,569 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
 2019-11-06 13:00:45,105 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
 2019-11-06 13:14:31,209 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+<<<<<<< HEAD
 2019-11-06 13:23:52,293 INFO: errors [in C:\Users\User\Documents\Python\Flask\FSND\projects\01_fyyur\starter_code\app.py:579]
+=======
+>>>>>>> added venue addition and listing
