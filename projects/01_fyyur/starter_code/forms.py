@@ -117,6 +117,10 @@ class VenueForm(Form):
         'facebook_link', validators=[URL()]
     )
 
+    website_link = StringField(
+        'website_link', validators=[URL()]
+    )
+
 class ArtistForm(Form):
     name = StringField(
         'name', validators=[DataRequired()]
