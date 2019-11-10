@@ -4,11 +4,8 @@
 <div class="row">
 	<div class="col-sm-6">
 		<h1 class="monospace">
-			{{ venue.name }}
+			{{ venue.name }} <a href="/venues/{{ venue.id }}/edit"> <i class="fas fa-pen" style="margin-left:10px;"></i></a>
 		</h1>
-		<p class="subtitle">
-			ID: {{ venue.id }}
-		</p>
 		<div class="genres">
 			{% for genre in venue.genres %}
 			<span class="genre">{{ genre }}</span>
@@ -24,7 +21,7 @@
 			<i class="fas fa-phone-alt"></i> {% if venue.phone %}{{ venue.phone }}{% else %}No Phone{% endif %}
 		</p>
 		<p>
-			<i class="fas fa-link"></i> {% if venue.website %}<a href="{{ venue.website }}" target="_blank">{{ venue.website }}</a>{% else %}No Website{% endif %}
+			<i class="fas fa-link"></i> {% if venue.website_link %}<a href="{{ venue.website_link }}" target="_blank">{{ venue.website_link }}</a>{% else %}No Website{% endif %}
 		</p>
 		<p>
 			<i class="fab fa-facebook-f"></i> {% if venue.facebook_link %}<a href="{{ venue.facebook_link }}" target="_blank">{{ venue.facebook_link }}</a>{% else %}No Facebook Link{% endif %}
@@ -66,8 +63,8 @@
 		{%for show in venue.past_shows %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
-				<img src="{{ show.artist_image_link }}" alt="Show Artist Image" />
-				<h5><a href="/artists/{{ show.artist_id }}">{{ show.artist_name }}</a></h5>
+				<img src="{{ show.artist.image_link }}" alt="Show Artist Image" />
+				<h5><a href="/artists/{{ show.artist.id }}">{{ show.artist.name }}</a></h5>
 				<h6>{{ show.start_time|datetime('full') }}</h6>
 			</div>
 		</div>
