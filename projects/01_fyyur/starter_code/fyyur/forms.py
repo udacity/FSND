@@ -117,8 +117,8 @@ class VenueForm(Form):
         'facebook_link', validators=[URL()]
     )
 
-    website_link = StringField(
-        'website_link', validators=[URL()]
+    website = StringField(
+        'website', validators=[URL()]
     )
 
     seeking_talent = RadioField(

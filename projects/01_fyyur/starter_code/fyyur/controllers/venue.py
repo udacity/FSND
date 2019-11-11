@@ -1,6 +1,7 @@
 import sys
 from fyyur import app, db
 from fyyur.forms import *
+from flask import jsonify
 from datetime import datetime
 from sqlalchemy import cast, DATE
 from fyyur.models.venue import Venue
@@ -25,29 +26,6 @@ def venues():
             "venues": venues
         })
 
-    print(data[0]['venues'])
-
-    # data = [{
-    #     "city": "San Francisco",
-    #     "state": "CA",
-    #     "venues": [{
-    #         "id": 1,
-    #         "name": "The Musical Hop",
-    #         "num_upcoming_shows": 0,
-    #     }, {
-    #         "id": 3,
-    #         "name": "Park Square Live Music & Coffee",
-    #         "num_upcoming_shows": 1,
-    #     }]
-    # }, {
-    #     "city": "New York",
-    #     "state": "NY",
-    #     "venues": [{
-    #         "id": 2,
-    #         "name": "The Dueling Pianos Bar",
-    #         "num_upcoming_shows": 0,
-    #     }]
-    # }]
     return render_template('pages/venues.html', areas=data)
 
 
@@ -96,7 +74,7 @@ def show_venue(venue_id):
         "city": venue.city,
         "state": venue.state,
         "phone": venue.phone,
-        "website_link": venue.website_link,
+        "website": venue.website,
         "facebook_link": venue.facebook_link,
         "seeking_talent": venue.seeking_talent,
         "seeking_description": venue.seeking_description,
@@ -131,14 +109,14 @@ def create_venue_submission():
     genres = request.form.get('genres', '')
     image_link = request.form.get('image_link', '')
     facebook_link = request.form.get('facebook_link', '')
-    website_link = request.form.get('website_link', '')
+    website = request.form.get('website', '')
     seeking_talent = eval(request.form.get('seeking_talent', ''))
     seeking_description = request.form.get('seeking_description', '')
 
     venue = Venue(
         name=name, city=city, state=state, address=address,
         phone=phone, image_link=image_link, genres=genres,
-        facebook_link=facebook_link, website_link=website_link,
+        facebook_link=facebook_link, website=website,
         seeking_talent=seeking_talent, seeking_description=seeking_description)
 
     error = False
@@ -156,7 +134,7 @@ def create_venue_submission():
     if not error:
         # on successful db insert, flash success
         flash('Venue ' + request.form['name'] + ' was successfully listed!')
-        return render_template('pages/home.html')
+        return redirect(url_for('venues'))
     else:
         # TODO: on unsuccessful db insert, flash an error instead.
         flash('An error occurred. Venue ' +
@@ -168,6 +146,29 @@ def create_venue_submission():
 def delete_venue(venue_id):
     # TODO: Complete this endpoint for taking a venue_id, and using
     # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+    venue = Venue.query.get(venue_id)
+
+    error = False
+    try:
+        db.session.delete(venue)
+        db.session.commit()
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+
+    if not error:
+        return jsonify({
+            'status': 200,
+            'message': 'venue deleted succesfuly'
+        })
+    else:
+        return jsonify({
+            'status': 400,
+            'messgae': 'deletion failed'
+        })
 
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
@@ -189,7 +190,7 @@ def edit_venue(venue_id):
         city=venue.city,
         state=venue.state,
         phone=venue.phone,
-        website_link=venue.website_link,
+        website=venue.website,
         facebook_link=venue.facebook_link,
         seeking_talent=venue.seeking_talent,
         seeking_description=venue.seeking_description,
@@ -212,7 +213,7 @@ def edit_venue_submission(venue_id):
     phone = request.form.get('phone', '')
     genres = request.form.getlist('genres')
     facebook_link = request.form.get('facebook_link', '')
-    website_link = request.form.get('website_link', '')
+    website = request.form.get('website', '')
     seeking_talent = eval(request.form.get('seeking_talent', ''))
     seeking_description = request.form.get('seeking_description', '')
     image_link = request.form.get('image_link', '')
@@ -234,7 +235,7 @@ def edit_venue_submission(venue_id):
     venue.seeking_talent = seeking_talent
     venue.seeking_description = seeking_description
     venue.image_link = image_link
-    venue.website_link = website_link
+    venue.website = website
 
     error = False
 

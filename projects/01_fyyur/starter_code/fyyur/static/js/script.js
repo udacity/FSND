@@ -23,3 +23,25 @@ if (document.getElementById('seeking_talent-0') !== null) {
     document.getElementById('seeking_description').style.display = 'none'
   });
 }
+
+async function deleteVenue(venueId) {
+    const result = await fetch('/venues/' + venueId, {
+      method: 'DELETE'
+    });
+
+    const data = await result.json();
+
+    if (data.status === 200) {
+      displayAlert('Venue succesfuly deleted.');
+      window.location.replace("http://127.0.0.1:5000/venues");
+    } else {
+      displayAlert('Failed to delete the venue. It is most likely attached to a show.');
+    }
+}
+
+function displayAlert(message) {
+  const alert = document.getElementById('alert');
+  alert.style.display = 'block';
+  alert.innerHTML = message
+}
+
