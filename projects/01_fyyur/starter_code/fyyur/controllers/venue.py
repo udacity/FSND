@@ -1,6 +1,7 @@
 import sys
 from fyyur import app, db
 from fyyur.forms import *
+from sqlalchemy import or_
 from flask import jsonify
 from datetime import datetime
 from sqlalchemy import cast, DATE
@@ -31,28 +32,22 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-   
+
     search_term = request.form.get('search_term', '')
     search = "%{}%".format(search_term)
 
-    venues = Venue.query.with_entities(Venue.id, Venue.name).filter(Venue.name.ilike(search)).all()
+    venues = Venue.query.with_entities(Venue.id, Venue.name).filter(
+        or_(
+            Venue.name.ilike(search),
+            Venue.state.ilike(search),
+            Venue.city.ilike(search)
+        )
+    ).all()
 
     response = {
         "count": len(venues),
-        "data": []
+        "data": venues
     }
-
-    for venue in venues:
-        upcoming_shows = Show.query.filter(
-            cast(Show.start_time, DATE) > datetime.now(),
-            Show.venue_id == venue.id
-        ).count()
-
-        response['data'].append({
-            'id': venue.id,
-            'name': venue.name,
-            'num_upcoming_shows': upcoming_shows
-        })
 
     return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
