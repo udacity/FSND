@@ -17,7 +17,6 @@ def shows():
     data = []
 
     for show in shows:
-        print(show)
         data.append({
             "venue_id": show[0],
             "venue_name": show[1],
@@ -32,7 +31,6 @@ def shows():
 
 @app.route('/shows/create')
 def create_shows():
-    # renders form. do not touch.
     form = ShowForm()
     return render_template('forms/new_show.html', form=form)
 
@@ -42,6 +40,16 @@ def create_show_submission():
     venue_id = request.form.get('venue_id', '')
     artist_id = request.form.get('artist_id', '')
     start_time = request.form.get('start_time', '')
+
+    artist = Artist.query.get(artist_id)
+    if not artist:
+        flash('Artist does not exist')
+        return redirect(url_for('create_show_submission'))
+
+    venue = Venue.query.get(venue_id)
+    if not venue:
+        flash('Venue does not exist')
+        return redirect(url_for('create_show_submission'))
 
     start_time_formated = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
 
@@ -67,15 +75,11 @@ def create_show_submission():
         finally:
             db.session.close()
 
-        print('i am also here')
-
         if not error:
-            data = Show.query.all()
-            flash('Show was successfully listed!')
             return redirect(url_for('shows'))
         else:
             flash('An error occurred. Show could not be listed.')
-            return redirect(url_for('create_shows'))
+            return redirect(url_for('create_show_submission'))
     else:
         flash('The arist is not available at the time selected')
-        return redirect(url_for('create_shows'))
+        return redirect(url_for('create_show_submission'))

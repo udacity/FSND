@@ -1,6 +1,7 @@
 import sys
 from fyyur import app, db
 from fyyur.forms import *
+from sqlalchemy import or_
 from datetime import datetime
 from sqlalchemy import cast, DATE, func
 from fyyur.models.show import Show
@@ -18,7 +19,6 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    # called upon submitting the new artist listing form
     name = request.form.get('name', '')
     city = request.form.get('city', '')
     state = request.form.get('state', '')
@@ -51,19 +51,17 @@ def create_artist_submission():
         db.session.close()
 
         if not error:
-            # on successful db insert, flash success
             flash('Artist ' + request.form['name'] +
                   ' was successfully listed!')
             return redirect(url_for('artists'))
         else:
-            # TODO: on unsuccessful db insert, flash an error instead.
             flash('An error occurred. Artist ' +
                   artist.name + ' could not be listed.')
+            return redirect(url_for('artists'))
 
 
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
     data = Artist.query.with_entities(Artist.id, Artist.name).all()
     return render_template('pages/artists.html', artists=data)
 
@@ -73,32 +71,24 @@ def search_artists():
     search_term = request.form.get('search_term', '')
     search = "%{}%".format(search_term)
 
-    artists = Artist.query.with_entities(Artist.id, Artist.name).filter(Artist.name.ilike(search)).all()
+    artists = Artist.query.with_entities(Artist.id, Artist.name).filter(
+        or_(
+            Artist.name.ilike(search),
+            Artist.state.ilike(search),
+            Artist.city.ilike(search)
+        )
+    ).all()
 
     response = {
         "count": len(artists),
-        "data": []
+        "data": artists
     }
-
-    for artist in artists:
-        upcoming_shows = Show.query.filter(
-            cast(Show.start_time, DATE) > datetime.now(),
-            Show.artist_id == artist.id
-        ).count()
-
-        response['data'].append({
-            'id': artist.id,
-            'name': artist.name,
-            'num_upcoming_shows': upcoming_shows
-        })
 
     return render_template('pages/search_artists.html', results=response, search_term=search_term)
 
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-    # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
 
     artist = Artist.query.get(artist_id)
     genres = []
@@ -118,7 +108,6 @@ def show_artist(artist_id):
 
     availability = Availability.query.filter_by(artist_id=artist_id).all()
 
-
     data = {
         "id": artist.id,
         "name": artist.name,
@@ -137,7 +126,7 @@ def show_artist(artist_id):
         "upcoming_shows_count": len(upcoming_shows),
         "availability": availability
     }
-   
+
     return render_template('pages/show_artist.html', artist=data)
 
 #  Update
@@ -165,14 +154,11 @@ def edit_artist(artist_id):
 
     form.genres.data = genres
 
-    # TODO: populate form with fields from artist with ID <artist_id>
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-    # TODO: take values from the form submitted, and update existing
-    # artist record with ID <artist_id> using the new attributes
 
     name = request.form.get('name', '')
     city = request.form.get('city', '')
@@ -223,3 +209,4 @@ def edit_artist_submission(artist_id):
     else:
         flash('An error occurred. Artist ' +
               artist.name + ' could not be edited.')
+        return redirect(url_for('show_artist', artist_id=artist_id))

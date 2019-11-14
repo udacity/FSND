@@ -197,14 +197,12 @@ class ArtistForm(Form):
         ]
     )
     phone = StringField(
-        # TODO implement validation logic for state
         'phone'
     )
     image_link = StringField(
         'image_link'
     )
     genres = SelectMultipleField(
-        # TODO implement enum restriction
         'genres', validators=[DataRequired()],
         choices=[
             ('Alternative', 'Alternative'),
@@ -230,12 +228,10 @@ class ArtistForm(Form):
     )
 
     facebook_link = StringField(
-        # TODO implement enum restriction
         'facebook_link', validators=[URL()]
     )
 
     website_link = StringField(
-        # TODO implement enum restriction
         'website_link', validators=[URL()]
     )
 
@@ -256,13 +252,13 @@ class AvailabilityForm(Form):
     from_time = DateTimeLocalField(
         'from_time',
         format='%Y-%m-%dT%H:%M',
-        default=datetime.today
+        default=datetime.today,
+        validators=[DataRequired()]
     )
 
     to_time = DateTimeLocalField(
         'to_time',
         format='%Y-%m-%dT%H:%M',
-        default=datetime.today
+        default=datetime.today,
+        validators=[DataRequired()]
     )
-
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

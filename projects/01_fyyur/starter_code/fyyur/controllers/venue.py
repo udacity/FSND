@@ -1,6 +1,7 @@
 import sys
 from fyyur import app, db
 from fyyur.forms import *
+from sqlalchemy import or_
 from flask import jsonify
 from datetime import datetime
 from sqlalchemy import cast, DATE
@@ -31,28 +32,22 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-   
+
     search_term = request.form.get('search_term', '')
     search = "%{}%".format(search_term)
 
-    venues = Venue.query.with_entities(Venue.id, Venue.name).filter(Venue.name.ilike(search)).all()
+    venues = Venue.query.with_entities(Venue.id, Venue.name).filter(
+        or_(
+            Venue.name.ilike(search),
+            Venue.state.ilike(search),
+            Venue.city.ilike(search)
+        )
+    ).all()
 
     response = {
         "count": len(venues),
-        "data": []
+        "data": venues
     }
-
-    for venue in venues:
-        upcoming_shows = Show.query.filter(
-            cast(Show.start_time, DATE) > datetime.now(),
-            Show.venue_id == venue.id
-        ).count()
-
-        response['data'].append({
-            'id': venue.id,
-            'name': venue.name,
-            'num_upcoming_shows': upcoming_shows
-        })
 
     return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
@@ -111,8 +106,6 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
 
     name = request.form.get('name', '')
     city = request.form.get('city', '')
@@ -145,20 +138,16 @@ def create_venue_submission():
         db.session.close()
 
     if not error:
-        # on successful db insert, flash success
         flash('Venue ' + request.form['name'] + ' was successfully listed!')
         return redirect(url_for('venues'))
     else:
-        # TODO: on unsuccessful db insert, flash an error instead.
         flash('An error occurred. Venue ' +
               Venue.name + ' could not be listed.')
-        # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+        return redirect(url_for('create_venue_form'))
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
     venue = Venue.query.get(venue_id)
 
     error = False
@@ -182,11 +171,6 @@ def delete_venue(venue_id):
             'status': 400,
             'messgae': 'deletion failed'
         })
-
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
-    return None
-
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
@@ -216,8 +200,6 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    # TODO: take values from the form submitted, and update existing
-    # venue record with ID <venue_id> using the new attributes
 
     name = request.form.get('name', '')
     city = request.form.get('city', '')
@@ -263,7 +245,8 @@ def edit_venue_submission(venue_id):
         db.session.close()
 
     if not error:
-        return redirect(url_for('show_venue', venue_id=venue_id))
+        return redirect(url_for('venues', venue_id=venue_id))
     else:
         flash('An error occurred. Venue ' +
               venue.name + ' could not be edited.')
+        return redirect(url_for('edit_venue', venue_id=venue_id))
