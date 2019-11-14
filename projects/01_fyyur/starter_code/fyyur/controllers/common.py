@@ -1,10 +1,12 @@
-from fyyur import app
+from fyyur import app, db
+from fyyur.models.artist import Artist
 from flask import render_template
 
 
 @app.route('/')
 def index():
-    return render_template('pages/home.html')
+    artists = Artist.query.order_by(Artist.id.desc()).limit(10)
+    return render_template('pages/home.html', artists=artists)
 
 @app.errorhandler(404)
 def not_found_error(error):
