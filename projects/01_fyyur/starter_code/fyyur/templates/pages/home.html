@@ -19,25 +19,38 @@
 		</h3>
 	</div>
 	<div class="col-sm-6 hidden-sm hidden-xs">
-		<img id="front-splash" src="{{ url_for('static',filename='img/front-splash.jpg') }}" alt="Front Photo of Musical Band" />
+		<img id="front-splash" src="{{ url_for('static',filename='img/front-splash.jpg') }}"
+			alt="Front Photo of Musical Band" />
 		<div class="row">
 			<div class="col-sm-6">
-				<h5>Latest Artists</h5>
-					<ul class="items">
-							{% for artist in artists %}
-							<li>
-								<a href="/artists/{{ artist.id }}">
-									<i class="fas fa-users"></i>
-									<div class="item">
-										<h5>{{ artist.name }}</h5>
-									</div>
-								</a>
-							</li>
-							{% endfor %}
-						</ul>
+				<h4>Latest Artists</h4>
+				<ul class="items">
+					{% for artist in artists %}
+					<li>
+						<a href="/artists/{{ artist.id }}">
+							<i class="fas fa-users"></i>
+							<div class="item">
+								<h5>{{ artist.name }}</h5>
+							</div>
+						</a>
+					</li>
+					{% endfor %}
+				</ul>
 			</div>
 			<div class="col-sm-6">
-
+				<h4>Latest Venues</h4>
+				<ul class="items">
+					{% for venue in venues %}
+					<li>
+						<a href="/venues/{{ venue.id }}">
+							<i class="fas fa-music"></i>
+							<div class="item">
+								<h5>{{ venue.name }}</h5>
+							</div>
+						</a>
+					</li>
+					{% endfor %}
+				</ul>
 			</div>
 		</div>
 	</div>
