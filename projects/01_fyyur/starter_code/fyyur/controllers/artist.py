@@ -6,6 +6,7 @@ from sqlalchemy import cast, DATE, func
 from fyyur.models.show import Show
 from fyyur.models.venue import Venue
 from fyyur.models.artist import Artist
+from fyyur.models.availability import Availability
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 
 
@@ -115,6 +116,8 @@ def show_artist(artist_id):
         Show.artist_id == artist_id
     ).all()
 
+    availability = Availability.query.filter_by(artist_id=artist_id).all()
+
 
     data = {
         "id": artist.id,
@@ -132,6 +135,7 @@ def show_artist(artist_id):
         "upcoming_shows": upcoming_shows,
         "past_shows_count": len(past_shows),
         "upcoming_shows_count": len(upcoming_shows),
+        "availability": availability
     }
    
     return render_template('pages/show_artist.html', artist=data)

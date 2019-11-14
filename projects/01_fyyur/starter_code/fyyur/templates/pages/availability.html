@@ -1,0 +1,68 @@
+{% extends 'layouts/main.html' %}
+{% block title %} {{ data.artist_name}} | Availability{% endblock %}
+{% block content %}
+
+<style>
+    .avail-slot {
+        height: 25px;
+        margin-bottom: 10px;
+    }
+
+    .header {
+        height: 40px;
+        padding: 10px;
+        font-weight: bold;
+        margin: 10px 0px;
+    }
+
+    .submit {
+        width: 10%;
+        padding-bottom: 10px;
+        display: inline-block;
+    }
+
+    .time {
+        width: 20%;
+        margin: 0px 10px;
+        display: inline-block;
+    }
+
+    .form {
+        padding-bottom: 20px;
+    }
+</style>
+<i class="far fa-calendar-plus " style="cursor: pointer; color: orange" onclick="displayAvailabiltyForm()"> Create New Slot</i>
+<div class="row">
+    <div class="avail-slot header">
+        <div class="time title">From</div>
+        <div class="time title">To</div>
+    </div>
+</div>
+<form method="post" class="form" action="/availability/{{ data.artist_id }}" style="display:none;"
+    id="availability-form">
+    <div class="row">
+        <div class="avail-slot">
+            <div class="time">
+                {{ form.from_time(class_ = 'form-control', autofocus = true) }}
+            </div>
+            <div class="time">
+                {{ form.to_time(class_ = 'form-control',  autofocus = true) }}
+            </div>
+            <div class="submit">
+                <input type="submit" value="Create Slots" class="btn btn-primary btn-block">
+            </div>
+        </div>
+    </div>
+</form>
+
+{% for slot in data.availability %}
+<div class="row">
+    <div class="avail-slot">
+        <div class="time">{{ slot.from_time|datetime('medium') }}</div>
+        <div class="time">{{ slot.to_time|datetime('medium') }}</div>
+        <div class="time"><i class="far fa-trash-alt" style="color:orange; cursor: pointer;" onclick="deleteAvailabilitySlot('{{ data.artist_id}}', '{{ slot.id}}')"></i></div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

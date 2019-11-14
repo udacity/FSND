@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, RadioField, TextAreaField
+from wtforms.fields.html5 import DateTimeLocalField
 from wtforms.validators import DataRequired, AnyOf, URL
 
 class ShowForm(Form):
@@ -247,6 +248,21 @@ class ArtistForm(Form):
 
     seeking_description = TextAreaField(
         'seeking_description'
+    )
+
+
+class AvailabilityForm(Form):
+    
+    from_time = DateTimeLocalField(
+        'from_time',
+        format='%Y-%m-%dT%H:%M',
+        default=datetime.today
+    )
+
+    to_time = DateTimeLocalField(
+        'to_time',
+        format='%Y-%m-%dT%H:%M',
+        default=datetime.today
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

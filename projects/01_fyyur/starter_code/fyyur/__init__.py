@@ -25,10 +25,12 @@ import fyyur.controllers.common
 import fyyur.controllers.artist
 import fyyur.controllers.venue
 import fyyur.controllers.show
+import fyyur.controllers.availability
 
 import fyyur.models.artist
 import fyyur.models.show
 import fyyur.models.venue
+import fyyur.models.availability
 
 
 #----------------------------------------------------------------------------#

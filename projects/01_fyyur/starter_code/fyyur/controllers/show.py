@@ -4,6 +4,8 @@ from fyyur.forms import *
 from fyyur.models.show import Show
 from fyyur.models.venue import Venue
 from fyyur.models.artist import Artist
+from sqlalchemy import cast, DATE, func
+from fyyur.models.availability import Availability
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 
 
@@ -43,23 +45,37 @@ def create_show_submission():
 
     start_time_formated = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
 
-    show = Show(venue_id=venue_id, artist_id=artist_id, start_time=start_time_formated)
+    availability = Availability.query.filter(
+        cast(Availability.from_time, DATE) <= start_time_formated,
+        cast(Availability.to_time, DATE) >= start_time_formated,
+        Availability.artist_id==artist_id
+    ).all()
 
-    error = False
+    if len(availability) > 0:
+        show = Show(venue_id=venue_id, artist_id=artist_id,
+                    start_time=start_time_formated)
+        error = False
 
-    try:
-        db.session.add(show)
-        db.session.commit()
-    except:
-        error = True
-        print(sys.exc_info())
-        db.session.rollback()
-    finally:
-        db.session.close()
+        try:
 
-    if not error:
-        data = Show.query.all()
-        flash('Show was successfully listed!')
-        return redirect(url_for('shows'))
+            db.session.add(show)
+            db.session.commit()
+        except:
+            error = True
+            print(sys.exc_info())
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+        print('i am also here')
+
+        if not error:
+            data = Show.query.all()
+            flash('Show was successfully listed!')
+            return redirect(url_for('shows'))
+        else:
+            flash('An error occurred. Show could not be listed.')
+            return redirect(url_for('create_shows'))
     else:
-        flash('An error occurred. Show could not be listed.')
+        flash('The arist is not available at the time selected')
+        return redirect(url_for('create_shows'))
