@@ -31,12 +31,11 @@ Our tech stack will include:
 
   ```sh
   ├── README.md
-  ├── app.py *** the main driver of the app. 
+  ├── app.py *** the main driver of the app. Includes your SQLAlchemy models.
                     "python app.py" to run after installing dependences
   ├── config.py *** Database URLs, CSRF generation, etc
   ├── error.log
   ├── forms.py *** Your forms
-  ├── models.py  *** Your SQL Alchemy models
   ├── requirements.txt *** The dependencies we need to install with "pip3 install -r requirements.txt"
   ├── static
   │   ├── css 
@@ -52,8 +51,8 @@ Our tech stack will include:
   ```
 
 Overall:
-* Models are located in `models.py`.
-* Controllers are located in `app.py`.
+* Models are located in the `MODELS` section of `app.py`.
+* Controllers are also located in `app.py`.
 * The web frontend is located in `templates/`, which builds static assets deployed to the web server at `static/`.
 * Web forms for creating data are located in `form.py`
 
@@ -63,7 +62,7 @@ Highlight folders:
 * `templates/layouts` -- (Already complete.) Defines the layout that a page can be contained in to define footer and header code for a given page.
 * `templates/forms` -- (Already complete.) Defines the forms used to create new artists, shows, and venues.
 * `app.py` -- (Missing functionality.) Defines routes that match the user’s URL, and controllers which handle data and renders views to the user. This is the main file you will be working on to connect to and manipulate the database and render views with data to the user, based on the URL.
-* `models.py` -- (Missing functionality.) Defines the data models that set up the database tables.
+* Models in `app.py` -- (Missing functionality.) Defines the data models that set up the database tables.
 * `config.py` -- (Missing functionality.) Stores configuration variables and instructions, separate from the main application code. This is where you will need to connect to the database.
 
 
@@ -76,7 +75,7 @@ Instructions
 3. Fill out every `TODO` section throughout the codebase. We suggest going in order of the following:
 
   1. Connect to a database in `config.py`. A project submission that uses a local database connection is fine.
-  2. Using SQLAlchemy, set up normalized models for the objects we support in our web app in `/models.py`. Check out the sample pages provided at /artists/1, /venues/1, and /shows/1 for examples of the data we want to model, using all of the learned best practices in database schema design. Implement missing model properties and relationships using database migrations via Flask-Migrate.
+  2. Using SQLAlchemy, set up normalized models for the objects we support in our web app in the Models section of `app.py`. Check out the sample pages provided at /artists/1, /venues/1, and /shows/1 for examples of the data we want to model, using all of the learned best practices in database schema design. Implement missing model properties and relationships using database migrations via Flask-Migrate.
   3. Implement form submissions for creating new Venues, Artists, and Shows. There should be proper constraints, powering the `/create` endpoints that serve the create form templates, to avoid duplicate or nonsensical form submissions. Submitting a form should create proper new records in the database.
   4. Implement the controllers for listing venues, artists, and shows. Note the structure of the mock data used. We want to keep the structure of the mock data.
   5. Implement search, powering the `/search` endpoints that serve the application's search functionalities.
