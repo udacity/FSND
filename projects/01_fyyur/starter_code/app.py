@@ -16,6 +16,7 @@ from logging import Formatter, FileHandler
 from flask_wtf import FlaskForm
 from forms import *
 import sys
+import numpy as np
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -243,14 +244,16 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   venue = Venue.query.get(venue_id)
-  data = venue.serialize()
+  print(f'Venue <before Serialization> => {venue}')
+  return render_template('pages/show_venue.html', venue=venue)
+  # data = venue.serialize()
   # data.update({
   #   'past_shows': venue.past_shows,
   #   'upcoming_shows': venue.future_shows,
   #   'past_shows_count': venue.past_shows_count,
   #   'upcoming_shows_count': venue.future_shows_count
   # })
-  print(f'Data => {data}')
+  # print(f'Data => {data}')
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
   # data1={
@@ -332,7 +335,7 @@ def show_venue(venue_id):
   # }
   # data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
   # data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_venue.html', venue=data)
+  
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -352,14 +355,17 @@ def create_venue_submission():
   state = request.form['state']
   address = request.form['address']
   phone = request.form['phone']
+  # genres = np.asarray(request.form.getlist('genres'))
   genres = request.form.getlist('genres')
   facebook_link = request.form['facebook_link']
-  
+  print(f'Genres = {genres}')
+  genres_array = [genre for genre in genres]
+  print(f'Genre Array => {genres_array}')
   print(f'name = {name}, city = {city}, state = {state}, address = {address}, phone = {phone}, genres = {genres}, facebook_link={facebook_link}')
   try:
     venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
     db.session.add(venue)
-    db.session.commit()
+    # db.session.commit()
     # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except:
