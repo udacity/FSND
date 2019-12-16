@@ -1,0 +1,8 @@
+Wheel-Version: 1.0
+Generator: bdist_wheel (0.33.6)
+Root-Is-Purelib: false
+Tag: cp38-cp38-macosx_10_9_x86_64
+Tag: cp38-cp38-macosx_10_9_intel
+Tag: cp38-cp38-macosx_10_10_intel
+Tag: cp38-cp38-macosx_10_10_x86_64
+
