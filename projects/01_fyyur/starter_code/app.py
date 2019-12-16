@@ -347,23 +347,14 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-  name = request.form['name']
-  city = request.form['city']
-  state = request.form['state']
-  address = request.form['address']
-  phone = request.form['phone']
-  # genres = np.asarray(request.form.getlist('genres'))
-  genres = [request.form['genres']]
-  facebook_link = request.form['facebook_link']
-  # print(f'Genres = {genres}')
-  # genres_array = [genre for genre in genres]
-  # print(f'Genre Array => {genres_array}')
-  print(f'name = {name}, city = {city}, state = {state}, address = {address}, phone = {phone}, genres = {genres}, facebook_link={facebook_link}')
+  data = request.form
+  venues = Venue.query.filter_by(name=data['name']).all()
+  if (len(venues) > 0):
+    flash(f"An error occurred. {request.form['name']} already exist")
+    return render_template('pages/home.html')
+  
   try:
-    venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
+    venue = Venue(name=data['name'], city=data['city'], state=data['state'], address=data['address'], phone=data['phone'], genres=[data['genres']], facebook_link=data['facebook_link'])
     db.session.add(venue)
     db.session.commit()
     # on successful db insert, flash success
@@ -371,7 +362,7 @@ def create_venue_submission():
   except:
     db.session.rollback()
     print(sys.exc_info())
-    flash('An error occurred. Venue ' + name + ' could not be listed.')
+    flash('An error occurred. Venue ' + data['name'] + ' could not be listed.')
   finally:
     db.session.close()
   return render_template('pages/home.html')
