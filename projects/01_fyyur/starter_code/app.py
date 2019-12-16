@@ -365,7 +365,7 @@ def create_venue_submission():
   try:
     venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
     db.session.add(venue)
-    # db.session.commit()
+    db.session.commit()
     # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except:
