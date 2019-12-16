@@ -356,11 +356,11 @@ def create_venue_submission():
   address = request.form['address']
   phone = request.form['phone']
   # genres = np.asarray(request.form.getlist('genres'))
-  genres = request.form.getlist('genres')
+  genres = request.form['genres']
   facebook_link = request.form['facebook_link']
-  print(f'Genres = {genres}')
-  genres_array = [genre for genre in genres]
-  print(f'Genre Array => {genres_array}')
+  # print(f'Genres = {genres}')
+  # genres_array = [genre for genre in genres]
+  # print(f'Genre Array => {genres_array}')
   print(f'name = {name}, city = {city}, state = {state}, address = {address}, phone = {phone}, genres = {genres}, facebook_link={facebook_link}')
   try:
     venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
