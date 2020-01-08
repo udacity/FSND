@@ -71,6 +71,19 @@
 		{% endfor %}
 	</div>
 </section>
-
+<a href="/artists/{{ artist.id }}/edit"><button class="btn btn-primary btn-lg">Edit Artist</button></a>
+<button class="btn btn-default btn-lg" onclick="deleteArtist()">Delete Artist</button>
+<script>
+	function deleteArtist() {
+		return fetch('/artists/{{ artist.id }}', {
+			method: 'DELETE',
+			headers: {'Content-Type': 'text/html'}
+		})
+		.then(response => response.text())
+		.then(html => {
+  			document.querySelector('html').innerHTML = html
+		})
+	}
+</script>
 {% endblock %}
 

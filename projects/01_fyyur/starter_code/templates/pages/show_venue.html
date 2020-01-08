@@ -74,6 +74,18 @@
 		{% endfor %}
 	</div>
 </section>
-
+<a href="/venues/{{ venue.id }}/edit"><button class="btn btn-primary btn-lg">Edit venue</button></a>
+<button class="btn btn-default btn-lg" onclick="deleteVenue()">Delete venue</button>
+<script>
+	function deleteVenue() {
+		return fetch('/venues/{{ venue.id }}', {
+			method: 'DELETE',
+			headers: {'Content-Type': 'text/html'}
+		})
+		.then(response => response.text())
+		.then(html => {
+  			document.querySelector('html').innerHTML = html
+		})
+	}
+</script>
 {% endblock %}
-
