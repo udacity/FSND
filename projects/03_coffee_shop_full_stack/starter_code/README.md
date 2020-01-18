@@ -13,7 +13,7 @@ You have been called on to demonstrate your newly learned skills to create a ful
 
 ## Tasks
 
-There are `@TODO` comments throughout project. We recommend tackling the sections in order. Start by reading the READMEs in:
+There are `@TODO` comments throughout the project. We recommend tackling the sections in order. Start by reading the READMEs in:
 
 1. [`./backend/`](./backend/README.md)
 2. [`./frontend/`](./frontend/README.md)
