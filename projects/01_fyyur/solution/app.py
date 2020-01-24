@@ -190,7 +190,8 @@ class Artist(db.Model):
 class Show(db.Model):
   __tablename__ = 'show'
 
-  id = db.Column(db.Integer, primary_key=True)
+  venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), primary_key=True)
+  artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), primary_key=True)
   venue = db.relationship('Venue', backref='shows', lazy=True)
   artist = db.relationship('Artist', backref='shows', lazy=True)
   start_time = db.Column(db.DateTime, nullable=False)
