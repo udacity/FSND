@@ -12,6 +12,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -20,15 +21,16 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-# TODO: connect to a local postgresql database
+# DONE: connect to a local postgresql database
 
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
 
 class Venue(db.Model):
-    __tablename__ = 'Venue'
+    __tablename__ = 'venue'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -111,7 +113,7 @@ class Venue(db.Model):
     # DONE: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
-    __tablename__ = 'Artist'
+    __tablename__ = 'artist'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -184,7 +186,24 @@ class Artist(db.Model):
 
     # DONE: implement any missing fields, as a database migration using Flask-Migrate
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# DONE Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class Show(db.Model):
+  __tablename__ = 'show'
+
+  id = db.Column(db.Integer, primary_key=True)
+  venue = db.relationship('Venue', backref='shows', lazy=True)
+  artist = db.relationship('Artist', backref='shows', lazy=True)
+  start_time = db.Column(db.DateTime, nullable=False)
+
+  def format(self):
+    return jsonify({
+      'venue_id': self.venue.id,
+      'venue_name': self.venue.name,
+      'artist_id': self.artist.id,
+      'artist_name': self.artist.name,
+      'artist_image_link': self.artist.image_link,
+      'start_time': self.start_time
+    })
 
 #----------------------------------------------------------------------------#
 # Filters.
