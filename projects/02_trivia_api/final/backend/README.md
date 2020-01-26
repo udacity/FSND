@@ -72,9 +72,11 @@ This README is missing documentation of your endpoints. Below is an example for 
 
 Endpoints
 GET '/categories'
-GET ...
-POST ...
-DELETE ...
+GET '/questions'
+DELETE '/questions/<int:question_id>'
+POST '/questions'
+GET '/categories/<int:category_id>/questions'
+POST '/quizzes'
 
 GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
@@ -87,7 +89,120 @@ GET '/categories'
 '5' : "Entertainment",
 '6' : "Sports"}
 
-```
+GET '/questions'
+- Fetches a list of all questions, including pagination (every 10 questions)
+- Request Arguments: page # (default 1)
+- Returns: An object containing a list of question objects for the current page, total number of questions, an empty category, and an object with a single key, categories, that contains a object of id: category_string key:value pairs.
+{
+    'questions': [{
+        'id': self.id,
+        'answer': self.answer,
+        'category': self.category,
+        'difficulty': self.difficulty
+    }],
+    'total_questions': len(questions),
+    'category': "",
+    'categories': {
+        '1' : "Science",
+        '2' : "Art",
+        '3' : "Geography",
+        '4' : "History",
+        '5' : "Entertainment",
+        '6' : "Sports"
+    }
+}
+
+DELETE '/questions/<int:question_id>'
+- This will delete the question matching the specified question_id from the database then return the updated list of questions.
+- Request Arguments: question_id as an integer
+- Returns: An object containing a list of question objects for the current page, total number of questions, an empty category, and an object with a single key, categories, that contains a object of id: category_string key:value pairs.
+{
+    'questions': [{
+        'id': self.id,
+        'answer': self.answer,
+        'category': self.category,
+        'difficulty': self.difficulty
+    }],
+    'total_questions': len(questions),
+    'category': "",
+    'categories': {
+        '1' : "Science",
+        '2' : "Art",
+        '3' : "Geography",
+        '4' : "History",
+        '5' : "Entertainment",
+        '6' : "Sports"
+    }
+}
+
+POST '/questions'
+- This will take fields for adding a new question to the database or a search term.  If a search term is provided, then it will return a list of questions for whom the search term is a substring of the question (case insensitive).  Otherwise, it will add a new question to the database and return the updated list of questions.
+- Request Arguments: {
+    'question': string,
+    'answer': string,
+    'difficulty': int (value 1-5),
+    'category': int (value 1-6),
+    'searchTerm': string
+}
+- Returns: An object containing a list of question objects for the current page, total number of questions, an empty category, and an object with a single key, categories, that contains a object of id: category_string key:value pairs.
+{
+    'questions': [{
+        'id': self.id,
+        'answer': self.answer,
+        'category': self.category,
+        'difficulty': self.difficulty
+    }],
+    'total_questions': len(questions),
+    'category': "",
+    'categories': {
+        '1' : "Science",
+        '2' : "Art",
+        '3' : "Geography",
+        '4' : "History",
+        '5' : "Entertainment",
+        '6' : "Sports"
+    }
+}
+
+GET '/categories/<int:category_id>/questions'
+- Fetches a list of questions, including pagination (every 10 questions), that belong to the selected category.
+- Request Arguments: category_id as integer
+- Returns: An object containing a list of question objects for the current page, total number of questions for the selected category, the selected category, and an object with a single key, categories, that contains a object of id: category_string key:value pairs.
+{
+    'questions': [{
+        'id': self.id,
+        'answer': self.answer,
+        'category': self.category,
+        'difficulty': self.difficulty
+    }],
+    'total_questions': len(questions),
+    'category': category_id,
+    'categories': {
+        '1' : "Science",
+        '2' : "Art",
+        '3' : "Geography",
+        '4' : "History",
+        '5' : "Entertainment",
+        '6' : "Sports"
+    }
+}
+
+POST '/quizzes'
+- Fetches a question from the selected category (or from the entire list if all categories were selected), that has not been previously displayed for the current quiz, then randomly selects a question from that list.
+- Request Arguments: An object containing a list of previous questions used and a category id to select questions from.
+{
+    'previous_questions': [],
+    'quiz_category': int
+}
+- Returns: An object containing a question object.
+{
+    'question': {
+        'id': self.id,
+        'answer': self.answer,
+        'category': self.category,
+        'difficulty': self.difficulty
+    }
+}
 
 
 ## Testing
