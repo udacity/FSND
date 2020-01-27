@@ -5,7 +5,7 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -13,6 +13,8 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
+import datetime
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -45,50 +47,23 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String)
 
-    def __init__(self):
-      self._past_shows = []
-      self._upcoming_shows = []
-      self._past_shows_count = 0
-      self._upcoming_shows_count = 0
-
     @property
     def past_shows(self):
-      return self._past_shows
-
-    @past_shows.setter
-    def past_shows(self, value):
-      self._past_shows = value
+      past_shows_func = filter(lambda show: datetime.datetime(show.start_time) < datetime.datetime.now(), self.shows)
+      return list(past_shows_func)
 
     @property
     def upcoming_shows(self):
-      return self._upcoming_shows
-    
-    @upcoming_shows.setter
-    def upcoming_shows(self, value):
-      self._upcoming_shows = value
+      upcoming_shows_func = filter(lambda show: datetime.datetime(show.start_time) > datetime.datetime.now(), self.shows)
+      return list(upcoming_shows_func)
 
     @property
     def past_shows_count(self):
-      return self._past_shows_count
-
-    @past_shows_count.setter
-    def past_shows_count(self, value):
-      self._past_shows_count = value
+      return len(self.past_shows)
 
     @property
     def upcoming_shows_count(self):
-      return self._upcoming_shows_count
-
-    @upcoming_shows_count.setter
-    def upcoming_shows_count(self, value):
-      self._upcoming_shows_count = value
-
-    def short_format(self):
-      return jsonify({
-        'id': self.id,
-        'name': self.name,
-        'num_upcoming_shows': self.upcoming_shows_count
-      })
+      return len(self.past_shows)
 
     def format(self):
       return jsonify({
@@ -110,6 +85,9 @@ class Venue(db.Model):
         'upcoming_shows_count': self.upcoming_shows_count
       })
 
+    def __repr__(self):
+      return f'<Venue name={self.name}, city={self.city}, state={self.state}, address={self.address}>'
+
     # DONE: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
@@ -127,43 +105,23 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String)
 
-    def __init__(self):
-      self._past_shows = []
-      self._upcoming_shows = []
-      self._past_shows_count = 0
-      self._upcoming_shows_count = 0
-
     @property
     def past_shows(self):
-      return self._past_shows
-
-    @past_shows.setter
-    def past_shows(self, value):
-      self._past_shows = value
+      past_shows_func = filter(lambda show: datetime.datetime(show.start_time) < datetime.datetime.now(), self.shows)
+      return list(past_shows_func)
 
     @property
     def upcoming_shows(self):
-      return self._upcoming_shows
-    
-    @upcoming_shows.setter
-    def upcoming_shows(self, value):
-      self._upcoming_shows = value
+      upcoming_shows_func = filter(lambda show: datetime.datetime(show.start_time) > datetime.datetime.now(), self.shows)
+      return list(upcoming_shows_func)
 
     @property
     def past_shows_count(self):
-      return self._past_shows_count
-
-    @past_shows_count.setter
-    def past_shows_count(self, value):
-      self._past_shows_count = value
+      return len(self.past_shows)
 
     @property
     def upcoming_shows_count(self):
-      return self._upcoming_shows_count
-
-    @upcoming_shows_count.setter
-    def upcoming_shows_count(self, value):
-      self._upcoming_shows_count = value
+      return len(self.past_shows)
 
     def format(self):
       return jsonify({
@@ -190,8 +148,9 @@ class Artist(db.Model):
 class Show(db.Model):
   __tablename__ = 'show'
 
-  venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), primary_key=True)
-  artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), primary_key=True)
+  id = db.Column(db.Integer, primary_key=True)
+  venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=False)
+  artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable=False)
   venue = db.relationship('Venue', backref='shows', lazy=True)
   artist = db.relationship('Artist', backref='shows', lazy=True)
   start_time = db.Column(db.DateTime, nullable=False)
@@ -205,6 +164,9 @@ class Show(db.Model):
       'artist_image_link': self.artist.image_link,
       'start_time': self.start_time
     })
+
+  def __repr__(self):
+    return f'<Show start_time={self.start_time}, venue={self.venue}, artist={self.artist}>'
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -227,7 +189,6 @@ app.jinja_env.filters['datetime'] = format_datetime
 @app.route('/')
 def index():
   return render_template('pages/home.html')
-
 
 #  Venues
 #  ----------------------------------------------------------------
@@ -356,6 +317,19 @@ def show_venue(venue_id):
     "upcoming_shows_count": 1,
   }
   data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
+
+  # venue_found = Venue.query.filter_by(id=venue_id).first()
+
+  # if venue_found is None:
+  #   return abort(404)
+
+  # venue_found.past_shows = list(filter(lambda show: datetime.datetime(show.start_time) < datetime.datetime.now(), venue_found.shows))
+  # venue_found.upcoming_shows = []
+  # venue_found.past_shows_count = 0
+  # venue_found.upcoming_shows_count = 0
+
+  # data = venue_found.format()
+
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -389,6 +363,7 @@ def delete_venue(venue_id):
 
 #  Artists
 #  ----------------------------------------------------------------
+
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
@@ -499,6 +474,7 @@ def show_artist(artist_id):
 
 #  Update
 #  ----------------------------------------------------------------
+
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
@@ -571,7 +547,6 @@ def create_artist_submission():
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   return render_template('pages/home.html')
 
-
 #  Shows
 #  ----------------------------------------------------------------
 
@@ -580,42 +555,46 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "venue_id": 1,
-    "venue_name": "The Musical Hop",
-    "artist_id": 4,
-    "artist_name": "Guns N Petals",
-    "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    "start_time": "2019-05-21T21:30:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 5,
-    "artist_name": "Matt Quevedo",
-    "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-    "start_time": "2019-06-15T23:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-01T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-08T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-15T20:00:00.000Z"
-  }]
+  # data=[{
+  #   "venue_id": 1,
+  #   "venue_name": "The Musical Hop",
+  #   "artist_id": 4,
+  #   "artist_name": "Guns N Petals",
+  #   "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
+  #   "start_time": "2019-05-21T21:30:00.000Z"
+  # }, {
+  #   "venue_id": 3,
+  #   "venue_name": "Park Square Live Music & Coffee",
+  #   "artist_id": 5,
+  #   "artist_name": "Matt Quevedo",
+  #   "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
+  #   "start_time": "2019-06-15T23:00:00.000Z"
+  # }, {
+  #   "venue_id": 3,
+  #   "venue_name": "Park Square Live Music & Coffee",
+  #   "artist_id": 6,
+  #   "artist_name": "The Wild Sax Band",
+  #   "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
+  #   "start_time": "2035-04-01T20:00:00.000Z"
+  # }, {
+  #   "venue_id": 3,
+  #   "venue_name": "Park Square Live Music & Coffee",
+  #   "artist_id": 6,
+  #   "artist_name": "The Wild Sax Band",
+  #   "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
+  #   "start_time": "2035-04-08T20:00:00.000Z"
+  # }, {
+  #   "venue_id": 3,
+  #   "venue_name": "Park Square Live Music & Coffee",
+  #   "artist_id": 6,
+  #   "artist_name": "The Wild Sax Band",
+  #   "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
+  #   "start_time": "2035-04-15T20:00:00.000Z"
+  # }]
+
+  shows = Show.query.order_by(Show.start_time.asc()).all()
+  data = [show.format() for show in shows]
+
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
