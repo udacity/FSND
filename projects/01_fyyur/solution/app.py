@@ -14,6 +14,7 @@ from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 from datetime import datetime
+import itertools
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -99,6 +100,9 @@ class Venue(db.Model):
 
     def __repr__(self):
       return f'<Venue name={self.name}, city={self.city}, state={self.state}, address={self.address}, past_shows_count={self.past_shows_count}, upcoming_shows_count={self.upcoming_shows_count}>'
+
+    def __getitem__(self, key):
+      return getattr(self, key)
 
     # DONE: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -222,29 +226,22 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
+  # DONE: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  venues = Venue.query.all()
+  
+  keyfunc = lambda v: (v['city'], v['state'])
+  sorted_venues = sorted(venues, key=keyfunc)
+  grouped_venues = itertools.groupby(sorted_venues, key=keyfunc)
+
+  data = [
+    {
+      'city': key[0],
+      'state': key[1],
+      'venues': list(data)
+    }
+    for key, data in grouped_venues]
+
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
