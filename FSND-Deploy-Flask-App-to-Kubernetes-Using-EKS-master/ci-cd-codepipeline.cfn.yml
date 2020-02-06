@@ -1,5 +1,5 @@
 ---
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: 
 
 Description: EKSWSV1
 
@@ -12,7 +12,7 @@ Parameters:
     Default: simple-jwt-api
     MinLength: 1
     MaxLength: 100
-    ConstraintDescription: You must enter the EKS cluster name
+    ConstraintDescription: simple-jwt-api
 
   GitSourceRepo:
     Type: String
@@ -20,7 +20,7 @@ Parameters:
     Default: FSND-Deploy-Flask-App-to-Kubernetes-Using-EKS
     MinLength: 1
     MaxLength: 100
-    ConstraintDescription: You must enter a GitHub repository name
+    ConstraintDescription: FSND-Deploy-Flask-App-to-Kubernetes-Using-EKS-master
 
   GitBranch:
     Type: String
@@ -28,15 +28,15 @@ Parameters:
     Description: GitHub git repository branch - change triggers a new build
     MinLength: 1
     MaxLength: 100
-    ConstraintDescription: You must enter a GitHub repository branch name
+    ConstraintDescription: master
 
   GitHubToken:
     Type: String
     NoEcho: true
-    Description: GitHub API token - see 20480d4c959ffc46269bc72f9d174bd6f739d5d2
+    Description: 20480d4c959ffc46269bc72f9d174bd6f739d5d2
     MinLength: 3
     MaxLength: 100
-    ConstraintDescription: You must enter a GitHub personal access token
+    ConstraintDescription: 20480d4c959ffc46269bc72f9d174bd6f739d5d2
 
   GitHubUser:
     Type: String
@@ -44,7 +44,7 @@ Parameters:
     Description: GitHub username or organization
     MinLength: 3
     MaxLength: 100
-    ConstraintDescription: You must enter a GitHub username or organization
+    ConstraintDescription: francyalinston
 
   CodeBuildDockerImage:
     Type: String
