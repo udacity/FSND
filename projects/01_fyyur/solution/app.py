@@ -340,7 +340,7 @@ def create_venue_submission():
       new_venue.insert()
 
       # on successful db insert, flash success
-      flash(f'Venue {new_venue.name} was successfully created!', category='info')
+      flash(f'Venue {new_venue.name} was successfully created!', 'success')
       # DONE: on unsuccessful db insert, flash an error instead.
       # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
       # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
@@ -349,7 +349,7 @@ def create_venue_submission():
       error = f'An error occurred. Venue {form.name.data} could not be listed.'
     
   if error:
-    flash(error, category='error')
+    flash(error, 'danger')
     
   return render_template('forms/new_venue.html', form=form)
 
