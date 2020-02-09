@@ -15,6 +15,7 @@ from forms import *
 from flask_migrate import Migrate
 from datetime import datetime
 import itertools
+from flask_wtf.csrf import CSRFProtect
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -25,6 +26,7 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+csrf = CSRFProtect(app)
 
 # DONE: connect to a local postgresql database
 
@@ -309,15 +311,22 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  # DONE: insert form data as a new Venue record in the db, instead
+  # DONE: modify data to be the data object returned from db insertion
   form = VenueForm(request.form)
-  # form = request.form
-  venue_name = form.name.data
-  exists = db.session.query(Venue.id).filter_by(name=venue_name).scalar() is not None
-  # exists = Venue.query(Venue.query.filter(Venue.name == venue_name).exists()).scalar()
 
-  if not exists:
+  error = None
+  if not form.validate_on_submit():
+    error = 'There''s errors within the form. Please review it firstly.'
+
+  if error is None:
+    venue_name = form.name.data
+    exists = db.session.query(Venue.id).filter_by(name=venue_name).scalar() is not None
+
+    if exists:
+      error = f'Venue {venue_name} is already registered!'
+
+  if error is None:    
     try:
       new_venue = Venue(
         name = venue_name,
@@ -331,16 +340,17 @@ def create_venue_submission():
       new_venue.insert()
 
       # on successful db insert, flash success
-      flash(f'Venue {new_venue.name} was successfully created!')
-      # TODO: on unsuccessful db insert, flash an error instead.
+      flash(f'Venue {new_venue.name} was successfully created!', category='info')
+      # DONE: on unsuccessful db insert, flash an error instead.
       # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
       # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
       return render_template('pages/home.html')
     except:
-      flash(f'An error occurred. Venue {form.name.data} could not be listed.', category='error')
-  else:
-    flash(f'Venue {venue_name} is already registered!', category='error')
-  
+      error = f'An error occurred. Venue {form.name.data} could not be listed.'
+    
+  if error:
+    flash(error, category='error')
+    
   return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])

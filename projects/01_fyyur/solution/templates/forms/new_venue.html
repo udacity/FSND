@@ -3,6 +3,7 @@
 {% block content %}
   <div class="form-wrapper">
     <form method="post" class="form">
+      {{ form.csrf_token }}
       <h3 class="form-heading">List a new venue <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
       <div class="form-group">
         <label for="name">Name</label>
