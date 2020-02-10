@@ -16,6 +16,7 @@ from flask_migrate import Migrate
 from datetime import datetime
 import itertools
 from flask_wtf.csrf import CSRFProtect
+import logging
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -27,6 +28,7 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 csrf = CSRFProtect(app)
+logger = logging.getLogger(__name__)
 
 # DONE: connect to a local postgresql database
 
@@ -347,6 +349,7 @@ def create_venue_submission():
       return render_template('pages/home.html')
     except:
       error = f'An error occurred. Venue {form.name.data} could not be listed.'
+      logger.exception(error, exc_info=True)
     
   if error:
     flash(error, 'danger')
