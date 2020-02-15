@@ -5,9 +5,10 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort, make_response
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exc
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -241,7 +242,7 @@ app.jinja_env.filters['datetime'] = format_datetime
 # Controllers.
 #----------------------------------------------------------------------------#
 
-@app.route('/')
+@app.route('/', methods=['GET', 'DELETE'])
 def index():
   return render_template('pages/home.html')
 
@@ -358,12 +359,23 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
+  # DONE: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  venue = Venue.query.filter_by(id=venue_id).first()
 
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+  if venue is None:
+    return abort(404)
+
+  try:
+    venue.delete()
+    flash(f'Venue {venue.name} was successfully deleted!', 'success')
+    
+    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
+    # clicking that button delete it from the db then redirect the user to the homepage
+    return redirect(url_for('index'))
+  except exc.IntegrityError:
+    logger.exception(f'Error trying to delete venue {venue}', exc_info=True)
+    flash(f'Venue {venue.name} can''t be deleted.', 'danger')
 
 #  Artists
 #  ----------------------------------------------------------------

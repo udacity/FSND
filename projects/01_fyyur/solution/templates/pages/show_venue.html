@@ -41,6 +41,9 @@
 			<i class="fas fa-moon"></i> Not currently seeking talent
 		</p>
 		{% endif %}
+		<div class="mt-3">
+			<button type="button" class="btn btn-danger btn-sm delete-venue" data-id="{{ venue.id }}">Delete</button>
+		</div>
 	</div>
 	<div class="col-sm-6">
 		<img src="{{ venue.image_link }}" alt="Venue Image" />
@@ -74,6 +77,30 @@
 		{% endfor %}
 	</div>
 </section>
+
+{% block javascript %}
+	<script type="text/javascript">
+		const csrfToken = "{{ csrf_token() }}";
+		console.log(csrfToken);
+		const deleteVenueButton = document.querySelector('.delete-venue');
+		deleteVenueButton.onclick = e => {
+			const venueId = e.target.dataset['id'];
+			fetch(`/venues/${venueId}`, {
+				method: 'DELETE',
+				headers: new Headers({'X-CSRFToken': csrfToken}),
+				redirect: 'follow'
+			})
+			.then(response => {
+				if (response.redirected) {
+					window.location.href = response.url;
+				}
+			})
+			.catch(error => {
+				console.error(`error after venue deletion: ${error}`);
+			});
+		};
+	</script>
+{% endblock %}
 
 {% endblock %}
 
