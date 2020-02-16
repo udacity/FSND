@@ -8,6 +8,7 @@ DEBUG = True
 
 # Connect to the database
 
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://udacity:abcd1234@localhost:5432/fyyur'
 
-# TODO IMPLEMENT DATABASE URL
-SQLALCHEMY_DATABASE_URI = '<Put your local database url>'
+SQLALCHEMY_DATABASE_URI="postgres://udacity:abcd1234@localhost:5432/fyyur"
+SQLALCHEMY_TRACK_MODIFICATIONS = True

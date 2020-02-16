@@ -12,6 +12,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -20,12 +21,13 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-# TODO: connect to a local postgresql database
 
-#----------------------------------------------------------------------------#
+app.config.from_object('config')
+
+
 # Models.
-#----------------------------------------------------------------------------#
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
@@ -38,11 +40,16 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    shows = db.relationship('Shows', backref='Venue', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
-class Artist(db.Model):
-    __tablename__ = 'Artist'
+#Genres = db.Table('Genres',
+    #db.Column('artist_id', db.Integer, db.ForeignKey('artist_id'), primary_key=True),
+    #db.Column('venue_id', db.Integer, db.ForeignKey('venue_id'), primary_key=True)
+
+
+class Artist(object):
+      __tablename__ = 'Artist'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -52,10 +59,22 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    shows = db.relationship('Shows', backref='Artist', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class shows(db.Model):
+      __tablename__ = 'Shows'
+
+      id = db.Column(db.Integer, primary_key=True)
+      name = db.Column(db.String)
+      city = db.Column(db.String(120))
+      state = db.Column(db.String(120))
+      phone = db.Column(db.String(120))
+      genres = db.Column(db.String(120))
+      image_link = db.Column(db.String(500))
+      facebook_link = db.Column(db.String(120))
+      venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+      artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
 
 #----------------------------------------------------------------------------#
 # Filters.
