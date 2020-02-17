@@ -426,21 +426,27 @@ def show_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
+  artist_found = Artist.query.filter_by(id=artist_id).first()
+
+  if artist_found is None:
+    return abort(404)
+
   form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
+
+  artist = {
+    'id': artist_found.id,
+    'name': artist_found.name,
+    'genres': artist_found.genres.split(', '),
+    'city': artist_found.city,
+    'state': artist_found.state,
+    'phone': artist_found.phone,
+    'website': artist_found.website,
+    'facebook_link': artist_found.facebook_link,
+    'seeking_venue': artist_found.seeking_venue,
+    'seeking_description': artist_found.seeking_description,
+    'image_link': artist_found.image_link,
   }
-  # TODO: populate form with fields from artist with ID <artist_id>
+  # DONE: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
