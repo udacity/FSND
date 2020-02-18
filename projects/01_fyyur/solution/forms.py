@@ -185,7 +185,7 @@ class ArtistForm(FlaskForm):
         'phone'
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -216,5 +216,9 @@ class ArtistForm(FlaskForm):
         # TODO implement enum restriction
         'facebook_link', validators=[URL()]
     )
+    website = StringField(
+        'website', validators=[URL()]
+    )
+
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

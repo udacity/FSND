@@ -146,6 +146,9 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String)
 
+    def update(self):
+      db.session.commit()
+
     @property
     def past_shows(self):
       past_shows = list(filter(lambda show: show.start_time < datetime.now(), self.shows))
@@ -391,7 +394,7 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+  # DONE: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
   search_term = request.form.get('search_term', '')
@@ -451,10 +454,31 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
+  # DONE: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  artist_edited = Artist.query.filter_by(id=artist_id).first()
 
-  return redirect(url_for('show_artist', artist_id=artist_id))
+  if artist_edited is None:
+    abort(404)
+
+  form = ArtistForm(request.form)
+
+  if form.validate_on_submit():
+    artist_edited.name = form.name.data
+    artist_edited.genres = ', '.join(form.genres.data)
+    artist_edited.city = form.city.data
+    artist_edited.state = form.state.data
+    artist_edited.phone = form.phone.data
+    artist_edited.website = form.website.data
+    artist_edited.facebook_link = form.facebook_link.data
+    # artist_edited.seeking_venue = form.seeking_venue.data
+    # artist_edited.seeking_description = form.seeking_description.data
+    artist_edited.image_link = form.image_link.data
+    artist_edited.update()
+
+    return redirect(url_for('show_artist', artist_id=artist_id))
+  
+  return render_template('forms/edit_artist.html', form=form, artist=artist_edited)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
