@@ -154,10 +154,10 @@ class Artist(db.Model):
       past_shows = list(filter(lambda show: show.start_time < datetime.now(), self.shows))
       return [
         {
-          "venue_id": show.venue.id,
-          "venue_name": show.venue.name,
-          "venue_image_link": show.venue.image_link,
-          "start_time": show.start_time.isoformat()
+          'venue_id': show.venue.id,
+          'venue_name': show.venue.name,
+          'venue_image_link': show.venue.image_link,
+          'start_time': show.start_time.isoformat()
         } for show in past_shows]
 
     @property
@@ -165,10 +165,10 @@ class Artist(db.Model):
       upcoming_shows = list(filter(lambda show: show.start_time > datetime.now(), self.shows))
       return [
         {
-          "venue_id": show.venue.id,
-          "venue_name": show.venue.name,
-          "venue_image_link": show.venue.image_link,
-          "start_time": show.start_time.isoformat()
+          'venue_id': show.venue.id,
+          'venue_name': show.venue.name,
+          'venue_image_link': show.venue.image_link,
+          'start_time': show.start_time.isoformat()
         } for show in upcoming_shows]
 
     @property
@@ -234,9 +234,9 @@ class Show(db.Model):
 def format_datetime(value, format='medium'):
   date = dateutil.parser.parse(value)
   if format == 'full':
-      format="EEEE MMMM, d, y 'at' h:mma"
+      format='EEEE MMMM, d, y ''at'' h:mma'
   elif format == 'medium':
-      format="EE MM, dd, y h:mma"
+      format='EE MM, dd, y h:mma'
   return babel.dates.format_datetime(date, format)
 
 app.jinja_env.filters['datetime'] = format_datetime
@@ -434,8 +434,6 @@ def edit_artist(artist_id):
   if artist_found is None:
     return abort(404)
 
-  form = ArtistForm()
-
   artist = {
     'id': artist_found.id,
     'name': artist_found.name,
@@ -449,6 +447,9 @@ def edit_artist(artist_id):
     'seeking_description': artist_found.seeking_description,
     'image_link': artist_found.image_link,
   }
+  
+  form = ArtistForm(formdata=None, data=artist)
+
   # DONE: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -482,22 +483,29 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
+  venue_found = Venue.query.filter_by(id=venue_id).first()
+
+  if venue_found is None:
+    abort(404)
+
+  venue = {
+    'id': venue_found.id,
+    'name': venue_found.name,
+    'genres': venue_found.genres.split(', '),
+    'address': venue_found.address,
+    'city': venue_found.city,
+    'state': venue_found.state,
+    'phone': venue_found.phone,
+    'website': venue_found.website,
+    'facebook_link': venue_found.facebook_link,
+    'seeking_talent': venue_found.seeking_talent,
+    'seeking_description': venue_found.seeking_description,
+    'image_link': venue_found.image_link
   }
-  # TODO: populate form with values from venue with ID <venue_id>
+
+  form = VenueForm(formdata=None, data=venue)
+  
+  # DONE: populate form with values from venue with ID <venue_id>
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
