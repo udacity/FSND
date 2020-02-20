@@ -25,7 +25,12 @@
 		</p>
 		<p>
 			<i class="fab fa-facebook-f"></i> {% if artist.facebook_link %}<a href="{{ artist.facebook_link }}" target="_blank">{{ artist.facebook_link }}</a>{% else %}No Facebook Link{% endif %}
-        </p>
+		</p>
+		<div>
+			<a href="/artists/{{ artist.id }}/edit">
+				<button class="btn btn-primary btn-sm">Edit</button>
+			</a>
+		</div>
 		{% if artist.seeking_venue %}
 		<div class="seeking">
 			<p class="lead">Currently seeking performance venues</p>
