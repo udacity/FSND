@@ -510,9 +510,31 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
-  return redirect(url_for('show_venue', venue_id=venue_id))
+  # DONE: take values from the form submitted, and update existing
+  # venue record with ID <venue_id> using the new attributes  
+  venue_edited = Venue.query.filter_by(id=venue_id).first()
+
+  if venue_edited is None:
+    abort(404)
+
+  form = VenueForm(request.form)
+
+  if form.validate_on_submit():
+    venue_edited.name = form.name.data
+    venue_edited.genres = ', '.join(form.genres.data)
+    venue_edited.address = form.address.data
+    venue_edited.city = form.city.data
+    venue_edited.state = form.state.data
+    venue_edited.phone = form.phone.data
+    venue_edited.website = form.website.data
+    venue_edited.facebook_link = form.facebook_link.data
+    # venue_edited.seeking_talent = form.seeking_talent.data
+    # venue_edited.seeking_description = form.seeking_description.data
+    venue_edited.image_link = form.image_link.data
+    venue_edited.update()
+    return redirect(url_for('show_venue', venue_id=venue_id))
+
+  return render_template('forms/edit_venue.html', form=form, venue=venue_edited)
 
 #  Create Artist
 #  ----------------------------------------------------------------
