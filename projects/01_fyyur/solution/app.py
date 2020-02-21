@@ -146,6 +146,18 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String)
 
+    def __init__(self, name, genres, city, state, phone, facebook_link):
+      self.name = name
+      self.genres = genres
+      self.city = city
+      self.state = state
+      self.phone = phone
+      self.facebook_link = facebook_link
+
+    def insert(self):
+      db.session.add(self)
+      db.session.commit()
+
     def update(self):
       db.session.commit()
 
@@ -547,14 +559,45 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  # DONE: insert form data as a new Venue record in the db, instead
+  # DONE: modify data to be the data object returned from db insertion
+  form = ArtistForm(request.form)
+  validated = form.validate_on_submit()
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  artist_name = form.name.data
+  exists = db.session.query(Artist.id).filter_by(name=artist_name).scalar() is not None
+
+  failed = False
+  if validated and not exists:
+    try:
+      new_artist = Artist(
+          name = form.name.data,
+          genres = ', '.join(form.genres.data),
+          city = form.city.data,
+          state = form.state.data,
+          phone = form.phone.data,
+          facebook_link = form.facebook_link.data
+      )
+      new_artist.insert()
+
+      # on successful db insert, flash success
+      flash(f'Artist {artist_name} was successfully created!', 'success')
+      
+      return redirect(url_for('show_artist', artist_id=new_artist.id))
+    except:
+      failed = True
+
+  error_message = 'There''s errors within the form. Please review it firstly.' if not validated \
+    else f'Artist {artist_name} is already registered!' if exists \
+      else f'An error occurred. Artist {artist_name} could not be created.' if failed \
+        else None
+
+  if error_message is not None:
+    flash(error_message, 'danger')
+  
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
+  return render_template('forms/new_artist.html', form=form)
 
 #  Shows
 #  ----------------------------------------------------------------
