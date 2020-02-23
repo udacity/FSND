@@ -258,10 +258,10 @@ class Show(db.Model):
 def format_datetime(value, format='medium'):
   date = dateutil.parser.parse(value)
   if format == 'full':
-      format='EEEE MMMM, d, y ''at'' h:mma'
+      format='EEEE, d MMMM y ''at'' h:mma'
   elif format == 'medium':
-      format='EE MM, dd, y h:mma'
-  return babel.dates.format_datetime(date, format)
+      format='EEE, dd MMM yy • hh:mma'
+  return babel.dates.format_datetime(date, format, locale='en')
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -619,7 +619,7 @@ def shows():
   # DONE: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
 
-  shows = Show.query.order_by(Show.start_time.asc()).all()
+  shows = Show.query.order_by(Show.start_time.desc()).all()
   data = [show.format() for show in shows]
 
   return render_template('pages/shows.html', shows=data)
