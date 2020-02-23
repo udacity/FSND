@@ -574,36 +574,35 @@ def create_artist_submission():
   # DONE: insert form data as a new Venue record in the db, instead
   # DONE: modify data to be the data object returned from db insertion
   form = ArtistForm(request.form)
-  validated = form.validate_on_submit()
 
-  artist_name = form.name.data
-  exists = db.session.query(Artist.id).filter_by(name=artist_name).scalar() is not None
-
-  failed = False
-  if validated and not exists:
+  if not form.validate_on_submit():
+    error_message = 'There''s errors within the form. Please review it firstly.'
+  else:
     try:
-      new_artist = Artist(
-          name = form.name.data,
-          genres = ', '.join(form.genres.data),
-          city = form.city.data,
-          state = form.state.data,
-          phone = form.phone.data,
-          facebook_link = form.facebook_link.data
-      )
-      new_artist.insert()
+      artist_name = form.name.data
+      exists = db.session.query(Artist.id).filter_by(name=artist_name).scalar() is not None
 
-      # on successful db insert, flash success
-      flash(f'Artist {artist_name} was successfully created!', 'success')
-      
-      return redirect(url_for('show_artist', artist_id=new_artist.id))
+      if exists:
+        error_message = f'Artist {artist_name} is already registered!'
+      else:
+        new_artist = Artist(
+            name = form.name.data,
+            genres = ', '.join(form.genres.data),
+            city = form.city.data,
+            state = form.state.data,
+            phone = form.phone.data,
+            facebook_link = form.facebook_link.data
+        )
+        new_artist.insert()
+
+        # on successful db insert, flash success
+        flash(f'Artist {artist_name} was successfully created!', 'success')
+        
+        return redirect(url_for('show_artist', artist_id=new_artist.id))
+
     except exc.SQLAlchemyError as error:
       logger.exception(error, exc_info=True)
-      failed = True
-
-  error_message = 'There''s errors within the form. Please review it firstly.' if not validated \
-    else f'Artist {artist_name} is already registered!' if exists \
-      else f'An error occurred. Artist {artist_name} could not be created.' if failed \
-        else None
+      error_message = f'An error occurred. Artist {artist_name} could not be created.'
 
   # DONE: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
