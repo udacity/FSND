@@ -344,38 +344,37 @@ def create_venue_submission():
   # DONE: insert form data as a new Venue record in the db, instead
   # DONE: modify data to be the data object returned from db insertion
   form = VenueForm(request.form)
-  validated = form.validate_on_submit()
 
-  venue_name = form.name.data
-  exists = db.session.query(Venue.id).filter_by(name=venue_name).scalar() is not None
-  
-  failed = False
-  if validated and not exists:
+  if not form.validate_on_submit():
+    error_message = 'There''s errors within the form. Please review it firstly.'
+  else:
     try:
-      new_venue = Venue(
-        name = venue_name,
-        genres = ', '.join(form.genres.data),
-        city = form.city.data,
-        state = form.state.data,
-        address = form.address.data,
-        phone = form.phone.data,
-        facebook_link = form.facebook_link.data
-      )
-      new_venue.insert()
+      venue_name = form.name.data
+      exists = db.session.query(Venue.id).filter_by(name=venue_name).scalar() is not None
+      
+      if exists:
+        error_message = f'Venue {venue_name} is already registered!'
+      else:
+        new_venue = Venue(
+          name = venue_name,
+          genres = ', '.join(form.genres.data),
+          city = form.city.data,
+          state = form.state.data,
+          address = form.address.data,
+          phone = form.phone.data,
+          facebook_link = form.facebook_link.data
+        )
+        new_venue.insert()
 
-      # on successful db insert, flash success
-      flash(f'Venue {venue_name} was successfully created!', 'success')
-      # DONE: on unsuccessful db insert, flash an error instead.
+        # on successful db insert, flash success
+        flash(f'Venue {venue_name} was successfully created!', 'success')
+        # DONE: on unsuccessful db insert, flash an error instead.
 
-      return redirect(url_for('show_venue', venue_id=new_venue.id))
+        return redirect(url_for('show_venue', venue_id=new_venue.id))
+
     except exc.SQLAlchemyError as error:
       logger.exception(error, exc_info=True)
-      failed = True
-    
-  error_message = 'There''s errors within the form. Please review it firstly.' if not validated \
-    else f'Venue {venue_name} is already registered!' if exists \
-      else f'An error occurred. Venue {venue_name} could not be created.' if failed \
-        else None
+      error_message = f'An error occurred. Venue {venue_name} could not be created.'
 
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
