@@ -1,20 +1,26 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL, Optional
+from wtforms.validators import DataRequired, AnyOf, URL, Optional, Regexp
+
 
 class ShowForm(FlaskForm):
     artist_id = StringField(
-        'artist_id'
+        'artist_id',
+        validators=[DataRequired(), Regexp(
+            regex='^[\\d]+$', message='Invalid input. Must be a number, the artist ID')]
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id',
+        validators=[DataRequired(), Regexp(
+            regex='^[\\d]+$', message='Invalid input. Must be a number, the venue ID')]
     )
     start_time = DateTimeField(
         'start_time',
         validators=[DataRequired()],
-        default= datetime.today()
+        default=datetime.today()
     )
+
 
 class VenueForm(FlaskForm):
     name = StringField(
@@ -120,6 +126,7 @@ class VenueForm(FlaskForm):
         'website', validators=[URL(), Optional()]
     )
 
+
 class ArtistForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
@@ -224,4 +231,4 @@ class ArtistForm(FlaskForm):
     )
 
 
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
+# DONE IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

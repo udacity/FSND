@@ -8,7 +8,7 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort, make_response
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import exc
+from sqlalchemy import exc, and_
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -225,6 +225,18 @@ class Show(db.Model):
   venue = db.relationship('Venue', backref='shows', lazy=True)
   artist = db.relationship('Artist', backref='shows', lazy=True)
   start_time = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+
+  def __init__(self, venue_id, artist_id, start_time):
+    self.venue_id = venue_id
+    self.artist_id = artist_id
+    self.start_time = start_time
+
+  def insert(self):
+    db.session.add(self)
+    db.session.commit()
+
+  def update(self):
+    db.session.commit()
 
   def format(self):
     return {
@@ -623,14 +635,56 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
+  # DONE: insert form data as a new Show record in the db, instead
+  form = ShowForm(request.form)
 
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
+  if not form.validate_on_submit():
+    error_message = 'There''s errors within the form. Please review it firstly.'
+  else:
+    try:
+      artist_id = form.artist_id.data
+      venue_id = form.venue_id.data
+      start_time = form.start_time.data
+
+      venue_exists = db.session.query(Venue.id).filter_by(id = venue_id).scalar() is not None
+      artist_exists = db.session.query(Artist.id).filter_by(id = artist_id).scalar() is not None
+
+      if not artist_exists:
+        error_message = f'The artist with ID {artist_id} doesn\'t exists!'
+
+      elif not venue_exists:
+        error_message = f'The venue with ID {venue_id} doesn\'t exists!'      
+
+      else:
+        exists = db.session.query(Show.id).\
+          filter(and_(
+            (Show.artist_id == artist_id) &\
+              (Show.venue_id == venue_id) &\
+                (Show.start_time == start_time)
+          )).scalar() is not None
+        
+        if exists:
+          error_message = f'This show is already registered!'
+        else:
+          new_show = Show(venue_id, artist_id, start_time)
+          new_show.insert()
+
+          # on successful db insert, flash success
+          flash(f'Show at {new_show.venue.name} with {new_show.artist.name} at {new_show.start_time} was successfully created!', 'success')
+          
+          return redirect(url_for('shows'))
+
+    except exc.SQLAlchemyError as error:
+      logger.exception(error, exc_info=True)
+      error_message = f'An error occurred while show creation. Sorry, this show could not be created.'
+
+  # DONE: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Show could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+  if error_message is not None:
+    flash(error_message, 'danger')
+
+  return render_template('forms/new_show.html', form=form)
 
 @app.errorhandler(404)
 def not_found_error(error):

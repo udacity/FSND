@@ -1,9 +1,20 @@
 {% extends 'layouts/main.html' %}
-{% block title %}New Show Listing{% endblock %}
+{% block title %}New Show{% endblock %}
 {% block content %}
   <div class="form-wrapper">
     <form method="post" class="form">
-      <h3 class="form-heading">List a new show</h3>
+      {{ form.csrf_token }}
+
+      {% if form.errors %}
+        <div class="alert alert-block alert-danger fade in mt-3">
+          <a class="close" data-dismiss="alert">&times;</a>
+          {% for field, errors in form.errors.items() %}
+            <li>{{ form[field].label }}: {{ ', '.join(errors) }}</li>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <h3 class="form-heading">Create a new show</h3>
       <div class="form-group">
         <label for="artist_id">Artist ID</label>
         <small>ID can be found on the Artist's Page</small>
