@@ -5,6 +5,7 @@ from wtforms.validators import InputRequired, URL, Optional, NoneOf
 
 
 class ShowForm(FlaskForm):
+    """Form to create show."""
     artist = SelectField(
         'artist',
         coerce=int,
@@ -25,6 +26,7 @@ class ShowForm(FlaskForm):
 
 
 class VenueForm(FlaskForm):
+    """Form to create and edit venue."""
     name = StringField(
         'name', validators=[InputRequired()]
     )
@@ -130,6 +132,7 @@ class VenueForm(FlaskForm):
 
 
 class ArtistForm(FlaskForm):
+    """Form to create and edit artist."""
     name = StringField(
         'name', validators=[InputRequired()]
     )
