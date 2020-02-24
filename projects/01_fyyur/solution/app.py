@@ -12,7 +12,7 @@ from sqlalchemy import exc, and_
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
-from forms import ShowForm, ArtistForm, ShowForm
+from forms import *
 from flask_migrate import Migrate
 from datetime import datetime
 import itertools
