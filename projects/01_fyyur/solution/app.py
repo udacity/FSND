@@ -12,7 +12,7 @@ from sqlalchemy import exc, and_
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
-from forms import *
+from forms import ShowForm, ArtistForm, ShowForm
 from flask_migrate import Migrate
 from datetime import datetime
 import itertools
@@ -624,24 +624,35 @@ def shows():
 
   return render_template('pages/shows.html', shows=data)
 
+def create_show_form():
+  form = ShowForm(request.form) if request.method == 'POST' else ShowForm()
+
+  choose_option = (0, 'Select...')
+  form.artist.choices = [choose_option]
+  form.artist.choices += [(artist.id, artist.name) for artist in Artist.query.order_by(Artist.name.asc()).all()]
+  form.venue.choices = [choose_option]
+  form.venue.choices += [(venue.id, venue.name) for venue in Venue.query.order_by(Venue.name.asc()).all()]
+
+  return form
+
 @app.route('/shows/create')
 def create_shows():
   # renders form. do not touch.
-  form = ShowForm()
+  form = create_show_form()
   return render_template('forms/new_show.html', form=form)
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # DONE: insert form data as a new Show record in the db, instead
-  form = ShowForm(request.form)
+  form = create_show_form()
 
   if not form.validate_on_submit():
     error_message = 'There''s errors within the form. Please review it firstly.'
   else:
     try:
-      artist_id = form.artist_id.data
-      venue_id = form.venue_id.data
+      artist_id = form.artist.data
+      venue_id = form.venue.data
       start_time = form.start_time.data
 
       venue_exists = db.session.query(Venue.id).filter_by(id = venue_id).scalar() is not None
