@@ -8,12 +8,14 @@ class ShowForm(FlaskForm):
     artist = SelectField(
         'artist',
         coerce=int,
-        validators=[InputRequired(), NoneOf(values=[0], message='Invalid option. You must choose any of the options below')]
+        validators=[InputRequired(), NoneOf(
+            values=[0], message='Invalid option. You must choose any of the options below')]
     )
     venue = SelectField(
         'venue',
         coerce=int,
-        validators=[InputRequired(), NoneOf(values=[0], message='Invalid option. You must choose any of the options below')]
+        validators=[InputRequired(), NoneOf(
+            values=[0], message='Invalid option. You must choose any of the options below')]
     )
     start_time = DateTimeField(
         'start_time',
