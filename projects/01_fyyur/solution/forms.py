@@ -1,36 +1,36 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL, Optional, Regexp
+from wtforms.validators import InputRequired, AnyOf, URL, Optional, Regexp
 
 
 class ShowForm(FlaskForm):
     artist_id = StringField(
         'artist_id',
-        validators=[DataRequired(), Regexp(
+        validators=[InputRequired(), Regexp(
             regex='^[\\d]+$', message='Invalid input. Must be a number, the artist ID')]
     )
     venue_id = StringField(
         'venue_id',
-        validators=[DataRequired(), Regexp(
+        validators=[InputRequired(), Regexp(
             regex='^[\\d]+$', message='Invalid input. Must be a number, the venue ID')]
     )
     start_time = DateTimeField(
         'start_time',
-        validators=[DataRequired()],
+        validators=[InputRequired()],
         default=datetime.today()
     )
 
 
 class VenueForm(FlaskForm):
     name = StringField(
-        'name', validators=[DataRequired()]
+        'name', validators=[InputRequired()]
     )
     city = StringField(
-        'city', validators=[DataRequired()]
+        'city', validators=[InputRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state', validators=[InputRequired()],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -86,7 +86,7 @@ class VenueForm(FlaskForm):
         ]
     )
     address = StringField(
-        'address', validators=[DataRequired()]
+        'address', validators=[InputRequired()]
     )
     phone = StringField(
         'phone'
@@ -96,7 +96,7 @@ class VenueForm(FlaskForm):
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
+        'genres', validators=[InputRequired()],
         choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),
@@ -129,13 +129,13 @@ class VenueForm(FlaskForm):
 
 class ArtistForm(FlaskForm):
     name = StringField(
-        'name', validators=[DataRequired()]
+        'name', validators=[InputRequired()]
     )
     city = StringField(
-        'city', validators=[DataRequired()]
+        'city', validators=[InputRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state', validators=[InputRequired()],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -199,7 +199,7 @@ class ArtistForm(FlaskForm):
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
+        'genres', validators=[InputRequired()],
         choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),
