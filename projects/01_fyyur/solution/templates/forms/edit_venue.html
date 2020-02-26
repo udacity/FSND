@@ -46,6 +46,18 @@
       <label for="image_link">Image Link</label>
       {{ form.image_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
     </div>
+    <div class="form-group">
+      <div class="form-check">
+          {{ form.seeking_talent(class_ = 'form-check-input', autofocus = true) }}
+          <label class="form-check-label" for="seeking_talent">
+            Seeking talent?
+          </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="seeking_description">Seeking description</label>
+      {{ form.seeking_description(class_ = 'form-control', autofocus = true) }}
+    </div>
     <input type="submit" value="Save Venue" class="btn btn-primary btn-lg btn-block">
   </form>
 </div>

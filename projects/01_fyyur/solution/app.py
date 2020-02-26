@@ -593,17 +593,10 @@ def edit_artist_submission(artist_id):
 
     form = ArtistForm(request.form)
 
+
     if form.validate_on_submit():
-        artist_edited.name = form.name.data
-        artist_edited.genres = ', '.join(form.genres.data)
-        artist_edited.city = form.city.data
-        artist_edited.state = form.state.data
-        artist_edited.phone = form.phone.data
-        artist_edited.website = form.website.data
-        artist_edited.facebook_link = form.facebook_link.data
-        # artist_edited.seeking_venue = form.seeking_venue.data
-        # artist_edited.seeking_description = form.seeking_description.data
-        artist_edited.image_link = form.image_link.data
+        form.genres.data = ', '.join(form.genres.data)
+        form.populate_obj(artist_edited)
         artist_edited.update()
 
         return redirect(url_for('show_artist', artist_id=artist_id))
@@ -653,18 +646,10 @@ def edit_venue_submission(venue_id):
     form = VenueForm(request.form)
 
     if form.validate_on_submit():
-        venue_edited.name = form.name.data
-        venue_edited.genres = ', '.join(form.genres.data)
-        venue_edited.address = form.address.data
-        venue_edited.city = form.city.data
-        venue_edited.state = form.state.data
-        venue_edited.phone = form.phone.data
-        venue_edited.website = form.website.data
-        venue_edited.facebook_link = form.facebook_link.data
-        # venue_edited.seeking_talent = form.seeking_talent.data
-        # venue_edited.seeking_description = form.seeking_description.data
-        venue_edited.image_link = form.image_link.data
+        form.genres.data = ', '.join(form.genres.data)
+        form.populate_obj(venue_edited)
         venue_edited.update()
+
         return redirect(url_for('show_venue', venue_id=venue_id))
 
     return render_template('forms/edit_venue.html', form=form, venue=venue_edited)
