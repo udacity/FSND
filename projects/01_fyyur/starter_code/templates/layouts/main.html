@@ -75,6 +75,17 @@
                   aria-label="Search">
               </form>
               {% endif %}
+              {% if (request.endpoint == 'shows') or
+                (request.endpoint == 'search_shows') or
+                (request.endpoint == 'show_shows') %}
+              <form class="search" method="post" action="/shows/search">
+                <input class="form-control"
+                  type="search"
+                  name="search_term"
+                  placeholder="Find a show"
+                  aria-label="Search">
+              </form>
+              {% endif %}
             </li>
           </ul>
           <ul class="nav navbar-nav">
@@ -117,6 +128,6 @@
   <script>window.jQuery || document.write('<script type="text/javascript" src="/static/js/libs/jquery-1.11.1.min.js"><\/script>')</script>
   <script type="text/javascript" src="/static/js/libs/bootstrap-3.1.1.min.js" defer></script>
   <script type="text/javascript" src="/static/js/plugins.js" defer></script>
-
+  
 </body>
 </html>
