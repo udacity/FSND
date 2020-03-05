@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL, Length
+from wtforms.validators import DataRequired, AnyOf, URL
 from genreEnum import Genre
 
 genreList = list()
@@ -192,7 +192,7 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for state
-        'phone', validators=[DataRequired(), Length(max=5)]
+        'phone', validators=[DataRequired()]
     )
     image_link = StringField(
         'image_link'
