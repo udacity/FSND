@@ -12,7 +12,9 @@
 					<h5>{{ venue.name }}</h5>
 				</div>
 			</a>
-			<button class="deleteButton" data-id="{{ venue.id }}">DELETE</button>
+				<div class="item">
+					<button class="deleteButton" data-id="{{ venue.id }}">DELETE</button>
+				</div>
 		</li>
 		{% endfor %}
 	</ul>
