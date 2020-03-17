@@ -3,11 +3,12 @@ from sqlalchemy import Column, String, Integer
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-database_name = "casting-agency"
-database_path = "postgres://postgres:stemed@{}/{}".format('localhost:5432', database_name)
+# database_name = "casting-agency"
+# database_path = "postgres://postgres:stemed@{}/{}".format('localhost:5432', database_name)
+
 db = SQLAlchemy()
 def setup_db(app, database_path=database_path):
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_path
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ['DATABASE_URL']
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
