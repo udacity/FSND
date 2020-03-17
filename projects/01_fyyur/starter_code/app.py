@@ -17,13 +17,14 @@ from forms import *
 # ----------------------------------------------------------------------------#
 # App Config.
 # ----------------------------------------------------------------------------#
+from sqlalchemy.exc import SQLAlchemyError
 
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-# TODO: connect to a local postgresql database
+# TODONE: connect to a local postgresql database
 migrate = Migrate(app, db)
 
 
@@ -47,7 +48,7 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(240))
     shows_venue = db.relationship('show', backref='venue', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # TODONE: implement any missing fields, as a database migration using Flask-Migrate
 
 
 class Artist(db.Model):
@@ -65,10 +66,10 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String(240))
     shows_artist = db.relationship('show', backref='artist', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # TODONE: implement any missing fields, as a database migration using Flask-Migrate
 
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# TODONE Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
     __tablename__ = 'show'
 
@@ -76,6 +77,7 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=False)
     start_time = db.Column(db.TIMESTAMP(timezone=True))
+
 
 # ----------------------------------------------------------------------------#
 # Filters.
@@ -109,27 +111,15 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
-    data = [{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
+    areas = Venue.query.distinct('city', 'state').all()
+    data = []
+    for area in areas:
+        venues = Venue.query.filter(Venue.city == area.city, Venue.state == area.state).all()
+        record = {
+            'city': area.city,
+            'state': area.state,
+            'venues': 'faker'}  # TODO: Need to redo with groupby https://stackoverflow.com/questions/1052148/group-by-count-function-in-sqlalchemy
+        data.append(record)
     return render_template('pages/venues.html', areas=data);
 
 
@@ -138,6 +128,7 @@ def search_venues():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+
     response = {
         "count": 1,
         "data": [{
@@ -247,14 +238,47 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+    error = False
+    form = VenueForm(request.form)
+    if form.validate():
+        try:
+            seeking_talent = False
+            seeking_description = ''
+            if 'seeking_talent' in request.form:
+                seeking_talent = request.form['seeking_talent'] == 'y'
+            if 'seeking_description' in request.form:
+                seeking_description = request.form['seeking_description']
+            new_venue = Venue(
+                name=request.form['name'],
+                genres=request.form.getlist('genres'),
+                address=request.form['address'],
+                city=request.form['city'],
+                state=request.form['state'],
+                phone=request.form['phone'],
+                website=request.form['website'],
+                facebook_link=request.form['facebook_link'],
+                image_link=request.form['image_link'],
+                seeking_talent=seeking_talent,
+                seeking_description=seeking_description
+            )
+            db.session.add(new_venue)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            error = True
+            db.session.rollback()
+        finally:
+            db.session.close()
+        if error:
+            flash('An error has occurred. Venue ' + request.form['name'] + " couldn't be listed.")
+            # TODO: modify data to be the data object returned from db insertion
+        else:
+            flash('Venue ' + request.form['name'] + ' was successfully listed!')
+        # on successful db insert, flash success
+        # flash('Venue ' + request.form['name'] + ' was successfully listed!')
+        # TODO: on unsuccessful db insert, flash an error instead.
+        # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
+        # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+        return render_template('pages/home.html')
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
