@@ -3,7 +3,7 @@ venv/
 __pycache__/
 test.db
 env/
-*.zip
+.zip
 
 # OS generated files #
 ######################
