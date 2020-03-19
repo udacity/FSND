@@ -24,7 +24,7 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-# TODO: connect to a local postgresql database
+# TODONE: connect to a local postgresql database
 migrate = Migrate(app, db)
 
 
@@ -48,7 +48,7 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(240))
     shows_venue = db.relationship('Show', backref='Venue', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # TODONE: implement any missing fields, as a database migration using Flask-Migrate
 
 
 class Artist(db.Model):
@@ -66,10 +66,10 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String(240))
     shows_artist = db.relationship('Show', backref='Artist', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # TODONE: implement any missing fields, as a database migration using Flask-Migrate
 
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# TODONE Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
     __tablename__ = 'show'
 
@@ -484,37 +484,41 @@ def create_artist_submission():
     # called upon submitting the new artist listing form
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
-    error = False
-
-    try:
-        if request.form['seeking_venue'] == 'y':
-            seeking_venue = True
+    current_artist_names = Artist.query.all()
+    for artist in current_artist_names:
+        if artist.name == request.form['name']:
+            flash(request.form['name'] + ' is already listed as an Artist . Please pick a new name')
+            break
+        error = False
+        try:
+            if request.form['seeking_venue'] == 'y':
+                seeking_venue = True
+            else:
+                seeking_venue = False
+            new_artist = Artist(
+                name=request.form['name'],
+                city=request.form['city'],
+                state=request.form['state'],
+                phone=request.form['phone'],
+                genres=request.form['genres'],
+                facebook_link=request.form['facebook_link'],
+                image_link=request.form['image_link'],
+                seeking_venue=seeking_venue,
+                seeking_description=request.form['seeking_description']
+            )
+            db.session.add(new_artist)
+            db.session.commit()
+        except:
+            error = True
+            db.session.rollback()
+            print(sys.exc_info())
+        finally:
+            db.session.close()
+        if error:
+            flash('Error! Artist not listed!')
         else:
-            seeking_venue = False
-        new_artist = Artist(
-            name=request.form['name'],
-            city=request.form['city'],
-            state=request.form['state'],
-            phone=request.form['phone'],
-            genres=request.form['genres'],
-            facebook_link=request.form['facebook_link'],
-            image_link=request.form['image_link'],
-            seeking_venue=seeking_venue,
-            seeking_description=request.form['seeking_description']
-        )
-        db.session.add(new_artist)
-        db.session.commit()
-    except:
-        error = True
-        db.session.rollback()
-        print(sys.exc_info())
-    finally:
-        db.session.close()
-    if error:
-        flash('Error! Artist not listed!')
-    else:
-        # on successful db insert, flash success
-        flash('Artist ' + request.form['name'] + ' was successfully listed!')
+            # on successful db insert, flash success
+            flash('Artist ' + request.form['name'] + ' was successfully listed!')
     # on successful db insert, flash success
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
@@ -602,7 +606,7 @@ def create_show_submission():
         flash('Show was successfully listed!')
     # on successful db insert, flash success
 
-    # TODO: on unsuccessful db insert, flash an error instead.
+    # TODOONE: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Show could not be listed.')
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
