@@ -28,6 +28,10 @@
         <small>Ctrl+Click to select multiple</small>
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id=form.state, autofocus = true) }}
       </div>
+        <div class="form-group">
+            <label for="website">Website</label>
+            {{ form.website(class_ = 'form-control', placeholder='Website', id=form.state, autofocus = true) }}
+        </div>
       <div class="form-group">
           <label for="facebook_link">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
