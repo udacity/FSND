@@ -1,31 +1,26 @@
 # ----------------------------------------------------------------------------#
 # Imports
 # ----------------------------------------------------------------------------#
-
-import json
-import dateutil.parser
-import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
-from flask_migrate import Migrate
-from flask_moment import Moment
-from flask_sqlalchemy import SQLAlchemy
 import logging
-from logging import Formatter, FileHandler
-from flask_wtf import Form
-from forms import *
-import sys
+from logging import FileHandler, Formatter
+
+from flask import Flask, render_template, request, Response, flash, redirect, url_for
+
+from flask_sqlalchemy import SQLAlchemy
+
+
 
 # ----------------------------------------------------------------------------#
 # App Config.
 # ----------------------------------------------------------------------------#
 
 app = Flask(__name__)
-moment = Moment(app)
-app.config.from_object('config')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://derekyesmunt@localhost:5432/FYYUR'
 db = SQLAlchemy(app)
 
 # TODONE: connect to a local postgresql database
-migrate = Migrate(app, db)
+
 
 
 # ----------------------------------------------------------------------------#
@@ -43,10 +38,9 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String(120))
-    genres = db.Column(db.ARRAY(db.String(120)))
-    seeking_talent = db.Column(db.Boolean, default=False)
-    seeking_description = db.Column(db.String(240), default='')
+    genres = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
+    seeking_description = db.Column(db.String(240))
     shows_venue = db.relationship('Show', backref='Venue', lazy=True)
 
     # TODONE: implement any missing fields, as a database migration using Flask-Migrate
@@ -60,7 +54,7 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.ARRAY(db.String(120)))
+    genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
@@ -248,17 +242,13 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODONE: insert form data as a new Venue record in the db, instead
-    # TODONE: modify data to be the data object returned from db insertion
-    current_venue_names = Venue.query.all()
-    # for venue in current_venue_names:
-    #     if venue.name == request.form['name']:
-    #         flash(request.form['name'] + ' is already listed as a Venue . Please pick a new name')
-    #         break
-
+    # TODO: insert form data as a new Venue record in the db, instead
+    # TODO: modify data to be the data object returned from db insertion
     error = False
+
+
     try:
-        if 'seeking_talent' in request.form:
+        if request.form['seeking_talent'] == 'y':
             seeking_talent = True
         else:
             seeking_talent = False
@@ -268,8 +258,7 @@ def create_venue_submission():
             state=request.form['state'],
             address=request.form['address'],
             phone=request.form['phone'],
-            genres=request.form.getlist('genres'),
-            website=request.form['website'],
+            genres=request.form['genres'],
             facebook_link=request.form['facebook_link'],
             image_link=request.form['image_link'],
             seeking_talent=seeking_talent,
@@ -491,9 +480,9 @@ def create_artist_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
     current_artist_names = Artist.query.all()
-    for artist in current_artist_names:
-        if artist.name == request.form['name']:
-            flash(request.form['name'] + ' is already listed as an Artist . Please pick a new name')
+    for name in current_artist_names:
+        if name['name'] == request.form['name']:
+            flash('Artist ' + request.form['name'] + 'is already listed. Please pick a new name')
             break
         error = False
         try:
@@ -629,7 +618,7 @@ def server_error(error):
 
 
 if not app.debug:
-    file_handler = FileHandler('error.log')
+    file_handler = FileHandler('projects/01_fyyur/starter_code/error.log')
     file_handler.setFormatter(
         Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
     )
