@@ -43,9 +43,10 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
-    seeking_description = db.Column(db.String(240))
+    website = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String(120)))
+    seeking_talent = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.String(240), default='')
     shows_venue = db.relationship('Show', backref='Venue', lazy=True)
 
     # TODONE: implement any missing fields, as a database migration using Flask-Migrate
@@ -59,7 +60,7 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String(120)))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
@@ -250,42 +251,43 @@ def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
     current_venue_names = Venue.query.all()
-    for venue in current_venue_names:
-        if venue.name == request.form['name']:
-            flash(request.form['name'] + ' is already listed as a Venue . Please pick a new name')
-            break
+    # for venue in current_venue_names:
+    #     if venue.name == request.form['name']:
+    #         flash(request.form['name'] + ' is already listed as a Venue . Please pick a new name')
+    #         break
 
-        error = False
-        try:
-            if request.form['seeking_talent'] == 'y':
-                seeking_talent = True
-            else:
-                seeking_talent = False
-            new_venue = Venue(
-                name=request.form['name'],
-                city=request.form['city'],
-                state=request.form['state'],
-                address=request.form['address'],
-                phone=request.form['phone'],
-                genres=request.form['genres'],
-                facebook_link=request.form['facebook_link'],
-                image_link=request.form['image_link'],
-                seeking_talent=seeking_talent,
-                seeking_description=request.form['seeking_description']
-            )
-            db.session.add(new_venue)
-            db.session.commit()
-        except:
-            error = True
-            db.session.rollback()
-            print(sys.exc_info())
-        finally:
-            db.session.close()
-        if error:
-            flash('Error! Venue not listed')
+    error = False
+    try:
+        if 'seeking_talent' in request.form:
+            seeking_talent = True
         else:
-            # on successful db insert, flash success
-            flash('Venue ' + request.form['name'] + ' was successfully listed!')
+            seeking_talent = False
+        new_venue = Venue(
+            name=request.form['name'],
+            city=request.form['city'],
+            state=request.form['state'],
+            address=request.form['address'],
+            phone=request.form['phone'],
+            genres=request.form.getlist('genres'),
+            website=request.form['website'],
+            facebook_link=request.form['facebook_link'],
+            image_link=request.form['image_link'],
+            seeking_talent=seeking_talent,
+            seeking_description=request.form['seeking_description']
+        )
+        db.session.add(new_venue)
+        db.session.commit()
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+    if error:
+        flash('Error! Venue not listed')
+    else:
+        # on successful db insert, flash success
+        flash('Venue ' + request.form['name'] + ' was successfully listed!')
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
