@@ -141,7 +141,7 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+    # TODONE: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
     search_str = request.form.get('search_term')
@@ -160,9 +160,9 @@ def search_venues():
         "count": search_response_count,
         "data": data
     }
-
     return render_template('pages/search_venues.html', results=response,
                            search_term=request.form.get('search_term', ''))
+
 
 def venue_past_shows(venue_id):
     past_shows = Show.query.join(Venue, Show.venue_id == Venue.id).join(Artist, Artist.id == Show.artist_id).filter(Show.start_time < datetime.now(), Show.venue_id == venue_id).all()
@@ -182,6 +182,7 @@ def venue_past_show_count(venue_id):
     past_show_count = Show.query.join(Venue, Show.venue_id == Venue.id).join(Artist, Artist.id == Show.artist_id).filter(
         Show.start_time < datetime.now(), Show.venue_id == venue_id).count()
     return past_show_count
+
 
 def venue_upcoming_shows(venue_id):
     data = []
@@ -315,13 +316,21 @@ def search_artists():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
     # search for "band" should return "The Wild Sax Band".
+    search_str = request.form.get('search_term')
+    search_response = Artist.query.filter(Artist.name.ilike('%{}%'.format(search_str))).all()
+    search_response_count = len(search_response)
+    data = []
+    for artist in search_response:
+        artist_data = {
+            "id": artist.id,
+            "name": artist.name,
+            "num_upcoming_shows": artist_upcoming_show_count(artist.id)
+        }
+        data.append(artist_data)
+
     response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
+        "count": search_response_count,
+        "data": data
     }
     return render_template('pages/search_artists.html', results=response,
                            search_term=request.form.get('search_term', ''))
