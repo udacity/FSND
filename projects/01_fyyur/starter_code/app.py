@@ -8,10 +8,16 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+import sys
+import logging
+import json
+from collections import defaultdict
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -22,10 +28,16 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 
 # TODO: connect to a local postgresql database
+migrate = Migrate(app, db)
 
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
+shows = db.Table('shows',
+    db.Column('venue_id',db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
+    db.Column('artist_id',db.Integer, db.ForeignKey('Artist.id'), primary_key=True),       
+    db.Column('date_time',db.DateTime, nullable = False)
+)
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
@@ -38,8 +50,8 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    artists = db.relationship('Artist', secondary=shows, backref=db.backref('Venue', lazy=True))
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -52,9 +64,8 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
+    venues = db.relationship('Venue', secondary=shows, backref=db.backref('Artist', lazy=True))
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 #----------------------------------------------------------------------------#
@@ -87,27 +98,50 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  # data=[{
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "venues": [{
+  #     "id": 1,
+  #     "name": "The Musical Hop",
+  #     "num_upcoming_shows": 0,
+  #   }, {
+  #     "id": 3,
+  #     "name": "Park Square Live Music & Coffee",
+  #     "num_upcoming_shows": 1,
+  #   }]
+  # }, {
+  #   "city": "New York",
+  #   "state": "NY",
+  #   "venues": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }]
+  raw_data = Venue.query.order_by(Venue.state, Venue.city).all()
+  tmp_data = defaultdict(list)
+  data = []
+  tmp_city = ''
+  tmp_state = ''
+  for entry in raw_data:
+        if tmp_city == '':
+              tmp_data = {'city':entry.city,
+                          'state':entry.state,
+                          'venues':[{'id':entry.id,'name':entry.name}]
+                          }
+              data.append(tmp_data)
+        elif tmp_city == entry.city:
+              tmp_data['venues'].append({'id':entry.id,'name':entry.name})
+        else:
+              tmp_data = {'city':entry.city,
+                         'state':entry.state,
+                         'venues':[{'id':entry.id,'name':entry.name}]
+                         }
+              data.append(tmp_data)
+
+        tmp_city = entry.city            
+  print(data)
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
