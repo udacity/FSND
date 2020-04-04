@@ -2,18 +2,21 @@ from flask import Flask, jsonify, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
-
-from models import *
+from models import Question, Category, setup_db
 
 QUESTIONS_PER_PAGE = 10
+
 
 def paginate_questions(request, selection):
     page = request.args.get('page', 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
 
-    questions = [question.format() for question in selection]
-    current_questions = questions[start:end]
+    question_list = [question.format() for question in selection]
+    current_questions = question_list[start:end]
+
+    return current_questions
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -21,11 +24,9 @@ def create_app(test_config=None):
     setup_db(app)
     cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-
     '''
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     '''
-
 
     '''
     @TODO: Use the after_request decorator to set Access-Control-Allow
@@ -42,6 +43,7 @@ def create_app(test_config=None):
     Create an endpoint to handle GET requests 
     for all available categories.
     '''
+
     @app.route('/categories', methods=['GET'])
     def list_categories():
         cat_list = []
@@ -56,7 +58,6 @@ def create_app(test_config=None):
             'total_categories': len(categories)
         })
 
-
     '''
     @TODO: 
     Create an endpoint to handle GET requests for questions, 
@@ -67,25 +68,27 @@ def create_app(test_config=None):
 
     @app.route('/questions', methods=['GET'])
     def list_questions():
-        selection = Question.query.all()
+        selection = Question.query.order_by(Question.id).all()
         current_questions = paginate_questions(request, selection)
+
+        current_cat = request.args.get('currentCategory', 'None', type=str)
 
         cat_list = []
         categories = Category.query.all()
         for category in categories:
             cat_list.append(category.type)
 
-
+        if len(current_questions) == 0:
+             abort(404)
 
         return jsonify({
             'status_code': 200,
             'success': True,
-            'questions': question_list,
-            'total_questions': len(total_questions),
+            'questions': current_questions,
+            'total_questions': len(selection),
             'current_category': current_cat,
             'categories': cat_list
-        })
-
+            })
 
     '''
     TEST: At this point, when you start the application

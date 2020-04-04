@@ -3,6 +3,8 @@ import $ from 'jquery';
 
 import '../stylesheets/FormView.css';
 
+
+
 class FormView extends Component {
   constructor(props){
     super();
@@ -17,7 +19,7 @@ class FormView extends Component {
 
   componentDidMount(){
     $.ajax({
-      url: `/categories`, //TODO: update request URL
+      url: 'http:127.0.0.1:5000/categories', //TODO: update request URL
       type: "GET",
       success: (result) => {
         this.setState({ categories: result.categories })
