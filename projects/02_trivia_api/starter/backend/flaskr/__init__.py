@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, jsonify
+from flask import Flask, jsonify, request, jsonify, abort
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
@@ -79,7 +79,7 @@ def create_app(test_config=None):
             cat_list.append(category.type)
 
         if len(current_questions) == 0:
-             abort(404)
+            abort(404)
 
         return jsonify({
             'status_code': 200,
@@ -88,7 +88,7 @@ def create_app(test_config=None):
             'total_questions': len(selection),
             'current_category': current_cat,
             'categories': cat_list
-            })
+        })
 
     '''
     TEST: At this point, when you start the application
@@ -104,6 +104,26 @@ def create_app(test_config=None):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page. 
     '''
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        try:
+            question = Question.query.filter(Question.id == question_id).one_or_none()
+
+            if question is None:
+                abort(404)
+
+            question.delete()
+            # selection = Question.query.order_by(Question.id).all()
+            # current_questions = paginate_questions(request, selection)
+
+            return jsonify({
+                'status_code': 200,
+                'success': True
+            })
+
+        except:
+            abort(422)
+
 
     '''
     @TODO: 
