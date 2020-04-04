@@ -18,7 +18,6 @@ class TriviaTestCase(unittest.TestCase):
         setup_db(self.app, self.database_path)
 
         self.new_question = {
-            'id': 1,
             'question': 'What day is it?',
             'answer': 'Who cares?',
             'category': '1',
@@ -41,13 +40,22 @@ class TriviaTestCase(unittest.TestCase):
     Write at least one test for each test for successful operation and for expected errors.
     """
 
+    def test_insert_question(self):
+        res = self.client().post('/questions', json=self.new_question)
+        data = json.loads(res.data)
 
-    # def test_delete_question(self):
-    #     res = self.client().delete('/questions/2')
-    #     # data = json.loads(res.data)
-    #
-    #     self.assertEqual(res.status_code, 200)
-    #     # self.assertEqual(data['success'], True)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+
+
+    def test_delete_question(self):
+        res = self.client().delete('/questions/1')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
 
 
     def test_get_question_categories(self):
