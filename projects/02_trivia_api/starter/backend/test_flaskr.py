@@ -62,7 +62,7 @@ class TriviaTestCase(unittest.TestCase):
                                               'History',
                                               'Entertainment',
                                               'Sports'])
-        self.assertEqual(data['total_categories'], 6)
+        self.assertEqual(data['total_categories'], len(Category.query.all()))
 
     def test_get_questions(self):
         res = self.client().get('/questions')
@@ -71,7 +71,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['questions'])
-        self.assertEqual(data['total_questions'], 18)
+        self.assertEqual(data['total_questions'], len(Question.query.all()))
         self.assertEqual(data['current_category'], 'None')
         self.assertEqual(data['categories'], ['Science',
                                               'Art',
