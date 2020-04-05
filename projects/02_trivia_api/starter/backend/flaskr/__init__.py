@@ -174,19 +174,20 @@ def create_app(test_config=None):
     Try using the word "title" to start. 
     '''
 
-    @app.route('/questions')
+    @app.route('/questions', methods=['POST'])
     def question_search():
         body = request.get_json()
-        search_term = body.get('search_term', None)
+        search_term = body.get('searchTerm', None)
 
         try:
-            selection = Question.query.order_by(Question.id).filter(Question.question.ilike(f'{search_term}'))
-            current_questions = paginate_questions(request, selection)
+            question_selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(search_term)))
+            current_questions = paginate_questions(request, question_selection)
 
             return jsonify({
+                'status_code': 200,
                 'success': True,
                 'questions': current_questions,
-                'total_questions': len(selection),
+                'total_questions': len(question_selection.all()),
                 'current_category': None
             })
         except:
@@ -199,6 +200,7 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that 
     category to be shown. 
     '''
+
 
     '''
     @TODO: 
@@ -217,5 +219,29 @@ def create_app(test_config=None):
     Create error handlers for all expected errors 
     including 404 and 422. 
     '''
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "resource not found"
+        }), 404
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            "success": False,
+            "error": 422,
+            "message": "unprocessable"
+        }), 422
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": "bad request"
+        }), 400
 
     return app

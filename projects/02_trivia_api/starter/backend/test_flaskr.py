@@ -49,12 +49,12 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['questions'])
         self.assertTrue(data['total_questions'])
 
-    def test_delete_question(self):
-        res = self.client().delete(f'/questions/26')
-        data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(data['success'], True)
+    # def test_delete_question(self):
+    #     res = self.client().delete(f'/questions/26')
+    #     data = json.loads(res.data)
+    #
+    #     self.assertEqual(res.status_code, 200)
+    #     self.assertEqual(data['success'], True)
 
     def test_get_question_categories(self):
         res = self.client().get('/categories')
@@ -86,14 +86,14 @@ class TriviaTestCase(unittest.TestCase):
                                               'Entertainment',
                                               'Sports'])
 
-    # def test_search_questions(self):
-    #     res = self.client().post('/questions', json={'search_term': 'rice'})
-    #     data = json.loads(res.data)
-    #
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #     self.assertTrue(data['questions'])
-    #     self.assertEqual(data['total_questions'], 1)
+    def test_search_questions(self):
+        res = self.client().post('/questions', json={'searchTerm': 'burton'})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(len(data['questions']), 1)
+        self.assertTure(data['total_questions'])
 
 
 # Make the tests conveniently executable
