@@ -40,17 +40,17 @@ class TriviaTestCase(unittest.TestCase):
     Write at least one test for each test for successful operation and for expected errors.
     """
 
-    def test_insert_question(self):
-        res = self.client().post('/questions', json=self.new_question)
-        data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(data['success'], True)
-        self.assertTrue(data['questions'])
-        self.assertTrue(data['total_questions'])
-
+    # def test_insert_question(self):
+    #     res = self.client().post('/questions', json=self.new_question)
+    #     data = json.loads(res.data)
+    #
+    #     self.assertEqual(res.status_code, 200)
+    #     self.assertEqual(data['success'], True)
+    #     self.assertTrue(data['questions'])
+    #     self.assertTrue(data['total_questions'])
+    #
     # def test_delete_question(self):
-    #     res = self.client().delete(f'/questions/26')
+    #     res = self.client().delete(f'/questions/79')
     #     data = json.loads(res.data)
     #
     #     self.assertEqual(res.status_code, 200)
@@ -86,14 +86,23 @@ class TriviaTestCase(unittest.TestCase):
                                               'Entertainment',
                                               'Sports'])
 
-    def test_search_questions(self):
+    def test_search_questions_with_results(self):
         res = self.client().post('/questions', json={'searchTerm': 'burton'})
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertEqual(len(data['questions']), 1)
-        self.assertTure(data['total_questions'])
+        self.assertTrue(data['total_questions'])
+
+    def test_search_questions_without_results(self):
+        res = self.client().post('/questions', json={'searchTerm': 'michigan'})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(len(data['questions']), 0)
+        self.assertEqual(data['total_questions'], 0)
 
 
 # Make the tests conveniently executable

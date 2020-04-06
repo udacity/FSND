@@ -144,20 +144,34 @@ def create_app(test_config=None):
         new_answer = body.get('answer', None)
         new_difficulty = body.get('difficulty', None)
         new_category = body.get('category', None)
+        search_term = body.get('searchTerm', None)
 
         try:
-            question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
-            question.insert()
+            if search_term:
+                selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(search_term)))
+                current_questions = paginate_questions(request, selection)
 
-            selection = Question.query.order_by(Question.id).all()
-            current_questions = paginate_questions(request, selection)
+                return jsonify({
+                    'success': True,
+                    'questions': current_questions,
+                    'total_questions': len(selection.all()),
+                    'current_category': None
+                })
 
-            return jsonify({
-                'success': True,
-                'created': question.id,
-                'questions': current_questions,
-                'total_questions': len(Question.query.all())
-            })
+            else:
+                question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+                question.insert()
+
+                selection = Question.query.order_by(Question.id).all()
+                current_questions = paginate_questions(request, selection)
+
+                return jsonify({
+                    'success': True,
+                    'created': question.id,
+                    'questions': current_questions,
+                    'total_questions': len(Question.query.all())
+                })
+
         except:
             abort(422)
 
@@ -174,24 +188,7 @@ def create_app(test_config=None):
     Try using the word "title" to start. 
     '''
 
-    @app.route('/questions', methods=['POST'])
-    def question_search():
-        body = request.get_json()
-        search_term = body.get('searchTerm', None)
 
-        try:
-            question_selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(search_term)))
-            current_questions = paginate_questions(request, question_selection)
-
-            return jsonify({
-                'status_code': 200,
-                'success': True,
-                'questions': current_questions,
-                'total_questions': len(question_selection.all()),
-                'current_category': None
-            })
-        except:
-            abort(422)
     '''
     @TODO: 
     Create a GET endpoint to get questions based on category. 
