@@ -85,7 +85,6 @@ class Show(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
     start_time = db.Column(db.DateTime(), nullable=False)
 
-
 # ----------------------------------------------------------------------------#
 # Filters.
 # ----------------------------------------------------------------------------#
@@ -102,6 +101,16 @@ def format_datetime(value, format='medium'):
 
 app.jinja_env.filters['datetime'] = format_datetime
 
+
+def getFormatedVenueData(filterQuery):
+    upcomingShow = func.count(
+        text('CASE WHEN "Show".start_time > :date THEN "Show".venue_id END')
+        ).params(date=datetime.now())
+    venueRows = Venue.query.with_entities(
+      Venue.id, Venue.name, upcomingShow.label('num_upcoming_shows')).filter(
+        filterQuery).outerjoin(Show).group_by(Venue.id)
+    return [venue._asdict() for venue in venueRows]
+
 # ----------------------------------------------------------------------------#
 # Controllers.
 # ----------------------------------------------------------------------------#
@@ -117,19 +126,8 @@ def index():
     }
     return render_template('pages/home.html', recent_listings=recent_listings)
 
-
 #  Venues
 #  ----------------------------------------------------------------
-
-
-def getFormatedVenueData(filterQuery):
-    upcomingShow = func.count(
-        text('CASE WHEN "Show".start_time > :date THEN "Show".venue_id END')
-        ).params(date=datetime.now())
-    venueRows = Venue.query.with_entities(
-      Venue.id, Venue.name, upcomingShow.label('num_upcoming_shows')).filter(
-        filterQuery).outerjoin(Show).group_by(Venue.id)
-    return [venue._asdict() for venue in venueRows]
 
 
 @app.route('/venues')
@@ -279,6 +277,7 @@ def show_venue(venue_id):
     pastShowCount = func.count(
       text('CASE WHEN "Show".start_time < :date THEN "Show".venue_id END')
       ).params(date=currTime)
+
     venueRow = Venue.query.filter_by(id=venue_id).with_entities(
       Venue.id, Venue.name, Venue.genres, Venue.address,
       Venue.city, Venue.state, Venue.phone, Venue.website, Venue.facebook_link,
@@ -373,6 +372,8 @@ def show_artist(artist_id):
 
 #  Update
 #  ----------------------------------------------------------------
+
+
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist_form(artist_id):
     form = ArtistForm()
