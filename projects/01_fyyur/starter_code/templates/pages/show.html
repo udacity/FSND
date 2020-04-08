@@ -8,9 +8,23 @@
     <p class="lead"> Show Search </p>
 
     <ul class="nav nav-pills">
-        <li class="active"><a>Shows</a></li>
+        <li class="active"><a href="/shows">Shows</a></li>
     </ul>
-
-{#    Todo implement show search frontend #}
+    <h3>Number of search results for "{{ search_term }}": {{ results.count }}</h3>
+    <ul class="items">
+        {% for show in results.data %}
+        <li>
+            <div class="item">
+                <a href="/artists/{{ show.artist_id }}">
+                    <h5>Artist: {{ show.artist_name }}</h5>
+                </a>
+                <a href="/venues/{{ show.venue_id }}">
+                    <h5>Venue: {{ show.venue_name }}</h5>
+                </a>
+                <h5>Start Time: {{ show.start_time }}</h5>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
 
 {% endblock %}

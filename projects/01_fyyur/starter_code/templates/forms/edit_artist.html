@@ -6,33 +6,70 @@
       <h3 class="form-heading">Edit artist <em>{{ artist.name }}</em></h3>
       <div class="form-group">
         <label for="name">Name</label>
-        {{ form.name(class_ = 'form-control', autofocus = true) }}
+        {{ form.name(value = artist.name, class_ = 'form-control', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label>City & State</label>
-          <div class="form-inline">
-            <div class="form-group">
-              {{ form.city(class_ = 'form-control', placeholder='City', autofocus = true) }}
-            </div>
-            <div class="form-group">
-              {{ form.state(class_ = 'form-control', placeholder='State', autofocus = true) }}
-            </div>
+        <label>City & State</label>
+        <div class="form-inline">
+          <div class="form-group">
+            {{ form.city(value = artist.city, class_ = 'form-control', placeholder='City', autofocus = true) }}
           </div>
+          <div class="form-group">
+            {{ form.state(value = artist.state, class_ = 'form-control', placeholder='State', autofocus = true) }}
+          </div>
+        </div>
       </div>
       <div class="form-group">
-          <label for="phone">Phone</label>
-          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
-        </div>
+        <label for="phone">Phone</label>
+        {{ form.phone(value = artist.phone, class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
+      </div>
       <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
-        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id=form.state, autofocus = true) }}
+        {{ form.genres(value = ','.join(artist.genres), class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
-          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
-        </div>
-      <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block">
+        <label for="facebook_link">Facebook Link</label>
+        {{ form.facebook_link(value = artist.facebook_link, class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="website">Website Link</label>
+        {{ form.website(value = artist.website, class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="image_link">Image Link</label>
+        {{ form.image_link(value = artist.image_link, class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="seeking_venue">Seeking Venue</label>
+        {{ form.seeking_venue(value = artist.seeking_venue, class_ = 'form-control', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="seeking_description">Seeking Description</label>
+        {{ form.seeking_description(value = artist.seeking_description, class_ = 'form-control', autofocus = true) }}
+      </div>
+      <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block" >
     </form>
+    <script>
+      const preSelectGenreOptions = () => {
+        const multi = document.getElementById('genres');
+        const values = multi.getAttribute('value');
+        const multiLen = multi.options.length;
+        for (let i = 0; i < multiLen; i++) {
+          if (values.indexOf(multi.options[i].value) >= 0) {
+            multi.options[i].selected = true;
+          }
+        }
+      }
+
+      if (
+        document.readyState === "complete" ||
+        (document.readyState !== "loading" && !document.documentElement.doScroll)
+      ) {
+        preSelectGenreOptions();
+      } else {
+        document.addEventListener("DOMContentLoaded", preSelectGenreOptions);
+      }
+    </script>
   </div>
 {% endblock %}
