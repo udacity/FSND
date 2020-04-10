@@ -114,8 +114,6 @@ def create_app(test_config=None):
                 abort(404)
 
             question.delete()
-            # selection = Question.query.order_by(Question.id).all()
-            # current_questions = paginate_questions(request, selection)
 
             return jsonify({
                 'status_code': 200,
