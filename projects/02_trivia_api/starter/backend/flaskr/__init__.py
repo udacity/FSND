@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, jsonify, abort
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+import random
 
 from models import Question, Category, setup_db
 
@@ -194,17 +195,18 @@ def create_app(test_config=None):
     category to be shown. 
     '''
 
-    @app.route('/categories/<category_id>/questions', methods=['GET'])
+    @app.route('/categories/<int:category_id>/questions', methods=['GET'])
     def retrieve_questions_by_category(category_id):
         try:
-            selection = Question.query.filter(Question.category == category_id)
+            category_id = str(category_id + 1)
+            selection = Question.query.filter(Question.category == category_id).all()
             current_questions = paginate_questions(request, selection)
 
             return jsonify({
                 'success': True,
                 'questions': current_questions,
                 'total_questions': len(Question.query.all()),
-                'category': category_id
+                'current_category': category_id
             })
         except:
             abort(422)
@@ -222,6 +224,36 @@ def create_app(test_config=None):
     and shown whether they were correct or not. 
     '''
 
+    @app.route('/quizzes', methods=['POST'])
+    def get_quiz_questions():
+        body = request.get_json()
+        if not body:
+            abort(400)
+        previous_q = body['previous_questions']
+        category_id = body['quiz_category']['id']
+        category_id = str(int(category_id) + 1)
+
+        if category_id == 0:
+            if previous_q is not None:
+                questions = Question.query.filter(Question.id.notin_(previous_q)).all()
+            else:
+                questions = Question.query.all()
+        else:
+            if previous_q is not None:
+                questions = Question.query.filter(Question.id.notin_(previous_q), Question.category == category_id).all()
+            else:
+                questions = Question.query.filter(Question.category == category_id).all()
+
+        next_question = random.choice(questions).format()
+        if not next_question:
+            abort(404)
+        if next_question is None:
+            next_question = False
+
+        return jsonify({
+            'success': True,
+            'question': next_question
+        })
     '''
     @TODO: 
     Create error handlers for all expected errors 
