@@ -72,9 +72,10 @@ This README is missing documentation of your endpoints. Below is an example for 
 
 Endpoints
 GET '/categories'
-GET ...
-POST ...
-DELETE ...
+GET '/questions'
+GET '/categories/<int:category_id>/questions'
+POST '/questions'
+DELETE '/questions/<int:question_id>>'
 
 GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
@@ -87,7 +88,121 @@ GET '/categories'
 '5' : "Entertainment",
 '6' : "Sports"}
 
+
+GET '/questions'
+-Fetches a paginated list of questions, success value, total number of questions, current category, and list of categories
+- Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
+{"categories":["Science","Art","Geography","History","Entertainment","Sports"],
+"current_category":"None",
+"questions":[
+    {
+    "answer":"Tom Cruise",
+    "category":"5"
+    ,"difficulty":4,
+    "id":4,
+    "question":"What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    },
+    {
+    "answer":"Maya Angelou",
+    "category":"4",
+    "difficulty":2,
+    "id":5,
+    "question":"Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+    "answer":"Edward Scissorhands",
+    "category":"5",
+    "difficulty":3,
+    "id":6,
+    "question":"What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+    },
+    {
+    "answer":"Muhammad Ali",
+    "category":"4",
+    "difficulty":1,
+    "id":9,
+    "question":"What boxer's original name is Cassius Clay?"
+    },
+    {
+    "answer":"Brazil",
+    "category":"6",
+    "difficulty":3,
+    "id":10,
+    "question":"Which is the only team to play in every soccer World Cup tournament?"
+    },
+    {
+    "answer":"Uruguay",
+    "category":"6",
+    "difficulty":4,
+    "id":11,
+    "question":"Which country won the first ever soccer World Cup in 1930?"
+    },
+    {
+    "answer":"George Washington Carver",
+    "category":"4",
+    "difficulty":2,
+    "id":12,
+    "question":"Who invented Peanut Butter?"
+    },
+    {
+    "answer":"Lake Victoria",
+    "category":"3",
+    "difficulty":2,
+    "id":13,
+    "question":"What is the largest lake in Africa?"
+    },
+    {
+    "answer":"The Palace of Versailles",
+    "category":"3",
+    "difficulty":3,
+    "id":14,
+    "question":"In which royal palace would you find the Hall of Mirrors?"
+    },
+    {
+    "answer":"Agra",
+    "category":"3",
+    "difficulty":2,
+    "id":15,
+    "question":"The Taj Mahal is located in which Indian city?"
+    }],
+    "status_code":200,
+    "success":true,
+    "total_questions":27}
+
+GET '/categories/<int:category_id>/questions'
+-Returns a success value, list of questions for a give category_id, total number of questions, and a current category.
+{
+'success': true,
+'questions': [],
+'total_questions: 0,
+'current_category: 'science'
+}
+
+DELETE '/questions/<int:questions_id>'
+-Deletes the question of a given ID if it exists. 
+-Returns success value, and total number of books
+{
+"status_code":200,
+"success":true,
+"total_questions":18}
+
+
+POST '/questions'
+-Creates a new question using the submitted question, answer, difficulty, and category. 
+-Also accepts a 'search_term' to search questions.
+-Returns a success value, list of paginated questions, number of total questions, and current category.
+curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"question":"What is the southern most continent?", "answer":"Antartica", "difficulty":"5", "category":"2"}'
+    {
+    "created":1,
+    "questions":[{
+    "answer":"antartica",
+    "category":"science",
+    "id":1,
+    "question":"What is the southern most continent?"}],
+    "success":true,
+    "total_questions":1}
 ```
+
 
 
 ## Testing

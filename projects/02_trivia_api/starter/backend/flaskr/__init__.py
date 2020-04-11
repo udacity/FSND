@@ -122,7 +122,8 @@ def create_app(test_config=None):
 
             return jsonify({
                 'status_code': 200,
-                'success': True
+                'success': True,
+                'total_questions': len(Question.query.all()),
             })
 
         except BaseException:
