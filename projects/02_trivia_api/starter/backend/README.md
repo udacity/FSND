@@ -66,9 +66,7 @@ One note before you delve into your tasks: for each endpoint you are expected to
 8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
 
-REVIEW_COMMENT
-```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
+## Endpoints
 
 Endpoints
 GET '/categories'
@@ -175,8 +173,7 @@ GET '/categories/<int:category_id>/questions'
 'success': true,
 'questions': [],
 'total_questions: 0,
-'current_category: 'science'
-}
+'current_category: 'science'}
 
 DELETE '/questions/<int:questions_id>'
 -Deletes the question of a given ID if it exists. 
@@ -201,7 +198,7 @@ curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json"
     "question":"What is the southern most continent?"}],
     "success":true,
     "total_questions":1}
-```
+
 
 
 
