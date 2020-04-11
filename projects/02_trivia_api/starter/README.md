@@ -88,7 +88,7 @@ The api will return the following 3 types of errors when request fails:
 
 ### GET /categories
 
-- This endpoint handles GET requests for all available categories.
+- This endpoint handles GET requests for all available categories.  This endpoint will return a list of all categories.
 
 ### GET /questions
 
@@ -97,19 +97,19 @@ The api will return the following 3 types of errors when request fails:
 
 ### DELETE /questions/\<int:id>
 
-- This endpoint will delete a question using the question ID.
+- This endpoint will delete a question using the question ID.  This will return a boolean result whether successful deletion: True or failed deletion: False.  This endpoint will also return the question id that was deleted.
 
 ### POST /questions
 
-- This endpoint will allow for posting a new question including the requirements for the answer text, category and difficulty score.
+- This endpoint will allow for posting a new question including the requirements for the answer text, category and difficulty score.  This endpoint will return the following: a boolean result whether successful submission: True or failed submission: False, the new question id, the new quesstion, a paginated list of the current questions and the total number of questions.
 
 ### POST /questions/search
 
-- This endpoint will search for all questions based on a search term.  This endpoint will return any questions which contain the string specified in the search term.  It is also case-insensitive.
+- This endpoint will search for all questions based on a search term.  This endpoint will return any questions which contain the string specified in the search term paginated if needed.  It will also return a boolean result whether successful search: True or failed search: False and the total number of questions.  It is also case-insensitive.
 
 ### GET /categories/\<int:id>/questions
 
-- This endpoint will get all questions based on a category.  If needed, the results will also be paginated with 10 questions per page.
+- This endpoint will get all questions based on a category.  This endpoint will return a boolean result whether successful retrieval: True or fail: False,  a paginated result with 10 questions per page and the current category.
 
 ### POST /quizzes
 
