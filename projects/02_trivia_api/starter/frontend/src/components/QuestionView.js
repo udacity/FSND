@@ -9,9 +9,9 @@ class QuestionView extends Component {
   constructor(){
     super();
     this.state = {
-      questions: [],
+      questions: [], //For Test Data, use: {'question': 'Test Test test'} 
       page: 1,
-      totalQuestions: 0,
+      totalQuestions: 10,
       categories: {},
       currentCategory: null,
     }
