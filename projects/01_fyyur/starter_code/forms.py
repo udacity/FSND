@@ -5,6 +5,61 @@ from wtforms import BooleanField, StringField, SelectField, SelectMultipleField,
 from wtforms.validators import InputRequired, AnyOf, URL, Optional, ValidationError
 
 
+state_choices = [
+    ('AL', 'AL'),
+    ('AK', 'AK'),
+    ('AZ', 'AZ'),
+    ('AR', 'AR'),
+    ('CA', 'CA'),
+    ('CO', 'CO'),
+    ('CT', 'CT'),
+    ('DE', 'DE'),
+    ('DC', 'DC'),
+    ('FL', 'FL'),
+    ('GA', 'GA'),
+    ('HI', 'HI'),
+    ('ID', 'ID'),
+    ('IL', 'IL'),
+    ('IN', 'IN'),
+    ('IA', 'IA'),
+    ('KS', 'KS'),
+    ('KY', 'KY'),
+    ('LA', 'LA'),
+    ('ME', 'ME'),
+    ('MT', 'MT'),
+    ('NE', 'NE'),
+    ('NV', 'NV'),
+    ('NH', 'NH'),
+    ('NJ', 'NJ'),
+    ('NM', 'NM'),
+    ('NY', 'NY'),
+    ('NC', 'NC'),
+    ('ND', 'ND'),
+    ('OH', 'OH'),
+    ('OK', 'OK'),
+    ('OR', 'OR'),
+    ('MD', 'MD'),
+    ('MA', 'MA'),
+    ('MI', 'MI'),
+    ('MN', 'MN'),
+    ('MS', 'MS'),
+    ('MO', 'MO'),
+    ('PA', 'PA'),
+    ('RI', 'RI'),
+    ('SC', 'SC'),
+    ('SD', 'SD'),
+    ('TN', 'TN'),
+    ('TX', 'TX'),
+    ('UT', 'UT'),
+    ('VT', 'VT'),
+    ('VA', 'VA'),
+    ('WA', 'WA'),
+    ('WV', 'WV'),
+    ('WI', 'WI'),
+    ('WY', 'WY'),
+]
+
+
 def filter_empty_strings(value):
     if type(value) == str and value.strip() == '':
         return None
@@ -50,59 +105,7 @@ class VenueForm(FlaskForm):
     state = SelectField(
         'state',
         validators=[InputRequired()],
-        choices=[
-            ('AL', 'AL'),
-            ('AK', 'AK'),
-            ('AZ', 'AZ'),
-            ('AR', 'AR'),
-            ('CA', 'CA'),
-            ('CO', 'CO'),
-            ('CT', 'CT'),
-            ('DE', 'DE'),
-            ('DC', 'DC'),
-            ('FL', 'FL'),
-            ('GA', 'GA'),
-            ('HI', 'HI'),
-            ('ID', 'ID'),
-            ('IL', 'IL'),
-            ('IN', 'IN'),
-            ('IA', 'IA'),
-            ('KS', 'KS'),
-            ('KY', 'KY'),
-            ('LA', 'LA'),
-            ('ME', 'ME'),
-            ('MT', 'MT'),
-            ('NE', 'NE'),
-            ('NV', 'NV'),
-            ('NH', 'NH'),
-            ('NJ', 'NJ'),
-            ('NM', 'NM'),
-            ('NY', 'NY'),
-            ('NC', 'NC'),
-            ('ND', 'ND'),
-            ('OH', 'OH'),
-            ('OK', 'OK'),
-            ('OR', 'OR'),
-            ('MD', 'MD'),
-            ('MA', 'MA'),
-            ('MI', 'MI'),
-            ('MN', 'MN'),
-            ('MS', 'MS'),
-            ('MO', 'MO'),
-            ('PA', 'PA'),
-            ('RI', 'RI'),
-            ('SC', 'SC'),
-            ('SD', 'SD'),
-            ('TN', 'TN'),
-            ('TX', 'TX'),
-            ('UT', 'UT'),
-            ('VT', 'VT'),
-            ('VA', 'VA'),
-            ('WA', 'WA'),
-            ('WV', 'WV'),
-            ('WI', 'WI'),
-            ('WY', 'WY'),
-        ]
+        choices=state_choices
     )
     address = StringField(
         'address',
@@ -143,80 +146,46 @@ class VenueForm(FlaskForm):
 
 class ArtistForm(FlaskForm):
     name = StringField(
-        'name', validators=[InputRequired()]
+        'name',
+        validators=[InputRequired()]
     )
     city = StringField(
-        'city', validators=[InputRequired()]
+        'city',
+        validators=[InputRequired()]
     )
     state = SelectField(
-        'state', validators=[InputRequired()],
-        choices=[
-            ('AL', 'AL'),
-            ('AK', 'AK'),
-            ('AZ', 'AZ'),
-            ('AR', 'AR'),
-            ('CA', 'CA'),
-            ('CO', 'CO'),
-            ('CT', 'CT'),
-            ('DE', 'DE'),
-            ('DC', 'DC'),
-            ('FL', 'FL'),
-            ('GA', 'GA'),
-            ('HI', 'HI'),
-            ('ID', 'ID'),
-            ('IL', 'IL'),
-            ('IN', 'IN'),
-            ('IA', 'IA'),
-            ('KS', 'KS'),
-            ('KY', 'KY'),
-            ('LA', 'LA'),
-            ('ME', 'ME'),
-            ('MT', 'MT'),
-            ('NE', 'NE'),
-            ('NV', 'NV'),
-            ('NH', 'NH'),
-            ('NJ', 'NJ'),
-            ('NM', 'NM'),
-            ('NY', 'NY'),
-            ('NC', 'NC'),
-            ('ND', 'ND'),
-            ('OH', 'OH'),
-            ('OK', 'OK'),
-            ('OR', 'OR'),
-            ('MD', 'MD'),
-            ('MA', 'MA'),
-            ('MI', 'MI'),
-            ('MN', 'MN'),
-            ('MS', 'MS'),
-            ('MO', 'MO'),
-            ('PA', 'PA'),
-            ('RI', 'RI'),
-            ('SC', 'SC'),
-            ('SD', 'SD'),
-            ('TN', 'TN'),
-            ('TX', 'TX'),
-            ('UT', 'UT'),
-            ('VT', 'VT'),
-            ('VA', 'VA'),
-            ('WA', 'WA'),
-            ('WV', 'WV'),
-            ('WI', 'WI'),
-            ('WY', 'WY'),
-        ]
+        'state',
+        validators=[InputRequired()],
+        choices=state_choices
     )
     phone = StringField(
-        # TODO implement validation logic for state
-        'phone'
-    )
-    image_link = StringField(
-        'image_link', validators=[URL()]
+        'phone',
+        validators=[Optional(), PhoneNumber()],
+        filters=[filter_empty_strings]
     )
     genres = SelectMultipleField(
-        'genres', validators=[InputRequired()]
+        'genres',
+        coerce=int
+    )
+    image_link = StringField(
+        'image_link',
+        validators=[Optional(), URL()],
+        filters=[filter_empty_strings]
     )
     facebook_link = StringField(
-        # TODO implement enum restriction
-        'facebook_link', validators=[URL()]
+        'facebook_link',
+        validators=[Optional(), URL()],
+        filters=[filter_empty_strings]
     )
-
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
+    website = StringField(
+        'website',
+        validators=[Optional(), URL()],
+        filters=[filter_empty_strings]
+    )
+    seeking_venue = BooleanField(
+        'seeking_venue'
+    )
+    seeking_description = StringField(
+        'seeking_description',
+        filters=[filter_empty_strings]
+    )

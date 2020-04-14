@@ -182,6 +182,21 @@ def format_form_label(field_label):
     return ' '.join([word.capitalize() for word in field_label.split('_')])
 
 
+def flash_invalid_form_errors(form):
+    if 'csrf_token' in form.errors:
+        csrf_message = form.errors.get('csrf_token')[0]
+        message = csrf_message + ' Please try submitting the form again.'
+        flash(message=message, category='error')
+
+    for field_label, messages in form.errors.items():
+        if field_label == 'csrf_token':
+            pass
+        else:
+            formatted_label = format_form_label(field_label)
+            errors = ', '.join(messages)
+            message = f'{formatted_label} contains bad input: {errors}'
+            flash(message=message, category='warning')
+
 #----------------------------------------------------------------------------#
 # Controllers.
 #----------------------------------------------------------------------------#
@@ -341,20 +356,7 @@ def create_venue_submission():
     form.genres.choices = get_genre_choices()
 
     if not form.validate():
-        if 'csrf_token' in form.errors:
-            csrf_message = form.errors.get('csrf_token')[0]
-            message = csrf_message + ' Please try submitting the form again.'
-            flash(message=message, category='error')
-
-        for field_label, messages in form.errors.items():
-            if field_label == 'csrf_token':
-                pass
-            else:
-                formatted_label = format_form_label(field_label)
-                errors = ', '.join(messages)
-                message = f'{formatted_label} contains bad input: {errors}'
-                flash(message=message, category='warning')
-
+        flash_invalid_form_errors(form)
         return render_template('forms/new_venue.html', form=form)
 
     venue = Venue()
@@ -383,7 +385,7 @@ def create_venue_submission():
     except:
         db.session.rollback()
         flash(
-            f'An error occurred. Venue {data.name} could not be listed.',
+            f'An error occurred. Venue {venue.name} could not be listed.',
             category='error')
     finally:
         db.session.close()
@@ -587,12 +589,46 @@ def create_artist_submission():
     # called upon submitting the new artist listing form
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
+    form = ArtistForm(request.form)
+    form.genres.choices = get_genre_choices()
 
-    # on successful db insert, flash success
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-    return render_template('pages/home.html')
+    if not form.validate():
+        flash_invalid_form_errors(form)
+        return render_template('forms/new_artist.html', form=form)
+
+    artist = Artist()
+    data = form.data
+    artist.name = data.get('name')
+    artist.city = data.get('city')
+    artist.state = data.get('state')
+    artist.phone = data.get('phone')
+    artist.image_link = data.get('image_link')
+    artist.facebook_link = data.get('facebook_link')
+    artist.website = data.get('website')
+    artist.seeking_venue = data.get('seeking_venue')
+    artist.seeking_description = data.get('seeking_description')
+
+    genre_ids = data.get('genres', [])
+    genres = Genre.query.filter(Genre.id.in_(genre_ids)).all()
+    artist.genres = genres
+
+    try:
+        if artist not in db.session.new:
+            db.session.add(artist)
+
+        db.session.commit()
+        flash(f'Artist {artist.name} was successfully listed!')
+
+    except:
+        db.session.rollback()
+        flash(
+            f'An error occurred. Artist {data.name} could not be listed.',
+            category='error'
+        )
+    finally:
+        db.session.close()
+
+    return redirect(url_for('index'))
 
 
 #  Shows
