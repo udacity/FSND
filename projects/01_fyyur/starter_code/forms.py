@@ -1,10 +1,30 @@
+import re
 from datetime import datetime
-from flask_wtf import Form
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL
+from flask_wtf import FlaskForm
+from wtforms import BooleanField, StringField, SelectField, SelectMultipleField, DateTimeField
+from wtforms.validators import InputRequired, AnyOf, URL, Optional, ValidationError
 
 
-class ShowForm(Form):
+def filter_empty_strings(value):
+    if type(value) == str and value.strip() == '':
+        return None
+    else:
+        return value
+
+
+class PhoneNumber(object):
+    def __init__(self, message=None):
+        if not message:
+            message = u'phone number must have the format ###-###-####'
+        self.message = message
+
+    def __call__(self, form, field):
+        pattern = r'^\d{3}-\d{3}-\d{4}$'
+        if field.data and not re.match(pattern, field.data):
+            raise ValidationError(self.message)
+
+
+class ShowForm(FlaskForm):
     artist_id = StringField(
         'artist_id'
     )
@@ -13,20 +33,23 @@ class ShowForm(Form):
     )
     start_time = DateTimeField(
         'start_time',
-        validators=[DataRequired()],
+        validators=[InputRequired()],
         default=datetime.today()
     )
 
 
-class VenueForm(Form):
+class VenueForm(FlaskForm):
     name = StringField(
-        'name', validators=[DataRequired()]
+        'name',
+        validators=[InputRequired()]
     )
     city = StringField(
-        'city', validators=[DataRequired()]
+        'city',
+        validators=[InputRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state',
+        validators=[InputRequired()],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -82,53 +105,51 @@ class VenueForm(Form):
         ]
     )
     address = StringField(
-        'address', validators=[DataRequired()]
+        'address',
+        validators=[InputRequired()]
     )
     phone = StringField(
-        'phone'
-    )
-    image_link = StringField(
-        'image_link'
+        'phone',
+        validators=[Optional(), PhoneNumber()],
+        filters=[filter_empty_strings]
     )
     genres = SelectMultipleField(
-        # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
-        choices=[
-            ('Alternative', 'Alternative'),
-            ('Blues', 'Blues'),
-            ('Classical', 'Classical'),
-            ('Country', 'Country'),
-            ('Electronic', 'Electronic'),
-            ('Folk', 'Folk'),
-            ('Funk', 'Funk'),
-            ('Hip-Hop', 'Hip-Hop'),
-            ('Heavy Metal', 'Heavy Metal'),
-            ('Instrumental', 'Instrumental'),
-            ('Jazz', 'Jazz'),
-            ('Musical Theatre', 'Musical Theatre'),
-            ('Pop', 'Pop'),
-            ('Punk', 'Punk'),
-            ('R&B', 'R&B'),
-            ('Reggae', 'Reggae'),
-            ('Rock n Roll', 'Rock n Roll'),
-            ('Soul', 'Soul'),
-            ('Other', 'Other'),
-        ]
+        'genres',
+        coerce=int
+    )
+    image_link = StringField(
+        'image_link',
+        validators=[Optional(), URL()],
+        filters=[filter_empty_strings]
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL()]
+        'facebook_link',
+        validators=[Optional(), URL()],
+        filters=[filter_empty_strings]
+    )
+    website = StringField(
+        'website',
+        validators=[Optional(), URL()],
+        filters=[filter_empty_strings]
+    )
+    seeking_talent = BooleanField(
+        'seeking_talent'
+    )
+    seeking_description = StringField(
+        'seeking_description',
+        filters=[filter_empty_strings]
     )
 
 
-class ArtistForm(Form):
+class ArtistForm(FlaskForm):
     name = StringField(
-        'name', validators=[DataRequired()]
+        'name', validators=[InputRequired()]
     )
     city = StringField(
-        'city', validators=[DataRequired()]
+        'city', validators=[InputRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state', validators=[InputRequired()],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -188,32 +209,10 @@ class ArtistForm(Form):
         'phone'
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
-        # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
-        choices=[
-            ('Alternative', 'Alternative'),
-            ('Blues', 'Blues'),
-            ('Classical', 'Classical'),
-            ('Country', 'Country'),
-            ('Electronic', 'Electronic'),
-            ('Folk', 'Folk'),
-            ('Funk', 'Funk'),
-            ('Hip-Hop', 'Hip-Hop'),
-            ('Heavy Metal', 'Heavy Metal'),
-            ('Instrumental', 'Instrumental'),
-            ('Jazz', 'Jazz'),
-            ('Musical Theatre', 'Musical Theatre'),
-            ('Pop', 'Pop'),
-            ('Punk', 'Punk'),
-            ('R&B', 'R&B'),
-            ('Reggae', 'Reggae'),
-            ('Rock n Roll', 'Rock n Roll'),
-            ('Soul', 'Soul'),
-            ('Other', 'Other'),
-        ]
+        'genres', validators=[InputRequired()]
     )
     facebook_link = StringField(
         # TODO implement enum restriction

@@ -169,6 +169,20 @@ def format_datetime(value, format='medium'):
 app.jinja_env.filters['datetime'] = format_datetime
 
 #----------------------------------------------------------------------------#
+# Helpers.
+#----------------------------------------------------------------------------#
+
+
+def get_genre_choices():
+    ''' Returns a list of WTForm Select Field choice values for the genre field'''
+    return [(genre.id, genre.name) for genre in Genre.query.all()]
+
+
+def format_form_label(field_label):
+    return ' '.join([word.capitalize() for word in field_label.split('_')])
+
+
+#----------------------------------------------------------------------------#
 # Controllers.
 #----------------------------------------------------------------------------#
 
@@ -317,20 +331,64 @@ def show_venue(venue_id):
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
     form = VenueForm()
+    form.genres.choices = get_genre_choices()
     return render_template('forms/new_venue.html', form=form)
 
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
+    form = VenueForm(request.form)
+    form.genres.choices = get_genre_choices()
 
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+    if not form.validate():
+        if 'csrf_token' in form.errors:
+            csrf_message = form.errors.get('csrf_token')[0]
+            message = csrf_message + ' Please try submitting the form again.'
+            flash(message=message, category='error')
+
+        for field_label, messages in form.errors.items():
+            if field_label == 'csrf_token':
+                pass
+            else:
+                formatted_label = format_form_label(field_label)
+                errors = ', '.join(messages)
+                message = f'{formatted_label} contains bad input: {errors}'
+                flash(message=message, category='warning')
+
+        return render_template('forms/new_venue.html', form=form)
+
+    venue = Venue()
+    data = form.data
+    venue.name = data.get('name')
+    venue.address = data.get('address')
+    venue.city = data.get('city')
+    venue.state = data.get('state')
+    venue.phone = data.get('phone')
+    venue.image_link = data.get('image_link')
+    venue.facebook_link = data.get('facebook_link')
+    venue.website = data.get('website')
+    venue.seeking_talent = data.get('seeking_talent')
+    venue.seeking_description = data.get('seeking_description')
+
+    genre_ids = data.get('genres', [])
+    genres = Genre.query.filter(Genre.id.in_(genre_ids)).all()
+    venue.genres = genres
+
+    try:
+        if venue not in db.session.new:
+            db.session.add(venue)
+
+        db.session.commit()
+        flash('Venue ' + venue.name + ' was successfully listed!')
+    except:
+        db.session.rollback()
+        flash(
+            f'An error occurred. Venue {data.name} could not be listed.',
+            category='error')
+    finally:
+        db.session.close()
+
+    return redirect(url_for('index'))
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -519,6 +577,8 @@ def edit_venue_submission(venue_id):
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
     form = ArtistForm()
+    genres = Genre.query.all()
+    form.genres.choices = [(genre.id, genre.name) for genre in genres]
     return render_template('forms/new_artist.html', form=form)
 
 
