@@ -81,10 +81,12 @@ class PhoneNumber(object):
 
 class ShowForm(FlaskForm):
     artist_id = StringField(
-        'artist_id'
+        'artist_id',
+        validators=[InputRequired()]
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id',
+        validators=[InputRequired()]
     )
     start_time = DateTimeField(
         'start_time',
