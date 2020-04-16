@@ -32,12 +32,12 @@ db_drop_and_create_all()
 @app.route('/drinks', methods=['GET'])
 def get_drinks_short():
     all_drinks = Drink.query.all()
-    drinks = []
+    drink_list = []
     for drink in all_drinks:
-        drinks.append(drink.short())
+        drink_list.append(drink.short())
     return jsonify({
         'success': True,
-        'drinks': drinks
+        'drinks': drink_list
     })
 
 
@@ -49,6 +49,19 @@ def get_drinks_short():
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+@app.route('/drinks-detail', methods=['GET'])
+#@requires_auth('get:drinks-detail')
+def get_drinks_detail():
+    drink_list = []
+    all_drinks = Drink.query.all()
+    for drink in all_drinks:
+        drink_list.append(drink.long())
+    return jsonify({
+        'success': True,
+        'drinks': drink_list
+    })
+
 
 '''
 @TODO implement endpoint
