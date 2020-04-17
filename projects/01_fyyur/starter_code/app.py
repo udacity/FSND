@@ -5,10 +5,12 @@
 import json
 import dateutil.parser
 import babel
+from datetime import datetime
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import UniqueConstraint
+from sqlalchemy.orm import load_only, selectinload
 from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
@@ -158,12 +160,12 @@ class Genre(db.Model):
 
 
 def format_datetime(value, format='medium'):
-    date = dateutil.parser.parse(value)
+    # date = dateutil.parser.parse(value)
     if format == 'full':
         format = "EEEE MMMM, d, y 'at' h:mma"
     elif format == 'medium':
         format = "EE MM, dd, y h:mma"
-    return babel.dates.format_datetime(date, format)
+    return babel.dates.format_datetime(value, format)
 
 
 app.jinja_env.filters['datetime'] = format_datetime
@@ -212,131 +214,135 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
-    data = [{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
+    venues = db.session.query(Venue).\
+        options(
+            load_only('id', 'name', 'city', 'state')).\
+        all()
+
+    upcoming_shows = db.session.query(Show).\
+        filter(Show.start_time >= datetime.utcnow()).\
+        options(load_only('id', 'venue_id')).\
+        all()
+
+    show_counts = {}
+    for show in upcoming_shows:
+        venue_id = show.venue_id
+        if venue_id in show_counts:
+            show_counts[venue_id] += 1
+        else:
+            show_counts[venue_id] = 1
+
+    grouped_venues = {}
+    for venue in venues:
+        location = f'{venue.city},{venue.state}'
+        venue_data = {
+            'id': venue.id,
+            'name': venue.name,
+            'num_upcoming_shows': show_counts.get(venue.id, 0)
+        }
+
+        if location not in grouped_venues:
+            grouped_venues[location] = {
+                'city': venue.city,
+                'state': venue.state,
+                'venues': [venue_data]
+            }
+        else:
+            grouped_venues[location]['venues'].append(venue_data)
+
+    data = list(grouped_venues.values())
     return render_template('pages/venues.html', areas=data)
 
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+    search_term = request.form.get('search_term', '')
+    venues = Venue.query.\
+        filter(Venue.name.ilike(f'%{search_term}%')).\
+        all()
+
+    upcoming_shows = db.session.query(Show).\
+        filter(
+            Show.start_time >= datetime.utcnow(),
+            Show.venue_id.in_([venue.id for venue in venues])
+    ).\
+        options(load_only('id', 'venue_id')).\
+        all()
+
+    show_counts = {venue.id: 0 for venue in venues}
+    for show in upcoming_shows:
+        show_counts[show.venue_id] += 1
+
+    data = []
+    for venue in venues:
+        venue_data = {
+            'id': venue.id,
+            'name': venue.name,
+            'num_upcoming_shows': show_counts.get(venue.id, 0)
+        }
+        data.append(venue_data)
+
     response = {
-        "count": 1,
-        "data": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
+        'count': len(venues),
+        'data': data
     }
-    return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+
+    return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-    # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
-    data1 = {
-        "id": 1,
-        "name": "The Musical Hop",
-        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-        "address": "1015 Folsom Street",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
-        "facebook_link": "https://www.facebook.com/TheMusicalHop",
-        "seeking_talent": True,
-        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-        "past_shows": [{
-            "artist_id": 4,
-            "artist_name": "Guns N Petals",
-            "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-            "start_time": "2019-05-21T21:30:00.000Z"
-        }],
-        "upcoming_shows": [],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 0,
+    venue = Venue.query.\
+        filter(Venue.id == venue_id).\
+        options(
+            selectinload(Venue.genres),
+            selectinload(Venue.shows).options(
+                selectinload(Show.artist).options(
+                    load_only('id', 'name', 'image_link')
+                )
+            )
+        ).\
+        one()
+
+    shows = sorted(venue.shows, key=lambda show: show.start_time)
+    now = datetime.utcnow()
+    past_shows = []
+    upcoming_shows = []
+    for show in shows:
+        start_time = show.start_time.replace(tzinfo=None)
+        show_data = {
+            'artist_id': show.artist_id,
+            'artist_name': show.artist.name,
+            'artist_image_link': show.artist.image_link,
+            'start_time': start_time
+        }
+
+        if start_time < now:
+            past_shows.append(show_data)
+        else:
+            upcoming_shows.append(show_data)
+
+    data = {
+        'id': venue.id,
+        'name': venue.name,
+        'genres': [genre.name for genre in venue.genres],
+        'address': venue.address,
+        'city': venue.city,
+        'state': venue.state,
+        'phone': venue.phone,
+        'website': venue.website,
+        'facebook_link': venue.facebook_link,
+        'image_link': venue.image_link,
+        'seeking_talent': venue.seeking_talent,
+        'past_shows': past_shows,
+        'upcoming_shows': upcoming_shows,
+        'past_shows_count': len(past_shows),
+        'upcoming_shows_count': len(upcoming_shows)
     }
-    data2 = {
-        "id": 2,
-        "name": "The Dueling Pianos Bar",
-        "genres": ["Classical", "R&B", "Hip-Hop"],
-        "address": "335 Delancey Street",
-        "city": "New York",
-        "state": "NY",
-        "phone": "914-003-1132",
-        "website": "https://www.theduelingpianos.com",
-        "facebook_link": "https://www.facebook.com/theduelingpianos",
-        "seeking_talent": False,
-        "image_link": "https://images.unsplash.com/photo-1497032205916-ac775f0649ae?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80",
-        "past_shows": [],
-        "upcoming_shows": [],
-        "past_shows_count": 0,
-        "upcoming_shows_count": 0,
-    }
-    data3 = {
-        "id": 3,
-        "name": "Park Square Live Music & Coffee",
-        "genres": ["Rock n Roll", "Jazz", "Classical", "Folk"],
-        "address": "34 Whiskey Moore Ave",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "415-000-1234",
-        "website": "https://www.parksquarelivemusicandcoffee.com",
-        "facebook_link": "https://www.facebook.com/ParkSquareLiveMusicAndCoffee",
-        "seeking_talent": False,
-        "image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-        "past_shows": [{
-            "artist_id": 5,
-            "artist_name": "Matt Quevedo",
-            "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-            "start_time": "2019-06-15T23:00:00.000Z"
-        }],
-        "upcoming_shows": [{
-            "artist_id": 6,
-            "artist_name": "The Wild Sax Band",
-            "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-            "start_time": "2035-04-01T20:00:00.000Z"
-        }, {
-            "artist_id": 6,
-            "artist_name": "The Wild Sax Band",
-            "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-            "start_time": "2035-04-08T20:00:00.000Z"
-        }, {
-            "artist_id": 6,
-            "artist_name": "The Wild Sax Band",
-            "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-            "start_time": "2035-04-15T20:00:00.000Z"
-        }],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 1,
-    }
-    data = list(filter(lambda d: d['id'] ==
-                       venue_id, [data1, data2, data3]))[0]
+
+    if venue.seeking_talent:
+        data['seeking_description'] = venue.seeking_description
+
     return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
