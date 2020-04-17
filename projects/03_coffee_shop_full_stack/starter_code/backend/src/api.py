@@ -50,9 +50,10 @@ def get_drinks_short():
         or appropriate status code indicating reason for failure
 '''
 
+
 @app.route('/drinks-detail', methods=['GET'])
-#@requires_auth('get:drinks-detail')
-def get_drinks_detail():
+@requires_auth('get:drinks-detail')
+def get_drinks_detail(payload):
     drink_list = []
     all_drinks = Drink.query.all()
     for drink in all_drinks:
@@ -131,3 +132,13 @@ def unprocessable(error):
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
+
+
+@app.errorhandler(AuthError)
+def auth_error(error):
+    return jsonify({
+        'success': False,
+        'error': error[1],
+        'code': error[0]['code'],
+        'message': error[0]['description']
+    })

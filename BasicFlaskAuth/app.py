@@ -118,6 +118,7 @@ def check_permissions(permission, payload):
         }, 403)
     return True
 
+
 def requires_auth(permissions=''):
     def requires_auth_decorator(f):
         @wraps(f)
@@ -133,6 +134,7 @@ def requires_auth(permissions=''):
             return f(payload, *args, **kwargs)
 
         return wrapper
+
     return requires_auth_decorator
 
 
