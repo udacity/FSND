@@ -143,3 +143,11 @@ To start and run the local development server,
 4. Navigate to Home page [http://localhost:5000](http://localhost:5000)
 
 
+### SOLUTION
+1. Clone repo
+2. cd into repo
+3. create virtual environment `python -m venv env`
+4. Install requirements `pip install -r requirements.txt`
+5. create psql database `createdb fyyur`
+6. migrate db `flask db upgrade`
+7. insert data to db (either via psql or via SQLAlchemy in python CLI)
