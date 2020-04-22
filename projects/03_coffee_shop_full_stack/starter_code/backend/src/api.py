@@ -122,22 +122,22 @@ def post_drinks(payload):
         or appropriate status code indicating reason for failure
 '''
 
-# @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
-# @requires_auth('delete:drinks')
-# def delete_drinks(payload):
-#
-#     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
-#     if drink == None:
-#         abort(404)
-#     else:
-#         try:
-#             drink.delete()
-#             return jsonify({
-#                 'success':True,
-#                 'delete': drink_id
-#             })
-#         except BaseException:
-#             abort(422)
+@app.route('/drinks/<int:drink_id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drinks(payload, drink_id):
+
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+    if drink == None:
+        abort(404)
+    else:
+        try:
+            drink.delete()
+            return jsonify({
+                'success':True,
+                'delete': drink_id
+            })
+        except BaseException:
+            abort(422)
 
 
 ## Error Handling
