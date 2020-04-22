@@ -45,6 +45,21 @@ class Venue(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK! 
+    def __repr__(self):
+      s = " | ".join([self.id,
+            self.name,
+            self.city,
+            self.state,
+            self.address,
+            self.phone,
+            self.image_link,
+            self.facebook_link,
+            self.genres,
+            self.website,
+            self.seeking_talent,
+            self.seeking_description
+            ])
+      return f'{s}'
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -63,6 +78,21 @@ class Artist(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK!
+    def __repr__(self):
+      s = " | ".join([self.id,
+            self.name,
+            self.city,
+            self.state,
+            self.phone,
+            self.genres,
+            self.image_link,
+            self.facebook_link,
+            self.website,
+            self.seeking_venue,
+            self.seeking_description
+            ])
+      return f'{s}'
+
 
 class Show(db.Model):
     __tablename__ = 'Show'
@@ -71,6 +101,10 @@ class Show(db.Model):
     # artist_id = db.Column(db.Integer, db.ForeignKey('artist_show.artist_id'))
     # venue_id = db.Column(db.Integer, db.ForeignKey('venue_show.venue.id'))
     start_time = db.Column(db.DateTime, nullable=False)
+
+    def __repr__():
+      s = " | ".join([self.id, self.start_time])
+      return f'{s}'
 
 
 
