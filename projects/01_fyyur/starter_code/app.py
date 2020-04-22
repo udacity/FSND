@@ -111,8 +111,7 @@ class Show(db.Model):
     __tablename__ = 'Show'
     
     id = db.Column(db.Integer, primary_key=True)
-    # artist_id = db.Column(db.Integer, db.ForeignKey('artist_show.artist_id'))
-    venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'))
     start_time = db.Column(db.DateTime, nullable=False)
 
     def __repr__():
