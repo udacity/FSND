@@ -90,12 +90,30 @@ def get_drinks_detail(payload):
 @TODO implement endpoint
     DELETE /drinks/<id>
         where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
+        done - it should respond with a 404 error if <id> is not found
+        done - it should delete the corresponding row for <id>
+        done - it should require the 'delete:drinks' permission
+        done - returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
+
+# @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
+# @requires_auth('delete:drinks')
+# def delete_drinks(payload):
+#
+#     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+#     if drink == None:
+#         abort(404)
+#     else:
+#         try:
+#             drink.delete()
+#             return jsonify({
+#                 'success':True,
+#                 'delete': drink_id
+#             })
+#         except BaseException:
+#             abort(422)
+
 
 ## Error Handling
 '''
@@ -128,6 +146,16 @@ def unprocessable(error):
     error handler should conform to general task above 
 '''
 
+
+@app.errorhandler(404)
+def unprocessable(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "Resource not found"
+    }), 404
+
+
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
@@ -135,10 +163,9 @@ def unprocessable(error):
 
 
 @app.errorhandler(AuthError)
-def auth_error(error):
+def auth_error(ex):
     return jsonify({
-        'success': False,
-        'error': error[1],
-        'code': error[0]['code'],
-        'message': error[0]['description']
-    })
+        "success": False,
+        "error": ex.status_code,
+        "message": ex.error['code']
+    }), 401
