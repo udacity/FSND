@@ -74,6 +74,31 @@ def get_drinks_detail(payload):
         or appropriate status code indicating reason for failure
 '''
 
+
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def post_drinks(payload):
+    body = request.get_json()
+    if body == None:
+        abort(404)
+    new_title = body.get('title', None)
+    new_recipe = body.get('recipe', None)
+
+    try:
+        drink = Drink(
+            title=new_title,
+            recipe=json.dumps(new_recipe)
+        )
+        drink.insert()
+
+        return jsonify({
+            "success": True,
+            "drinks": drink.long()
+        })
+    except BaseException:
+        abort(422)
+
+
 '''
 @TODO implement endpoint
     PATCH /drinks/<id>
