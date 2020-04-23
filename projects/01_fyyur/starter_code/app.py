@@ -88,19 +88,12 @@ class Artist(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK!
     def __repr__(self):
-      s = " | ".join([self.id,
-            self.name,
-            self.city,
-            self.state,
-            self.phone,
-            self.genres,
-            self.image_link,
-            self.facebook_link,
-            self.website,
-            self.seeking_venue,
-            self.seeking_description
-            ])
+      col_names = self.__table__.columns.keys()
+      li = [col + ': ' + str(getattr(self,col)) for col in col_names]
+      s = f" | ".join(li)
       return f'{s}'
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class Show(db.Model):
@@ -111,9 +104,13 @@ class Show(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     artists = db.relationship('Artist', secondary=artist_show, lazy=True, back_populates='shows')
 
-    def __repr__():
-      s = " | ".join([self.id, self.start_time])
+    def __repr__(self):
+      col_names = self.__table__.columns.keys()
+      li = [col + ': ' + str(getattr(self,col)) for col in col_names]
+      s = f" | ".join(li)
       return f'{s}'
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 
