@@ -1,6 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}New Venue{% endblock %}
 {% block content %}
+</script>
   <div class="form-wrapper">
     <form method="post" class="form" id="create-new-venue">
       <h3 class="form-heading">List a new venue <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
@@ -39,17 +40,10 @@
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
-  <script>
-    document.querySelector('select[multiple]').onchange = function(e) {
-      let genres = []
-      for (const option of e.target.options) {
-        if (option.selected) {
-          genres.push(option.value)
-        }
-      }
-      window.genres = genres
-    }
-  </script>
+
+  <script src="{{ url_for('static', filename='js/storeSelectedGenresToWindow.js')}}"></script>
+  <script>console.log(window.genres)</script>
+  <!-- <script>storeSelectedGenresToWindow()</script> -->
   <script>    
     document.getElementById('create-new-venue').onsubmit = function(e) {
       e.preventDefault();

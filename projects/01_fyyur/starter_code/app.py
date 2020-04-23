@@ -19,7 +19,7 @@ import sys
 # App Config.
 #----------------------------------------------------------------------------#
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
@@ -302,7 +302,7 @@ def create_venue_form():
   return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/create', methods=['POST'])
-def create_venue_submission():
+def create_venue_submission():  
   data = request.get_json()
   try:
     new_venue = Venue(**data)
