@@ -17,8 +17,8 @@ class ShowForm(Form):
     )
 
 class VenueForm(Form):
-    name = StringField(
-        'name', validators=[DataRequired()]
+    venue_name = StringField(
+        'venue_name', validators=[DataRequired()]
     )
     city = StringField(
         'city', validators=[DataRequired()]
