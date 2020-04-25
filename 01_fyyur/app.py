@@ -455,7 +455,7 @@ def show_artist(artist_id):
     'state': a.state, 'phone': a.phone, 'seeking_venues': a.seeking_venues,
     'facebook_link': a.facebook_link, 'image_link': a.image_link
   }
-  # TODO: query for show, add to data
+  
   past_shows = Show.query.filter(Show.artist_id == data['id'],
       Show.start_time < datetime.datetime.now()).\
         join(Venue, Show.venue_id == Venue.id).\
