@@ -257,25 +257,22 @@ def show_venue(venue_id):
   }
   past_shows = Show.query.filter(Show.venue_id == data['id'],
       Show.start_time < datetime.datetime.now()).\
-        join(Artist, Show.artist_id == Artist.id)
+        join(Artist, Show.artist_id == Artist.id).\
+        order_by(db.desc(Show.start_time))
   data['past_shows'] = [{"artist_id" : ps.artist_id,
     "artist_name": ps.artist.name, 
     "artist_image_link": ps.artist.image_link,
     "start_time": str(ps.start_time)} for ps in past_shows]
-  # sort past shows by time (reverse order)
-  data['past_shows'] = sorted(data['past_shows'], 
-    key = lambda x : x['start_time'], reverse=True)
   data["past_shows_count"] = len(data['past_shows'])
 
   upcoming_shows = Show.query.filter(Show.venue_id == data['id'],
       Show.start_time >= datetime.datetime.now()).\
-        join(Artist, Show.artist_id == Artist.id)
+        join(Artist, Show.artist_id == Artist.id).\
+        order_by(Show.start_time)
   data['upcoming_shows'] = [{"artist_id" : ps.artist_id,
     "artist_name": ps.artist.name, 
     "artist_image_link": ps.artist.image_link,
     "start_time": str(ps.start_time)} for ps in upcoming_shows]
-  # sort upcoming shows by time (reverse order)
-  data['upcoming_shows'] = sorted(data['upcoming_shows'], key = lambda x : x['start_time'])
   data["upcoming_shows_count"] = len(data['upcoming_shows'])
   
   return render_template('pages/show_venue.html', venue=data)
@@ -290,7 +287,6 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
   vform = request.form
   
   try:
@@ -359,7 +355,8 @@ def search_artists():
   #   }]
   # }
 
-  
+
+
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')
@@ -445,25 +442,22 @@ def show_artist(artist_id):
   # TODO: query for show, add to data
   past_shows = Show.query.filter(Show.artist_id == data['id'],
       Show.start_time < datetime.datetime.now()).\
-        join(Venue, Show.venue_id == Venue.id)
+        join(Venue, Show.venue_id == Venue.id).\
+        order_by(db.desc(Show.start_time))
   data['past_shows'] = [{"venue_id" : ps.venue_id,
     "venue_name": ps.venue.name, 
     "venue_image_link": ps.venue.image_link,
     "start_time": str(ps.start_time)} for ps in past_shows]
-  # sort past shows by time (reverse order)
-  data['past_shows'] = sorted(data['past_shows'],
-    key = lambda x : x['start_time'], reverse=True)
   data["past_shows_count"] = len(data['past_shows'])
 
   upcoming_shows = Show.query.filter(Show.artist_id == data['id'],
       Show.start_time >= datetime.datetime.now()).\
-        join(Venue, Show.venue_id == Venue.id)
+        join(Venue, Show.venue_id == Venue.id).\
+        order_by(Show.start_time)
   data['upcoming_shows'] = [{"venue_id" : ps.venue_id,
     "venue_name": ps.venue.name, 
     "venue_image_link": ps.venue.image_link,
     "start_time": str(ps.start_time)} for ps in upcoming_shows]
-  # sort upcoming shows by time
-  data['upcoming_shows'] = sorted(data['upcoming_shows'], key = lambda x: x['start_time'])
   data["upcoming_shows_count"] = len(data['upcoming_shows'])
   
   return render_template('pages/show_artist.html', artist=data)
@@ -601,13 +595,13 @@ def shows():
   # }]
 
   shows = Show.query.join(Venue, Show.venue_id == Venue.id).\
-    join(Artist, Show.artist_id == Artist.id).all()
+    join(Artist, Show.artist_id == Artist.id).\
+    order_by(Show.start_time).\
+    all()
   data = [{"venue_id": s.venue_id, "venue_name": s.venue.name,
           "artist_id": s.artist_id, "artist_name": s.artist.name,
           "artist_image_link": s.artist.image_link,
           "start_time" : str(s.start_time)} for s in shows]
-  # sort by order of shows
-  data = sorted(data, key = lambda x: x['start_time'])
 
   return render_template('pages/shows.html', shows=data)
 
