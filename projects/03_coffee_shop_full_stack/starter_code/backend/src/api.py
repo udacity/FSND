@@ -99,7 +99,7 @@ def update_drinks(payload, drink_id):
 
             return jsonify({
                 "success": True,
-                'drinks': updated_drink.long()
+                'drinks': [updated_drink.long()]
             })
     except BaseException:
         abort(422)
