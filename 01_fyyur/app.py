@@ -148,8 +148,6 @@ def venues():
     data_step1[citystate]['venues'].append(venue_dict) 
   data = [data_step1[citystate] for citystate in data_step1]
 
-  print(data)
-
   return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
@@ -157,14 +155,24 @@ def search_venues():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-  response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }
+  # response={
+  #   "count": 1,
+  #   "data": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }
+  search_term = request.form.get('search_term')
+  venues = Venue.query.filter(Venue.name.ilike('%{}%'.format(search_term)))
+  now = datetime.datetime.now()
+  data = [{
+    "id": v.id, "name": v.name, 
+    "num_upcoming_shows": Show.query.filter(Show.venue_id == v.id,
+                          Show.start_time > now).count()
+  } for v in venues]
+  response = {"count": len(data), "data": data}
+  
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
@@ -355,8 +363,16 @@ def search_artists():
   #   }]
   # }
 
-
-
+  search_term = request.form.get('search_term')
+  artists = Artist.query.filter(Artist.name.ilike('%{}%'.format(search_term)))
+  now = datetime.datetime.now()
+  data = [{
+    "id": a.id, "name": a.name, 
+    "num_upcoming_shows": Show.query.filter(Show.artist_id == a.id,
+                          Show.start_time > now).count()
+  } for a in artists]
+  response = {"count": len(data), "data": data}
+  
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')
