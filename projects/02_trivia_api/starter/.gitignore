@@ -11,3 +11,6 @@ venv
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Node.js
+frontend/node_modules/*
