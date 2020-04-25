@@ -255,7 +255,24 @@ def show_venue(venue_id):
     'seeking_venues': v.seeking_talent, 'facebook_link': v.facebook_link,
     'image_link': v.image_link
   }
+  past_shows = Show.query.filter(Show.venue_id == data['id'],
+      Show.start_time < datetime.datetime.now()).\
+        join(Artist, Show.artist_id == Artist.id)
+  data['past_shows'] = [{"artist_id" : ps.artist_id,
+    "artist_name": ps.artist.name, 
+    "artist_image_link": ps.artist.image_link,
+    "start_time": str(ps.start_time)} for ps in past_shows]
+  data["past_shows_count"] = len(data['past_shows'])
 
+  upcoming_shows = Show.query.filter(Show.venue_id == data['id'],
+      Show.start_time >= datetime.datetime.now()).\
+        join(Artist, Show.artist_id == Artist.id)
+  data['upcoming_shows'] = [{"artist_id" : ps.artist_id,
+    "artist_name": ps.artist.name, 
+    "artist_image_link": ps.artist.image_link,
+    "start_time": str(ps.start_time)} for ps in upcoming_shows]
+  data["upcoming_shows_count"] = len(data['upcoming_shows'])
+  
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
