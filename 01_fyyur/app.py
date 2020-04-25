@@ -14,6 +14,7 @@ from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 import sys
+import datetime
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -134,11 +135,22 @@ def venues():
   # }]
 
   venue_query = Venue.query.all()
+  data_step1 = {}
+  for v in venue_query:
+    citystate = "{}_{}".format(v.city, v.state)
+    if citystate not in data_step1:
+      data_step1[citystate] = {"city": v.city, "state": v.state,
+        "venues" : []}
+    coming_shows = Show.query.filter(
+      Show.venue_id == v.id,
+      Show.start_time > datetime.datetime.now()).count()
+    venue_dict = {"id": v.id, "name": v.name, "num_upcoming_shows": coming_shows}
+    data_step1[citystate]['venues'].append(venue_dict) 
+  data = [data_step1[citystate] for citystate in data_step1]
 
-  data = [{'id': v.id, 'name': v.name} for v in venue_query]
+  print(data)
 
-  # TODO get number of upcoming shows
-  return render_template('pages/venues.html', areas=data);
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -240,7 +252,8 @@ def show_venue(venue_id):
   v = Venue.query.get(venue_id)
   data = {'id': v.id, 'name': v.name, 'genres': v.genres,'city': v.city,
     'state': v.state, 'address': v.address, 'phone': v.phone,
-    'seeking_venues': v.seeking_talent, 'facebook_link': v.facebook_link
+    'seeking_venues': v.seeking_talent, 'facebook_link': v.facebook_link,
+    'image_link': v.image_link
   }
 
   return render_template('pages/show_venue.html', venue=data)
@@ -266,7 +279,8 @@ def create_venue_submission():
       address = vform['address'],
       genres = vform.getlist('genres'),
       phone = vform['phone'],
-      facebook_link = vform['facebook_link']
+      facebook_link = vform['facebook_link'],
+      image_link = vform['image_link']
     )
     db.session.add(venue)
     db.session.commit()
@@ -404,7 +418,7 @@ def show_artist(artist_id):
     'state': a.state, 'phone': a.phone, 'seeking_venues': a.seeking_venues,
     'facebook_link': a.facebook_link, 'image_link': a.image_link
   }
-  # query for show, add to data
+  # TODO: query for show, add to data
 
   #data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
   return render_template('pages/show_artist.html', artist=data)
