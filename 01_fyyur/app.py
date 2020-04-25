@@ -262,6 +262,9 @@ def show_venue(venue_id):
     "artist_name": ps.artist.name, 
     "artist_image_link": ps.artist.image_link,
     "start_time": str(ps.start_time)} for ps in past_shows]
+  # sort past shows by time (reverse order)
+  data['past_shows'] = sorted(data['past_shows'], 
+    key = lambda x : x['start_time'], reverse=True)
   data["past_shows_count"] = len(data['past_shows'])
 
   upcoming_shows = Show.query.filter(Show.venue_id == data['id'],
@@ -271,6 +274,8 @@ def show_venue(venue_id):
     "artist_name": ps.artist.name, 
     "artist_image_link": ps.artist.image_link,
     "start_time": str(ps.start_time)} for ps in upcoming_shows]
+  # sort upcoming shows by time (reverse order)
+  data['upcoming_shows'] = sorted(data['upcoming_shows'], key = lambda x : x['start_time'])
   data["upcoming_shows_count"] = len(data['upcoming_shows'])
   
   return render_template('pages/show_venue.html', venue=data)
@@ -345,14 +350,16 @@ def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
-  response={
-    "count": 1,
-    "data": [{
-      "id": 4,
-      "name": "Guns N Petals",
-      "num_upcoming_shows": 0,
-    }]
-  }
+  # response={
+  #   "count": 1,
+  #   "data": [{
+  #     "id": 4,
+  #     "name": "Guns N Petals",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }
+
+  
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')
@@ -429,15 +436,36 @@ def show_artist(artist_id):
   #   "past_shows_count": 0,
   #   "upcoming_shows_count": 3,
   # }
-
+  #data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
   a = Artist.query.get(artist_id)
   data = {'id': a.id, 'name': a.name, 'genres': a.genres,'city': a.city,
     'state': a.state, 'phone': a.phone, 'seeking_venues': a.seeking_venues,
     'facebook_link': a.facebook_link, 'image_link': a.image_link
   }
   # TODO: query for show, add to data
+  past_shows = Show.query.filter(Show.artist_id == data['id'],
+      Show.start_time < datetime.datetime.now()).\
+        join(Venue, Show.venue_id == Venue.id)
+  data['past_shows'] = [{"venue_id" : ps.venue_id,
+    "venue_name": ps.venue.name, 
+    "venue_image_link": ps.venue.image_link,
+    "start_time": str(ps.start_time)} for ps in past_shows]
+  # sort past shows by time (reverse order)
+  data['past_shows'] = sorted(data['past_shows'],
+    key = lambda x : x['start_time'], reverse=True)
+  data["past_shows_count"] = len(data['past_shows'])
 
-  #data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
+  upcoming_shows = Show.query.filter(Show.artist_id == data['id'],
+      Show.start_time >= datetime.datetime.now()).\
+        join(Venue, Show.venue_id == Venue.id)
+  data['upcoming_shows'] = [{"venue_id" : ps.venue_id,
+    "venue_name": ps.venue.name, 
+    "venue_image_link": ps.venue.image_link,
+    "start_time": str(ps.start_time)} for ps in upcoming_shows]
+  # sort upcoming shows by time
+  data['upcoming_shows'] = sorted(data['upcoming_shows'], key = lambda x: x['start_time'])
+  data["upcoming_shows_count"] = len(data['upcoming_shows'])
+  
   return render_template('pages/show_artist.html', artist=data)
 
 #  Update
@@ -578,6 +606,8 @@ def shows():
           "artist_id": s.artist_id, "artist_name": s.artist.name,
           "artist_image_link": s.artist.image_link,
           "start_time" : str(s.start_time)} for s in shows]
+  # sort by order of shows
+  data = sorted(data, key = lambda x: x['start_time'])
 
   return render_template('pages/shows.html', shows=data)
 
