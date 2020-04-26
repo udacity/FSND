@@ -53,7 +53,7 @@ Follow these steps to set up the database:
     ```
     - This will populate the database with data and grant
       the user `trivia_app` ownership of the trivia database tables
-  - Enter the `exit` command to exit out of the bash postgres login
+  - Run the `exit` command to exit out of the postgres user shell login
 
 #### Verify Setup Worked
 Connect to the database with the command:
@@ -151,7 +151,17 @@ The web API will be available at the url in the output. In this case at
 `http://127.0.0.1:5000/`.
 
 #### Running Web API Tests
-Web API tests are located in the `backend` directory in the `test_flaskr.py` file.
+Web API tests are located in the `backend` directory in the `test_flaskr.py` file. 
+
+In order to run the tests within the `test_flasker.py` file, the system user requires
+authorization to create and delete databases. The postgres database user must have
+the same name as the system user.
+
+Create a database user with the command:
+```
+sudo -u postgres createuser --interactive
+```
+  - **NOTE**: Answer yes to the question: `Shall the new role be a superuser? (y/n)`
 
 Run the tests with the command:
 ```
