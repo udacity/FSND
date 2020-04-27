@@ -42,41 +42,16 @@
   </div>
 
   <script type="module">
-    import { storeSelectedGenresToWindow } from '../../static/js/storeSelectedGenresToWindow.js'; // Or it could be simply `hello.js`
-    console.log('Imported!')
-  </script>
-  <script>    
+    import { storeSelectedGenresToWindow, fetchCreateThenHome, parseFormFields } from '../../static/js/create.js';
+    console.log('Imported!');
+    storeSelectedGenresToWindow();
     document.getElementById('create-new-venue').onsubmit = function(e) {
       e.preventDefault();
 
-      let data = {};
-
-      data['genres'] = window.genres;
-      data['state'] = e.target.querySelector('select:not([multiple])').value
-      
-      const inputs = e.target.querySelectorAll('input');
-      for (const input of inputs) {
-        if (!!input.value && input.type !== 'submit') {
-          const val = input.value
-          const key = input.name
-          data[key] = val
-        }
-      }
+      const data = parseFormFields(e);
 
       console.log('fetching:', data)
-
-      fetch('/venues/create', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      }).then(response => {
-        if (!response.ok) {
-          throw Error(response.statusText)
-        } else {return response.json()}
-      }).then(jsonResponse => {
-        alert('Venue ' + jsonResponse['venue_name'] + ' was successfully listed!');
-        window.location.href = "/";
-      })
+      fetchCreateThenHome(data);
     }
   </script>
 {% endblock %}

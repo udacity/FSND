@@ -2,7 +2,7 @@
 {% block title %}New Artist{% endblock %}
 {% block content %}
   <div class="form-wrapper">
-    <form method="post" class="form">
+    <form method="post" class="form" id="create-new-artist">
       <h3 class="form-heading">List a new artist</h3>
       <div class="form-group">
         <label for="name">Name</label>
@@ -36,7 +36,17 @@
     </form>
   </div>
   <script type="module">
-    import { storeSelectedGenresToWindow } from '../../static/js/storeSelectedGenresToWindow.js'; // Or it could be simply `hello.js`
-    console.log('Imported!')
+    import { storeSelectedGenresToWindow, fetchCreateThenHome, parseFormFields } from '../../static/js/create.js';
+    console.log('Imported!');
+    storeSelectedGenresToWindow();
+    document.getElementById('create-new-artist').onsubmit = function(e) {
+      e.preventDefault();
+
+      const data = parseFormFields(e);
+
+      console.log('fetching:', data)
+      
+      fetchCreateThenHome(data);
+    }
   </script>
 {% endblock %}

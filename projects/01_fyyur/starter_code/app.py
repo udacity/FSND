@@ -314,7 +314,7 @@ def create_venue_submission():
   except:
     db.session.rollback()
     print('Rolled back.\nError:', traceback.format_exc())
-    flash('An error occurred. Venue ' + data.venue_name + ' could not be listed.')
+    # flash('An error occurred. Venue ' + data.venue_name + ' could not be listed.')
     return 'something went wrong, debug:' + str(traceback.format_exc()), 400
   finally:
     db.session.close()
@@ -526,14 +526,28 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
+  print(request.get_json())
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-
+  data = request.get_json()
+  try:
+    new_artist = Artist(**data)
+    db.session.add(new_artist)
+    db.session.commit()
+    resp = Artist.query.order_by(Artist.id.desc()).first()
+    print('Added:',resp.as_dict()['name'])
+    return resp.as_dict()
+  except:
+    db.session.rollback()
+    print('Rolled back.\nError:', traceback.format_exc())
+    # flash('An error occurred. Venue ' + data.venue_name + ' could not be listed.')
+    return 'something went wrong, debug:' + str(traceback.format_exc()), 400
+  finally:
+    db.session.close()
   # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  # flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   return render_template('pages/home.html')
 
 
