@@ -2,7 +2,7 @@
 {% block title %}New Show Listing{% endblock %}
 {% block content %}
   <div class="form-wrapper">
-    <form method="post" class="form">
+    <form method="post" class="form" id="create-new-show">
       <h3 class="form-heading">List a new show</h3>
       <div class="form-group">
         <label for="artist_id">Artist ID</label>
@@ -21,4 +21,17 @@
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
+  <script type="module">
+    import { storeSelectedGenresToWindow, fetchCreateThenHome, parseFormFields } from '../../static/js/create.js';
+    console.log('Imported!');
+    document.getElementById('create-new-show').onsubmit = function(e) {
+      e.preventDefault();
+
+      const data = parseFormFields(e);
+
+      console.log('fetching:', data)
+      
+      // fetchCreateThenHome(data);
+    }
+  </script>
 {% endblock %}

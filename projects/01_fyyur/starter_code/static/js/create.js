@@ -32,10 +32,14 @@ export function fetchCreateThenHome(data) {
 
 export function parseFormFields(event){
   let data = {};
-  data['genres'] = window.genres;
-  data['state'] = event.target.querySelector('select:not([multiple])').value
-  console.log('state value in function:', event.target.querySelector('select:not([multiple])').value)
+  if (window.genres) {
+    data['genres'] = window.genres;
+  }
+  if (event.target.querySelector('select:not([multiple])')) {
+    data['state'] = event.target.querySelector('select:not([multiple])').value
+  }
   const inputs = event.target.querySelectorAll('input');
+  console.log('Here are the input fields:', inputs)
   for (const input of inputs) {
     if (!!input.value && input.type !== 'submit') {
       const val = input.value
