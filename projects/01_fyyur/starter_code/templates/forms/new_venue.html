@@ -1,6 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}New Venue{% endblock %}
 {% block content %}
+</script>
   <div class="form-wrapper">
     <form method="post" class="form" id="create-new-venue">
       <h3 class="form-heading">List a new venue <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
@@ -39,49 +40,18 @@
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
-  <script>
-    document.querySelector('select[multiple]').onchange = function(e) {
-      let genres = []
-      for (const option of e.target.options) {
-        if (option.selected) {
-          genres.push(option.value)
-        }
-      }
-      window.genres = genres
-    }
-  </script>
-  <script>    
+
+  <script type="module">
+    import { storeSelectedGenresToWindow, fetchCreateThenHome, parseFormFields } from '../../static/js/create.js';
+    console.log('Imported!');
+    storeSelectedGenresToWindow();
     document.getElementById('create-new-venue').onsubmit = function(e) {
       e.preventDefault();
 
-      let data = {};
-
-      data['genres'] = window.genres;
-      data['state'] = e.target.querySelector('select:not([multiple])').value
-      
-      const inputs = e.target.querySelectorAll('input');
-      for (const input of inputs) {
-        if (!!input.value && input.type !== 'submit') {
-          const val = input.value
-          const key = input.name
-          data[key] = val
-        }
-      }
+      const data = parseFormFields(e);
 
       console.log('fetching:', data)
-
-      fetch('/venues/create', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      }).then(response => {
-        if (!response.ok) {
-          throw Error(response.statusText)
-        } else {return response.json()}
-      }).then(jsonResponse => {
-        alert('Venue ' + jsonResponse['venue_name'] + ' was successfully listed!');
-        window.location.href = "/";
-      })
+      fetchCreateThenHome(data);
     }
   </script>
 {% endblock %}
