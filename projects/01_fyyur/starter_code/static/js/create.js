@@ -52,8 +52,12 @@ export function parseFormFields(event){
 
 function getNameFromResponse(jsonResponse) {
   let name;
+  console.log('show me resp:', jsonResponse)
   if (jsonResponse.hasOwnProperty('venue_name')) {
     name = jsonResponse['venue_name']
-  } else { name = jsonResponse['name']}
+  } else if (jsonResponse.hasOwnProperty('name')) {
+    name = jsonResponse['name']
+  } else { name = jsonResponse['id']}
+  console.log('show me name:', name)
   return name
 }
