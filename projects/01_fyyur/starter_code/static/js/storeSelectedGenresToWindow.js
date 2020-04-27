@@ -1,4 +1,4 @@
-function storeSelectedGenresToWindow() {
+export function storeSelectedGenresToWindow() {
   console.log('I am running')
   document.querySelector('select[multiple]').onchange = function (e) {
     let genres = [];

@@ -41,9 +41,10 @@
     </form>
   </div>
 
-  <script src="{{ url_for('static', filename='js/storeSelectedGenresToWindow.js')}}"></script>
-  <script>console.log(window.genres)</script>
-  <!-- <script>storeSelectedGenresToWindow()</script> -->
+  <script type="module">
+    import { storeSelectedGenresToWindow } from '../../static/js/storeSelectedGenresToWindow.js'; // Or it could be simply `hello.js`
+    console.log('Imported!')
+  </script>
   <script>    
     document.getElementById('create-new-venue').onsubmit = function(e) {
       e.preventDefault();
