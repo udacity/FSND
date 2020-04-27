@@ -13,7 +13,8 @@ from models import setup_db, Question, Category
 load_dotenv()
 database_password = os.getenv('DB_PASSWORD', '')
 error_messages = {
-    "method_not_allowed": "The method is not allowed for the requested URL."
+    "method_not_allowed": "The method is not allowed for the requested URL.",
+    "not_found": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
 }
 
 
@@ -82,10 +83,70 @@ class TriviaTestCase(unittest.TestCase):
         response = self.client.post("categories")
         data = json.loads(response.data)
 
+        self.assertEqual(response.status_code, 405)
         self.assertEqual(data["success"], False)
         self.assertEqual(data["type"], "invalid_request_error")
         self.assertEqual(
-            data["message"], error_messages['method_not_allowed'])
+            data["message"], error_messages["method_not_allowed"])
+
+    def test_retrieve_questions(self):
+        response = self.client.get("/questions")
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertIsNone(data["current_category"])
+        self.assertEqual(data["total_questions"], 19)
+        self.assertEqual(len(data["questions"]), 10)
+
+        question = data["questions"][0]
+        self.assertIn("id", question)
+        self.assertIn("question", question)
+        self.assertIn("answer", question)
+        self.assertIn("category", question)
+        self.assertIn("difficulty", question)
+
+        categories = Category.query.all()
+        for category in categories:
+            category_id = str(category.id)
+            self.assertIn(category_id, data["categories"])
+            self.assertEqual(
+                data["categories"][category_id],
+                category.type.lower())
+
+    def test_retrieve_questions_when_requesting_second_page(self):
+        response = self.client.get('/questions?page=2')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertIsNone(data["current_category"])
+        self.assertEqual(data["total_questions"], 19)
+        self.assertEqual(len(data["questions"]), 9)
+
+        question = data["questions"][0]
+        self.assertIn("id", question)
+        self.assertIn("question", question)
+        self.assertIn("answer", question)
+        self.assertIn("category", question)
+        self.assertIn("difficulty", question)
+
+        categories = Category.query.all()
+        for category in categories:
+            category_id = str(category.id)
+            self.assertIn(category_id, data["categories"])
+            self.assertEqual(
+                data["categories"][category_id],
+                category.type.lower())
+
+    def test_retrieve_questions_when_page_out_of_bounds(self):
+        response = self.client.get('/questions?page=3')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["type"], "invalid_request_error")
+        self.assertEqual(data["message"], error_messages["not_found"])
 
 
 # Make the tests conveniently executable
