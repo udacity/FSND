@@ -105,11 +105,21 @@ def create_app(test_config=None):
     and shown whether they were correct or not. 
     '''
 
-    '''
-    @TODO: 
-    Create error handlers for all expected errors 
-    including 404 and 422. 
-    '''
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            "success": False,
+            "type": "invalid_request_error",
+            "message": error.description
+        }), 400
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "success": False,
+            "type": "invalid_request_error",
+            "message": error.description
+        }), 404
 
     @app.errorhandler(405)
     def method_not_allowed(error):
@@ -118,5 +128,13 @@ def create_app(test_config=None):
             "type": "invalid_request_error",
             "message": error.description
         }), 405
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            "success": False,
+            "type": "invalid_request_error",
+            "message": error.description
+        }), 422
 
     return app
