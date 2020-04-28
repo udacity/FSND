@@ -8,7 +8,8 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, json
 from flask_migrate import Migrate
 from flask_moment import Moment
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, inspect
+# from flask_sqlalchemy import inspect
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -96,6 +97,7 @@ class Artist(db.Model):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
+
 class Show(db.Model):
     __tablename__ = 'Show'
     
@@ -111,7 +113,6 @@ class Show(db.Model):
       return f'{s}'
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -362,13 +363,18 @@ def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
+  search_term = 'A'
+  result = db.session.query(Artist).filter(Artist.name.ilike(f'%{search_term}%')).all()
+  # print('res:',result)
+  for row in result:
+    print(row.id, row.name, row.shows)
   response={
-    "count": 1,
+    "count": len(result),
     "data": [{
-      "id": 4,
-      "name": "Guns N Petals",
-      "num_upcoming_shows": 0,
-    }]
+      "id": row.id,
+      "name": row.name,
+      "num_upcoming_shows": len(row.shows),
+    } for row in result]
   }
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
