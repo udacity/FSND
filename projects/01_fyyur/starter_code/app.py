@@ -48,7 +48,7 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    genres = db.Column(db.PickleType, nullable=False)
+    genres = db.Column(db.String, nullable=False)
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean(), nullable=False, default=False)
     seeking_description = db.Column(db.String)
@@ -65,7 +65,7 @@ class Artist(db.Model):
     city = db.Column(db.String(120), nullable=False)
     state = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120))
-    genres = db.Column(db.PickleType, nullable=False)
+    genres = db.Column(db.String, nullable=False)
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website = db.Column(db.String(120))
@@ -107,7 +107,7 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
+  test_data=[{
     "city": "San Francisco",
     "state": "CA",
     "venues": [{
@@ -128,7 +128,20 @@ def venues():
       "num_upcoming_shows": 0,
     }]
   }]
-  return render_template('pages/venues.html', areas=data);
+
+  areas = Venue.query.distinct(Venue.city, Venue.state).all()
+  data = []
+  for area in areas:
+    venues = Venue.query.filter_by(city=area.state).order_by('id').all()
+    record = {
+      "city": area.city,
+      "state": area.state,
+      "venues": [venues]
+    }
+    data.append(record)
+
+  print('data', data)
+  return render_template('pages/venues.html', areas=test_data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
