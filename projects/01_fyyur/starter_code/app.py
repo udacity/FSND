@@ -175,15 +175,20 @@ def search_venues():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+  search_for = request.form.get('search_term', '')
+  result = db.session.query(Venue).filter(Venue.venue_name.ilike(f'%{search_for}%')).all()
+  # print('res:',result)
+  for row in result:
+    print(row.id, row.name, row.shows)
   response={
-    "count": 1,
+    "count": len(result),
     "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+      "id": row.id,
+      "name": row.name,
+      "num_upcoming_shows": len(row.shows),
+    } for row in result]
   }
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+  return render_template('pages/search_venues.html', results=response, search_term=search_for)
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -363,8 +368,8 @@ def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
-  search_term = 'A'
-  result = db.session.query(Artist).filter(Artist.name.ilike(f'%{search_term}%')).all()
+  search_for = request.form.get('search_term', '')
+  result = db.session.query(Artist).filter(Artist.name.ilike(f'%{search_for}%')).all()
   # print('res:',result)
   for row in result:
     print(row.id, row.name, row.shows)
@@ -376,7 +381,7 @@ def search_artists():
       "num_upcoming_shows": len(row.shows),
     } for row in result]
   }
-  return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+  return render_template('pages/search_artists.html', results=response, search_term=search_for)
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
@@ -472,20 +477,25 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
+  artist=db.session.query(Artist).get(artist_id).as_dict()
+  
+  art_li = {key:value_formatted(key, val) for key,val in artist.items()}
+  
+  print(art_li)
+  # {
+  #   "id": 4,
+  #   "name": "Guns N Petals",
+  #   "genres": ["Rock n Roll"],
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "phone": "326-123-5000",
+  #   "website": "https://www.gunsnpetalsband.com",
+  #   "facebook_link": "https://www.facebook.com/GunsNPetals",
+  #   "seeking_venue": True,
+  #   "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
+  #   "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
+  # }
+  form = ArtistForm(**art_li)
   # TODO: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -647,6 +657,12 @@ def not_found_error(error):
 def server_error(error):
     return render_template('errors/500.html'), 500
 
+def value_formatted(key, value):
+    if key == 'genres':
+      value = value.replace('{','')
+      value = value.replace('}','')
+      value = value.split(',')
+    return value
 
 if not app.debug:
     file_handler = FileHandler('error.log')
