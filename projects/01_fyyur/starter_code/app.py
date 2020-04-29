@@ -402,6 +402,21 @@ def artists():
   }]
   return render_template('pages/artists.html', artists=data)
 
+@app.route('/artists/<artist_id>', methods=['DELETE'])
+def delete_artist(artist_id):
+  try:
+    artist = db.session.query(Artist).get(artist_id)
+    print('deleting:', artist)
+    db.session.delete(artist)
+    db.session.commit()
+    return json.jsonify(artist_id)
+  except:
+    db.session.rollback()
+    print('Something went wrong:', traceback.format_exc())
+    return 'Error:' + traceback.format_exc(), 200
+  finally:
+    db.session.close()
+
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
