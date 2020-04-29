@@ -14,7 +14,9 @@ load_dotenv()
 database_password = os.getenv('DB_PASSWORD', '')
 error_messages = {
     "method_not_allowed": "The method is not allowed for the requested URL.",
-    "not_found": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
+    "not_found": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.",
+    "unprocessable": "The request was well-formed but was unable to be followed due to semantic errors.",
+    "internal_server_error": "The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application."
 }
 
 
@@ -96,8 +98,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], True)
         self.assertIsNone(data["current_category"])
-        self.assertEqual(data["total_questions"], 19)
-        self.assertEqual(len(data["questions"]), 10)
+        self.assertEqual(data["total_questions"], Question.query.count())
+        self.assertTrue(len(data["questions"]))
 
         question = data["questions"][0]
         self.assertIn("id", question)
@@ -121,8 +123,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["success"], True)
         self.assertIsNone(data["current_category"])
-        self.assertEqual(data["total_questions"], 19)
-        self.assertEqual(len(data["questions"]), 9)
+        self.assertEqual(data["total_questions"], Question.query.count())
+        self.assertTrue(len(data["questions"]))
 
         question = data["questions"][0]
         self.assertIn("id", question)
@@ -147,6 +149,29 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], False)
         self.assertEqual(data["type"], "invalid_request_error")
         self.assertEqual(data["message"], error_messages["not_found"])
+
+    def test_remove_question(self):
+        question_id = 5
+        response = self.client.delete(f'/questions/{question_id}')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], True)
+
+        question = Question.query.\
+            filter(Question.id == question_id).\
+            one_or_none()
+        self.assertIsNone(question)
+
+    def test_remove_question_when_question_does_not_exist(self):
+        question_id = 25
+        response = self.client.delete(f'/questions/{question_id}')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["type"], "invalid_request_error")
+        self.assertEqual(data["message"], error_messages["unprocessable"])
 
 
 # Make the tests conveniently executable
