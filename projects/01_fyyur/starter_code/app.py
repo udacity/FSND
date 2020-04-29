@@ -387,19 +387,34 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  artist={
-    "id": 1,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
+  artist= db.session.query(Artist).get(artist_id).as_dict()
+  art_li = {key:value_formatted(key, val) for key,val in artist.items()}
+  print(art_li)
+
+  # art = db.session().query(Artist).join(Show, Show.id==Artist.shows.venue_id).get(artist_id).as_dict()
+  # q = Artist.query.join(Show, Artist.shows).filter_by(id=artist_id).first().as_dict()
+  # print(q)
+
+  # new_q = db.session.query(Artist,Show,Venue).filter(Artist.id == artist_id).all()
+  new_q = db.session.query(
+    Artist, Show.venue_id, Show.start_time, Venue.venue_name
+    ).join(Show, Artist.shows
+    ).join(Venue
+    ).filter(Artist.id == artist_id).first()
+  print(new_q)
+  # # {
+  #   "id": 1,
+  #   "name": "Guns N Petals",
+  #   "genres": ["Rock n Roll"],
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "phone": "326-123-5000",
+  #   "website": "https://www.gunsnpetalsband.com",
+  #   "facebook_link": "https://www.facebook.com/GunsNPetals",
+  #   "seeking_venue": True,
+  #   "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
+  #   "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
+  # }
   data1={
     "id": 4,
     "name": "Guns N Petals",
@@ -471,7 +486,7 @@ def show_artist(artist_id):
     "past_shows_count": 0,
     "upcoming_shows_count": 3,
   }
-  return render_template('pages/show_artist.html', artist=artist)
+  return render_template('pages/show_artist.html', artist=art_li)
 
 #  Update
 #  ----------------------------------------------------------------
