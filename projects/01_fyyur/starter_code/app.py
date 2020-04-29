@@ -195,6 +195,34 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+  shows_q = db.session.query(
+    Artist.id, Artist.name, Artist.image_link, Show.start_time 
+    ).join(Show, Venue.shows
+    ).join(Artist, Show.artists
+    ).filter(Venue.id == venue_id).all()
+
+  upcoming_shows = [{
+      "artist_id": show[0],
+      "artist_name": show[1],
+      "artist_image_link": show[2],
+      "start_time": str(show[3])
+    } for show in shows_q if show[3] > datetime.now()]
+  past_shows = [{
+      "artist_id": show[0],
+      "artist_name": show[1],
+      "artist_image_link": show[2],
+      "start_time": str(show[3])
+    } for show in shows_q if show[3] <= datetime.now()]
+
+  result = db.session.query(Venue).get(venue_id).as_dict()
+  result = {key:value_formatted(key,val) for key, val in result.items()}
+  result.update({
+    'upcoming_shows': upcoming_shows,
+    'past_shows': past_shows,
+    'past_shows_count': len(past_shows),
+    'upcoming_shows_count': len(upcoming_shows)
+    })
+  print(result)
   data2={
     "id": 2,
     "name": "The Dueling Pianos Bar",
@@ -298,7 +326,7 @@ def show_venue(venue_id):
     }],
   }
   
-  return render_template('pages/show_venue.html', venue=venue)
+  return render_template('pages/show_venue.html', venue=result)
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -721,11 +749,16 @@ def server_error(error):
     return render_template('errors/500.html'), 500
 
 def value_formatted(key, value):
-    if key == 'genres' and value is not None:
+    if key == 'genres' and value is not None and not isinstance(value, list):
       print(value)
-      value = value.replace('{','')
-      value = value.replace('}','')
-      value = value.split(',')
+      try:
+        value = value.replace('{','')
+        value = value.replace('}','')
+      except AttributeError as err:
+        value = value.replace('[','')
+        value = value.replace(']','')
+      finally:
+        value = value.split(',')
     return value
 
 if not app.debug:
