@@ -316,7 +316,7 @@ def create_venue_submission():
     db.session.commit()
     resp = Venue.query.order_by(Venue.id.desc()).first()
     print('Added:',resp.as_dict()['venue_name'])
-    return resp.as_dict()
+    return json.jsonify(resp.as_dict())
   except:
     db.session.rollback()
     print('Rolled back.\nError:', traceback.format_exc())
@@ -587,7 +587,7 @@ def create_artist_submission():
     db.session.commit()
     resp = Artist.query.order_by(Artist.id.desc()).first()
     print('Added:',resp.as_dict()['name'])
-    return resp.as_dict()
+    return json.jsonify(resp.as_dict())
   except:
     db.session.rollback()
     print('Rolled back.\nError:', traceback.format_exc())
