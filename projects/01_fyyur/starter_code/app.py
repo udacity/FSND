@@ -4,6 +4,7 @@
 
 import json
 import dateutil.parser
+import datetime
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, json
 from flask_migrate import Migrate
@@ -396,12 +397,34 @@ def show_artist(artist_id):
   # print(q)
 
   # new_q = db.session.query(Artist,Show,Venue).filter(Artist.id == artist_id).all()
-  new_q = db.session.query(
-    Artist, Show.venue_id, Show.start_time, Venue.venue_name
+  shows_q = db.session.query(
+    Show.venue_id, Venue.venue_name, Venue.image_link, Show.start_time 
     ).join(Show, Artist.shows
     ).join(Venue
-    ).filter(Artist.id == artist_id).first()
-  print(new_q)
+    ).filter(Artist.id == artist_id).all()
+
+  upcoming_shows = [{
+      "venue_id": show[0],
+      "venue_name": show[1],
+      "venue_image_link": show[2],
+      "start_time": str(show[3])
+    } for show in shows_q if show[3] > datetime.now()]
+  past_shows = [{
+      "venue_id": show[0],
+      "venue_name": show[1],
+      "venue_image_link": show[2],
+      "start_time": str(show[3])
+    } for show in shows_q if show[3] <= datetime.now()]
+
+  result = db.session.query(Artist).get(artist_id).as_dict()
+  result = {key:value_formatted(key,val) for key, val in result.items()}
+  result.update({
+    'upcoming_shows': upcoming_shows,
+    'past_shows': past_shows,
+    'past_shows_count': len(past_shows),
+    'upcoming_shows_count': len(upcoming_shows)
+    })
+  print(result)
   # # {
   #   "id": 1,
   #   "name": "Guns N Petals",
@@ -486,7 +509,7 @@ def show_artist(artist_id):
     "past_shows_count": 0,
     "upcoming_shows_count": 3,
   }
-  return render_template('pages/show_artist.html', artist=art_li)
+  return render_template('pages/show_artist.html', artist=result)
 
 #  Update
 #  ----------------------------------------------------------------
