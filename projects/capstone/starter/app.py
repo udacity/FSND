@@ -32,6 +32,22 @@ def create_app(test_config=None):
             'actors_list': actor_list
         })
 
+
+    @app.route('/movies')
+    def get_movies():
+        movie_list = []
+        movies = Movie.query.all()
+
+        for movie in movies:
+            movie_list.append(movie.format())
+
+        return jsonify({
+            'status_code': 200,
+            'success': True,
+            'num_of_movies': len(movie_list),
+            'actors_list': movie_lsit
+        })
+
     return app
 
 
