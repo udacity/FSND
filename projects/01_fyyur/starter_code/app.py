@@ -546,9 +546,25 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
+  data = {key:val for key,val in request.form.items() if key != 'genres'}
+  data.update({'genres':request.form.getlist('genres')})
+
+  try:
+    venue = db.session.query(Venue).get(venue_id)
+    for key, val in data.items():
+      setattr(venue, key, val)
+    db.session.commit()
+    print(venue.as_dict())
+    return redirect(url_for('show_venue', venue_id=venue_id))
+  except:
+    db.session.rollback()
+    print('something went wrong', traceback.format_exc())
+    return 'error:' + traceback.format_exc(), 200
+  finally:
+    db.session.close()
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
-  return redirect(url_for('show_venue', venue_id=venue_id))
+  # return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
@@ -676,7 +692,7 @@ def server_error(error):
     return render_template('errors/500.html'), 500
 
 def value_formatted(key, value):
-    if key == 'genres':
+    if key == 'genres' and value is not None:
       print(value)
       value = value.replace('{','')
       value = value.replace('}','')
