@@ -4,8 +4,11 @@
 <div class="row">
 	<div class="col-sm-6">
 		<h1 class="monospace">
-			{{ venue.name }}
+			{{ venue.venue_name }}
 		</h1>
+		<button id="delete-venue" >
+			Delete
+		</button>
 		<p class="subtitle">
 			ID: {{ venue.id }}
 		</p>
@@ -74,6 +77,20 @@
 		{% endfor %}
 	</div>
 </section>
-
+<script>
+	document.getElementById('delete-venue').onclick = function (e) {
+		e.preventDefault();
+		console.log('Trying to delete...')
+		fetch('/venues/{{ venue.id }}', {
+			method: 'DELETE'
+		}).then(response => {
+			if (!response.ok) throw response.statusText 
+			return response.json()
+		}).then(jsonResponse => {
+			alert(`Deleted ${jsonResponse}`)
+			window.location.href = '/venues'
+		})
+	}
+</script>
 {% endblock %}
 
