@@ -8,6 +8,7 @@
 			{{ artist.name }}
 			<!-- OK -->
 		</h1>
+		<button id="delete-artist">Delete</button>
 		<p class="subtitle">
 			ID: {{ artist.id }}
 			<!-- OK -->
@@ -81,6 +82,19 @@
 		{% endfor %}
 	</div>
 </section>
-
+<script>
+	document.getElementById('delete-artist').onclick = function (e) {
+		e.preventDefault();
+		fetch('/artists/{{ artist.id }}', {
+			method: 'DELETE'
+		}).then(response => {
+			if (!response.ok) throw response.statusText 
+			return response.json()
+		}).then(jsonResponse => {
+			alert(`Deleted ${jsonResponse}`)
+			window.location.href = '/artists'
+		})
+	}
+</script>
 {% endblock %}
 
