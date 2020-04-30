@@ -87,7 +87,7 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
     # venues = db.relationship('Venue',secondary=venue_artist, lazy=True, back_populates='artists')
-    shows = db.relationship('Show', secondary=artist_show, lazy=True, back_populates='artists')
+    shows = db.relationship('Show', secondary=artist_show, lazy=True, back_populates='artists', cascade='delete')
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK!
     def __repr__(self):
