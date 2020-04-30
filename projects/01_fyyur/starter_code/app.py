@@ -31,11 +31,11 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
-venue_artist = db.Table(
-  'venue_artist', 
-  db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
-  db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
-)
+# venue_artist = db.Table(
+#   'venue_artist', 
+#   db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
+#   db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
+# )
 
 artist_show = db.Table(
   'artist_show',
@@ -58,8 +58,8 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    shows = db.relationship('Show', backref='venue', lazy=True)
-    artists = db.relationship('Artist', secondary=venue_artist, lazy=True, back_populates='venues')
+    shows = db.relationship('Show', backref='venue', lazy=True, cascade='delete')
+    # artists = db.relationship('Artist', secondary=venue_artist, lazy=True, back_populates='venues', cascade='delete')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK! 
@@ -86,7 +86,7 @@ class Artist(db.Model):
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    venues = db.relationship('Venue',secondary=venue_artist, lazy=True, back_populates='artists')
+    # venues = db.relationship('Venue',secondary=venue_artist, lazy=True, back_populates='artists')
     shows = db.relationship('Show', secondary=artist_show, lazy=True, back_populates='artists')
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK!
@@ -106,7 +106,7 @@ class Show(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'))
     start_time = db.Column(db.DateTime, nullable=False)
-    artists = db.relationship('Artist', secondary=artist_show, lazy=True, back_populates='shows')
+    artists = db.relationship('Artist', secondary=artist_show, lazy=True, back_populates='shows', cascade='delete')
 
     def __repr__(self):
       col_names = self.__table__.columns.keys()
@@ -786,7 +786,12 @@ def create_show_submission():
     show_data = {key:val for key,val in data.items() if key != 'artist_id'}
     new_show = Show(**show_data)
     show_artists = [Artist.query.filter_by(id=pk).first() for pk in data['artist_id']]
+    for pk in data['artist_id']:
+      print('KEY:',pk)
+    print(show_artists)
+    print(new_show.artists)
     new_show.artists.append(*show_artists)
+
     db.session.add(new_show)
     db.session.commit()
     record = Show.query.order_by(Show.id.desc()).first()
