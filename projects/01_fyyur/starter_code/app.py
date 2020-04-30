@@ -734,6 +734,17 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
+  shows = db.session.query(Venue.id, Venue.venue_name, Artist.id, Artist.name, Artist.image_link, Show.start_time).join(Venue).join(Artist, Show.artists).all()
+  d = [ {
+    "venue_id": row[0],
+    "venue_name": row[1],
+    "artist_id": row[2],
+    "artist_name": row[3],
+    "artist_image_link": row[4],
+    "start_time": str(row[5])
+  } for row in shows]
+  print(d)
+  
   data=[{
     "venue_id": 1,
     "venue_name": "The Musical Hop",
@@ -770,7 +781,7 @@ def shows():
     "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
     "start_time": "2035-04-15T20:00:00.000Z"
   }]
-  return render_template('pages/shows.html', shows=data)
+  return render_template('pages/shows.html', shows=d)
 
 @app.route('/shows/create')
 def create_shows():
@@ -785,7 +796,7 @@ def create_show_submission():
   try:
     show_data = {key:val for key,val in data.items() if key != 'artist_id'}
     new_show = Show(**show_data)
-    show_artists = [Artist.query.filter_by(id=pk).first() for pk in data['artist_id']]
+    show_artists = [Artist.query.filter_by(id=pk).first() for pk in data['artist_id'].split(',')]
     for pk in data['artist_id']:
       print('KEY:',pk)
     print(show_artists)
