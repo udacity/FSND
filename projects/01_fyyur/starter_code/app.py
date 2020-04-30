@@ -162,36 +162,56 @@ def venues():
       else_=literal_column("NULL")
     )
   stmt = db.session.query(
-    Venue.venue_name
-    , func.count(Show.id).label('total_shows')
+    Venue.id
+    , Venue.venue_name
     , func.count( case_shows_upcoming ).label('upcoming_shows')
+    , Venue.city
+    , Venue.state
   ).join(Show, isouter=True).group_by(Venue.id)
   print(stmt)
 
   res = stmt.all()
   print(res)
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  venues_by_city = {}
+  for row in res:
+    venue_id, name, upcoming_shows, city, state = row
+    venue = {
+      "id": venue_id
+      , "name": name
+      , "num_upcoming_shows": upcoming_shows
+    }
+    try:
+      venues_by_city[city]["venues"].add(venue)
+    except:
+      venues_by_city[city] = {"venues":[venue], "state":state, "city":city}
+    
+  print(venues_by_city)
+
+  d = [venues_by_city[city] for city in venues_by_city.keys()]
+    
+
+  # data=[{
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "venues": [{
+  #     "id": 1,
+  #     "name": "The Musical Hop",
+  #     "num_upcoming_shows": 0,
+  #   }, {
+  #     "id": 3,
+  #     "name": "Park Square Live Music & Coffee",
+  #     "num_upcoming_shows": 1,
+  #   }]
+  # }, {
+  #   "city": "New York",
+  #   "state": "NY",
+  #   "venues": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }]
+  return render_template('pages/venues.html', areas=d);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
