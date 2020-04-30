@@ -28,7 +28,7 @@ def create_app(test_config=None):
         return jsonify({
             'status_code': 200,
             'success': True,
-            'num_of_actors': len(actor_list),
+            'number_of_actors': len(actor_list),
             'actors_list': actor_list
         })
 
@@ -44,9 +44,13 @@ def create_app(test_config=None):
         return jsonify({
             'status_code': 200,
             'success': True,
-            'num_of_movies': len(movie_list),
-            'actors_list': movie_lsit
+            'number_of_movies': len(movie_list),
+            'movie_list': movie_list
         })
+
+    @app.route('/actors')
+    def post_to_actors():
+        movi
 
     return app
 
