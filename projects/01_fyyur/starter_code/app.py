@@ -160,18 +160,17 @@ def venues():
         (Show.start_time > str(datetime.now()), Show.id)
       ], 
       else_=literal_column("NULL")
-    )
-  stmt = db.session.query(
+  )
+  res = db.session.query(
     Venue.id
     , Venue.venue_name
     , func.count( case_shows_upcoming ).label('upcoming_shows')
     , Venue.city
     , Venue.state
-  ).join(Show, isouter=True).group_by(Venue.id)
-  print(stmt)
+  ).join(Show, isouter=True
+  ).group_by(Venue.id
+  ).all()
 
-  res = stmt.all()
-  print(res)
   venues_by_city = {}
   for row in res:
     venue_id, name, upcoming_shows, city, state = row
@@ -184,8 +183,6 @@ def venues():
       venues_by_city[city]["venues"].add(venue)
     except:
       venues_by_city[city] = {"venues":[venue], "state":state, "city":city}
-    
-  print(venues_by_city)
 
   d = [venues_by_city[city] for city in venues_by_city.keys()]
     
@@ -432,17 +429,21 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  data=[{
-    "id": 4,
-    "name": "Guns N Petals",
-  }, {
-    "id": 5,
-    "name": "Matt Quevedo",
-  }, {
-    "id": 6,
-    "name": "The Wild Sax Band",
-  }]
-  return render_template('pages/artists.html', artists=data)
+  
+  res = db.session.query(Artist).all()
+  d = [{"id": row.id, "name": row.name} for row in res]
+  
+  # data=[{
+  #   "id": 4,
+  #   "name": "Guns N Petals",
+  # }, {
+  #   "id": 5,
+  #   "name": "Matt Quevedo",
+  # }, {
+  #   "id": 6,
+  #   "name": "The Wild Sax Band",
+  # }]
+  return render_template('pages/artists.html', artists=d)
 
 @app.route('/artists/<artist_id>', methods=['DELETE'])
 def delete_artist(artist_id):
