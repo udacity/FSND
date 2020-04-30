@@ -10,6 +10,7 @@ from flask import Flask, render_template, request, Response, flash, redirect, ur
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy, inspect
+from sqlalchemy import func, literal_column, case
 # from flask_sqlalchemy import inspect
 import logging
 from logging import Formatter, FileHandler
@@ -30,11 +31,11 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
-venue_artist = db.Table(
-  'venue_artist', 
-  db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
-  db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
-)
+# venue_artist = db.Table(
+#   'venue_artist', 
+#   db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
+#   db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
+# )
 
 artist_show = db.Table(
   'artist_show',
@@ -57,8 +58,8 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    shows = db.relationship('Show', backref='venue', lazy=True)
-    artists = db.relationship('Artist', secondary=venue_artist, lazy=True, back_populates='venues')
+    shows = db.relationship('Show', backref='venue', lazy=True, cascade='delete')
+    # artists = db.relationship('Artist', secondary=venue_artist, lazy=True, back_populates='venues', cascade='delete')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK! 
@@ -85,8 +86,8 @@ class Artist(db.Model):
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    venues = db.relationship('Venue',secondary=venue_artist, lazy=True, back_populates='artists')
-    shows = db.relationship('Show', secondary=artist_show, lazy=True, back_populates='artists')
+    # venues = db.relationship('Venue',secondary=venue_artist, lazy=True, back_populates='artists')
+    shows = db.relationship('Show', secondary=artist_show, lazy=True, back_populates='artists', cascade='delete')
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     # OK!
     def __repr__(self):
@@ -105,7 +106,7 @@ class Show(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'))
     start_time = db.Column(db.DateTime, nullable=False)
-    artists = db.relationship('Artist', secondary=artist_show, lazy=True, back_populates='shows')
+    artists = db.relationship('Artist', secondary=artist_show, lazy=True, back_populates='shows', cascade='delete')
 
     def __repr__(self):
       col_names = self.__table__.columns.keys()
@@ -148,28 +149,66 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  # venues = db.session.query(
+  #     Venue.city, Venue.state, Venue.id, Venue.venue_name,
+  #     func.count(func.case([(Show.start_time >= datetime.now(),Show.id)], else_=literal_column("NULL"))) 
+  #   ).join(Show).all()
+  # print(venues)
+
+  case_shows_upcoming = case(
+      [
+        (Show.start_time > str(datetime.now()), Show.id)
+      ], 
+      else_=literal_column("NULL")
+  )
+  res = db.session.query(
+    Venue.id
+    , Venue.venue_name
+    , func.count( case_shows_upcoming ).label('upcoming_shows')
+    , Venue.city
+    , Venue.state
+  ).join(Show, isouter=True
+  ).group_by(Venue.id
+  ).all()
+
+  venues_by_city = {}
+  for row in res:
+    venue_id, name, upcoming_shows, city, state = row
+    venue = {
+      "id": venue_id
+      , "name": name
+      , "num_upcoming_shows": upcoming_shows
+    }
+    try:
+      venues_by_city[city]["venues"].add(venue)
+    except:
+      venues_by_city[city] = {"venues":[venue], "state":state, "city":city}
+
+  d = [venues_by_city[city] for city in venues_by_city.keys()]
+    
+
+  # data=[{
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "venues": [{
+  #     "id": 1,
+  #     "name": "The Musical Hop",
+  #     "num_upcoming_shows": 0,
+  #   }, {
+  #     "id": 3,
+  #     "name": "Park Square Live Music & Coffee",
+  #     "num_upcoming_shows": 1,
+  #   }]
+  # }, {
+  #   "city": "New York",
+  #   "state": "NY",
+  #   "venues": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }]
+  return render_template('pages/venues.html', areas=d);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -390,17 +429,21 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  data=[{
-    "id": 4,
-    "name": "Guns N Petals",
-  }, {
-    "id": 5,
-    "name": "Matt Quevedo",
-  }, {
-    "id": 6,
-    "name": "The Wild Sax Band",
-  }]
-  return render_template('pages/artists.html', artists=data)
+  
+  res = db.session.query(Artist).all()
+  d = [{"id": row.id, "name": row.name} for row in res]
+  
+  # data=[{
+  #   "id": 4,
+  #   "name": "Guns N Petals",
+  # }, {
+  #   "id": 5,
+  #   "name": "Matt Quevedo",
+  # }, {
+  #   "id": 6,
+  #   "name": "The Wild Sax Band",
+  # }]
+  return render_template('pages/artists.html', artists=d)
 
 @app.route('/artists/<artist_id>', methods=['DELETE'])
 def delete_artist(artist_id):
@@ -691,6 +734,17 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
+  shows = db.session.query(Venue.id, Venue.venue_name, Artist.id, Artist.name, Artist.image_link, Show.start_time).join(Venue).join(Artist, Show.artists).all()
+  d = [ {
+    "venue_id": row[0],
+    "venue_name": row[1],
+    "artist_id": row[2],
+    "artist_name": row[3],
+    "artist_image_link": row[4],
+    "start_time": str(row[5])
+  } for row in shows]
+  print(d)
+  
   data=[{
     "venue_id": 1,
     "venue_name": "The Musical Hop",
@@ -727,7 +781,7 @@ def shows():
     "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
     "start_time": "2035-04-15T20:00:00.000Z"
   }]
-  return render_template('pages/shows.html', shows=data)
+  return render_template('pages/shows.html', shows=d)
 
 @app.route('/shows/create')
 def create_shows():
@@ -740,9 +794,15 @@ def create_show_submission():
   data = request.get_json() 
   print(data)
   try:
-    new_show = Show(start_time=data['start_time'])
-    show_artists = [Artist.query.filter_by(id=pk).first() for pk in data['artist_id']]
+    show_data = {key:val for key,val in data.items() if key != 'artist_id'}
+    new_show = Show(**show_data)
+    show_artists = [Artist.query.filter_by(id=pk).first() for pk in data['artist_id'].split(',')]
+    for pk in data['artist_id']:
+      print('KEY:',pk)
+    print(show_artists)
+    print(new_show.artists)
     new_show.artists.append(*show_artists)
+
     db.session.add(new_show)
     db.session.commit()
     record = Show.query.order_by(Show.id.desc()).first()
