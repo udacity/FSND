@@ -109,6 +109,87 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     '''
+    required_attribute_template = "A value is required for the attribute \"{}\"."
+    integer_expected_template = "The attribute \"{}\" must be an integer."
+    integer_out_of_range_template = "The attribute \"{}\" must be an integer from {} and {}."
+
+    def validate_create_question_input(data):
+        errors = []
+        if "question" not in data:
+            errors.append({
+                "type": "attribute_required",
+                "attribute": "question",
+                "message": required_attribute_template.format("question")
+            })
+
+        if "answer" not in data:
+            errors.append({
+                "type": "attribute_require",
+                "attribute": "answer",
+                "message": required_attribute_template.format("answer")
+            })
+
+        if "category" not in data:
+            errors.append({
+                "type": "attribute_required",
+                "attribute": "category",
+                "message": required_attribute_template.format("category")
+            })
+        elif type(data["category"]) != int:
+            errors.append({
+                "type": "integer_expected",
+                "attribute": "category",
+                "message": integer_expected_template.format("category")
+            })
+
+        if "difficulty" not in data:
+            errors.append({
+                "type": "attribute_required",
+                "attribute": "difficulty",
+                "message": required_attribute_template.format("difficulty")
+            })
+        elif type(data["difficulty"]) != int:
+            errors.append({
+                "type": "integer_expected",
+                "attribute": "difficulty",
+                "message": integer_expected_template.format("difficulty")
+            })
+        elif data["difficulty"] < 1 or data["difficulty"] > 5:
+            errors.append({
+                "type": "number_out_of_range",
+                "attribute": "difficulty",
+                "message": integer_out_of_range_template.format("difficulty", 1, 5)
+            })
+
+        return errors
+
+    @app.route("/questions", methods=["POST"])
+    def create_question():
+        data = request.get_json()
+
+        if not data:
+            abort(400)
+
+        validation_errors = validate_create_question_input(data)
+        if validation_errors:
+            return jsonify({
+                "success": False,
+                "type": "invalid_request_error",
+                "message": "The request could not be processed because of invalid data.",
+                "validation_errors": validation_errors
+            }), 400
+
+        question = Question(
+            question=data.get("question"),
+            answer=data.get("ansser"),
+            category=data.get("category"),
+            difficulty=data.get("difficulty")
+        )
+        question.insert()
+
+        return jsonify({
+            "success": True
+        })
 
     '''
     @TODO:
