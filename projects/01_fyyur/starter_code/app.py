@@ -10,6 +10,7 @@ from flask import Flask, render_template, request, Response, flash, redirect, ur
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy, inspect
+from sqlalchemy import func, literal_column, case
 # from flask_sqlalchemy import inspect
 import logging
 from logging import Formatter, FileHandler
@@ -148,6 +149,27 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
+  # venues = db.session.query(
+  #     Venue.city, Venue.state, Venue.id, Venue.venue_name,
+  #     func.count(func.case([(Show.start_time >= datetime.now(),Show.id)], else_=literal_column("NULL"))) 
+  #   ).join(Show).all()
+  # print(venues)
+
+  case_shows_upcoming = case(
+      [
+        (Show.start_time > str(datetime.now()), Show.id)
+      ], 
+      else_=literal_column("NULL")
+    )
+  stmt = db.session.query(
+    Venue.venue_name
+    , func.count(Show.id).label('total_shows')
+    , func.count( case_shows_upcoming ).label('upcoming_shows')
+  ).join(Show, isouter=True).group_by(Venue.id)
+  print(stmt)
+
+  res = stmt.all()
+  print(res)
   data=[{
     "city": "San Francisco",
     "state": "CA",
