@@ -5,6 +5,11 @@ from flask_cors import CORS
 from models import setup_db, Actor, Movie
 
 
+def format_list(selection_query):
+    item_list = [item.format() for item in selection_query]
+    return item_list
+
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -48,9 +53,33 @@ def create_app(test_config=None):
             'movie_list': movie_list
         })
 
-    @app.route('/actors')
+    @app.route('/actors', methods=['POST'])
     def post_to_actors():
-        movi
+        body = request.get_json()
+
+        new_name = body.get('name', None)
+        new_age = body.get('age', None)
+        new_gender = body.get('gender', None)
+
+        try:
+            actor = Actor(
+                name=new_name,
+                age=new_age,
+                gender=new_gender
+            )
+            actor.insert()
+
+            actor_list = format_list(Actor.query.all())
+
+            return jsonify({
+                'success': True,
+                'created_id': actor.id,
+                'actor_list': actor_list,
+                'number_of_actors': len(actor_list)
+            })
+
+        except BaseException:
+            abort(422)
 
     return app
 
