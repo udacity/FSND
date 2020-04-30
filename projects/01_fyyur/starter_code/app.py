@@ -762,7 +762,8 @@ def create_show_submission():
   data = request.get_json() 
   print(data)
   try:
-    new_show = Show(start_time=data['start_time'])
+    show_data = {key:val for key,val in data.items() if key != 'artist_id'}
+    new_show = Show(**show_data)
     show_artists = [Artist.query.filter_by(id=pk).first() for pk in data['artist_id']]
     new_show.artists.append(*show_artists)
     db.session.add(new_show)
