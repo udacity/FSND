@@ -97,7 +97,8 @@ class Artist(db.Model):
       return f'{s}'
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
+    
+    
 
 
 class Show(db.Model):
@@ -115,6 +116,10 @@ class Show(db.Model):
       return f'{s}'
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    
+    
+
+
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -379,7 +384,7 @@ def create_venue_form():
 def create_venue_submission():  
   data = request.get_json()
   try:
-    new_venue = Venue(**data)
+    new_venue = get_or_create(Venue, name=data['venue_name'], data=data)
     db.session.add(new_venue)
     db.session.commit()
     resp = Venue.query.order_by(Venue.id.desc()).first()
@@ -707,7 +712,7 @@ def create_artist_submission():
   # TODO: modify data to be the data object returned from db insertion
   data = request.get_json()
   try:
-    new_artist = Artist(**data)
+    new_artist = get_or_create(Artist, name=data['name'], data=data)
     db.session.add(new_artist)
     db.session.commit()
     resp = Artist.query.order_by(Artist.id.desc()).first()
@@ -832,6 +837,19 @@ def not_found_error(error):
 @app.errorhandler(500)
 def server_error(error):
     return render_template('errors/500.html'), 500
+
+
+def get_or_create(Model, name, data):
+  print(Model.__name__ == 'Venue')
+  if Model.__name__ == 'Venue':
+    exists = db.session.query(Model.id).filter_by(venue_name=name).scalar() is not None
+    if exists:
+        return db.session.query(Model).filter_by(venue_name=name).first()
+  else:
+    exists = db.session.query(Model.id).filter_by(name=name).scalar() is not None
+    if exists:
+        return db.session.query(Model).filter_by(name=name).first()
+  return Model(**data)
 
 def value_formatted(key, value):
     if key == 'genres' and value is not None and not isinstance(value, list):
