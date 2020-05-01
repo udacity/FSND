@@ -261,7 +261,7 @@ def show_venue(venue_id):
     "past_shows_count": 1,
     "upcoming_shows_count": 1,
   }
-  test_data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
+  # test_data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
 
   venue = Venue.query.filter_by(id=venue_id).first()
   past_shows_data = []
@@ -365,7 +365,24 @@ def delete_venue(venue_id):
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+  error = False
+  try:
+    Show.query.filter_by(venue_id=venue_id).delete()
+    venue = Venue.query.get(venue_id)
+    db.session.delete(venue)
+    db.session.commit()
+  except:
+    db.session.rollback()
+    print(sys.exc_info())
+    error = True
+  finally:
+    db.session.close()
+  if error:
+    abort(400)
+    flash('An error occurred. Venue id ' + venue_id + ' could not be deleted.')
+  else:
+    flash('Venue id ' + venue_id + ' was successfully deleted!')
+  return render_template('pages/home.html')
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -658,7 +675,7 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
+  # TODO: take values from the form submitted, and update existing -- done
   # venue record with ID <venue_id> using the new attributes
 
   error = False

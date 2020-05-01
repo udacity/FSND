@@ -45,6 +45,10 @@
 	<div class="col-sm-6">
 		<img src="{{ venue.image_link }}" alt="Venue Image" />
 	</div>
+	<div class="col-sm-6">
+		<div id="error" class="hidden">Something went wrong!</div>
+		<button class="btn btn-danger btn-lg" id="delete_venue" data-id="{{ venue.id }}">Delete Venue</button>
+	</div>
 </div>
 <section>
 	<h2 class="monospace">{{ venue.upcoming_shows_count }} Upcoming {% if venue.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
@@ -75,5 +79,23 @@
 	</div>
 </section>
 
+<script>
+	window.onload = function(){
+		document.getElementById('delete_venue').onclick = function(e) {
+			e.preventDefault();
+			const venueId = e.target.dataset['id'];
+			fetch('/venues/' + venueId, {
+				method: 'DELETE'
+			})
+			.then(function(response) {
+				document.getElementById('error').className = 'hidden';
+				alert('Venue deleted');
+				window.location ='/';
+			})
+			.catch(function(e) {
+				document.getElementById('error').className = '';
+			});
+		}
+	}
+</script>
 {% endblock %}
-
