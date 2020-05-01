@@ -268,7 +268,7 @@ def show_venue(venue_id):
   past_shows = Show.query.filter_by(venue_id=venue_id).filter(Show.start_time<datetime.now()).all()
 
   for past_show in past_shows:
-    artist_data = Artist.query.filter_by(id=past_show.artist_id).first()
+    artist_data = Artist.query.join('artist_shows').filter_by(artist_id=past_show.artist_id).first()
     past_show_data = {
       "artist_id": artist_data.id,
       "artist_name": artist_data.name,
@@ -523,7 +523,7 @@ def show_artist(artist_id):
   past_shows = Show.query.filter_by(artist_id=artist_id).filter(Show.start_time<datetime.now()).all()
 
   for past_show in past_shows:
-    venue_data = Venue.query.filter_by(id=past_show.venue_id).first()
+    venue_data = Venue.query.join('venue_shows').filter_by(venue_id=past_show.venue_id).first()
     past_show_data = {
       "venue_id": venue_data.id,
       "venue_name": venue_data.name,
