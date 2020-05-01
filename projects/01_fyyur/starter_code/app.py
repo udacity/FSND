@@ -53,7 +53,6 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean(), nullable=False, default=False)
     seeking_description = db.Column(db.String)
     venue_shows = db.relationship('Show', backref='venue')
-    past_shows_count = db.Column(db.Integer)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -72,7 +71,6 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean(), nullable=False, default=False)
     seeking_description = db.Column(db.String)
     artist_shows = db.relationship('Show', backref='artist')
-    past_shows_count = db.Column(db.Integer)
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -184,7 +182,7 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-  # shows the venue page with the given venue_id
+  # shows the venue page with the given venue_id -- done
   # TODO: replace with real venue data from the venues table, using venue_id
   data1={
     "id": 1,
@@ -263,7 +261,53 @@ def show_venue(venue_id):
     "past_shows_count": 1,
     "upcoming_shows_count": 1,
   }
-  data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
+  test_data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
+
+  venue = Venue.query.filter_by(id=venue_id).first()
+  past_shows_data = []
+  past_shows = Show.query.filter_by(venue_id=venue_id).filter(Show.start_time<datetime.now()).all()
+
+  for past_show in past_shows:
+    artist_data = Artist.query.filter_by(id=past_show.artist_id).first()
+    past_show_data = {
+      "artist_id": artist_data.id,
+      "artist_name": artist_data.name,
+      "artist_image_link": artist_data.image_link,
+      "start_time": past_show.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    past_shows_data.append(past_show_data)
+  
+  upcoming_shows_data = []
+  upcoming_shows = Show.query.filter_by(venue_id=venue_id).filter(Show.start_time>=datetime.now()).all()
+
+  for upcoming_show in upcoming_shows:
+    artist_data = Artist.query.filter_by(id=upcoming_show.artist_id).first()
+    upcoming_show_data = {
+      "artist_id": artist_data.id,
+      "artist_name": artist_data.name,
+      "artist_image_link": artist_data.image_link,
+      "start_time": upcoming_show.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    upcoming_shows_data.append(upcoming_show_data)
+
+  data = {
+    "id": venue.id,
+    "name": venue.name,
+    "genres": venue.genres,
+    "address": venue.address,
+    "city": venue.city,
+    "state": venue.state,
+    "phone": venue.phone,
+    "website": venue.website,
+    "facebook_link": venue.facebook_link,
+    "seeking_talent": venue.seeking_talent,
+    "image_link": venue.image_link,
+    "past_shows": past_shows_data,
+    "upcoming_shows": upcoming_shows_data,
+    "past_shows_count": len(past_shows_data),
+    "upcoming_shows_count": len(upcoming_shows_data),
+  }
+
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -454,7 +498,52 @@ def show_artist(artist_id):
     "past_shows_count": 0,
     "upcoming_shows_count": 3,
   }
-  data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
+  test_data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
+
+  artist = Artist.query.filter_by(id=artist_id).first()
+  past_shows_data = []
+  past_shows = Show.query.filter_by(artist_id=artist_id).filter(Show.start_time<datetime.now()).all()
+
+  for past_show in past_shows:
+    venue_data = Venue.query.filter_by(id=past_show.venue_id).first()
+    past_show_data = {
+      "artist_id": artist_data.id,
+      "artist_name": artist_data.name,
+      "artist_image_link": artist_data.image_link,
+      "start_time": past_show.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    past_shows_data.append(past_show_data)
+  
+  upcoming_shows_data = []
+  upcoming_shows = Show.query.filter_by(venue_id=venue_id).filter(Show.start_time>=datetime.now()).all()
+
+  for upcoming_show in upcoming_shows:
+    artist_data = Artist.query.filter_by(id=upcoming_show.artist_id).first()
+    upcoming_show_data = {
+      "artist_id": artist_data.id,
+      "artist_name": artist_data.name,
+      "artist_image_link": artist_data.image_link,
+      "start_time": upcoming_show.start_time.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    upcoming_shows_data.append(upcoming_show_data)
+
+  data = {
+    "id": venue.id,
+    "name": venue.name,
+    "genres": venue.genres,
+    "address": venue.address,
+    "city": venue.city,
+    "state": venue.state,
+    "phone": venue.phone,
+    "website": venue.website,
+    "facebook_link": venue.facebook_link,
+    "seeking_talent": venue.seeking_talent,
+    "image_link": venue.image_link,
+    "past_shows": past_shows_data,
+    "upcoming_shows": upcoming_shows_data,
+    "past_shows_count": len(past_shows_data),
+    "upcoming_shows_count": len(upcoming_shows_data),
+  }
   return render_template('pages/show_artist.html', artist=data)
 
 #  Update
