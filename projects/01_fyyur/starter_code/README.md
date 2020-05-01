@@ -149,10 +149,9 @@ To start and run the local development server,
 3. create virtual environment `python -m venv env`
 4. Activate virtual environment `env\Script\activate.ps1`
 4. Install requirements `pip install -r requirements.txt`
-5. create psql database `createdb fyyur`
+5. create psql database `createdb fyyur` (this connection is hardcoded in db)
 6. Set environment variables `$env:FLASK_APP = "app"` `$env:FLASK_ENV = "development"`
 7. Run `python app.py`
-8. Init Flask-Migrate
-9. migrate db `flask db upgrade`
-10. insert data to db (either via psql or via SQLAlchemy in python CLI)
-11. Make tests
+8. migrate db `flask db upgrade`
+9. insert data to db (either via psql or via SQLAlchemy in python CLI)
+10. Make tests
