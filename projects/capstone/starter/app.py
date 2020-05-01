@@ -21,7 +21,6 @@ def create_app(test_config=None):
         greeting = 'it works!'
         return greeting
 
-
     @app.route('/actors')
     def get_actors():
         actor_list = []
@@ -36,7 +35,6 @@ def create_app(test_config=None):
             'number_of_actors': len(actor_list),
             'actors_list': actor_list
         })
-
 
     @app.route('/movies')
     def get_movies():
@@ -76,6 +74,33 @@ def create_app(test_config=None):
                 'created_id': actor.id,
                 'actor_list': actor_list,
                 'number_of_actors': len(actor_list)
+            })
+
+        except BaseException:
+            abort(422)
+
+    @app.route('/movies', methods=['POST'])
+    def post_to_movies():
+        body = request.get_json()
+        print(body)
+
+        new_title = body.get('title', None)
+        new_release_date = body.get('release_date', None)
+
+        try:
+            movie = Movie(
+                title=new_title,
+                release_date=new_release_date,
+            )
+            movie.insert()
+
+            movie_list = format_list(Movie.query.all())
+
+            return jsonify({
+                'success': True,
+                'created_id': movie.id,
+                'movie_list': movie_list,
+                'number_of_movies': len(movie_list)
             })
 
         except BaseException:
