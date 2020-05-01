@@ -224,12 +224,12 @@ def search_venues():
   result = db.session.query(Venue).filter(Venue.venue_name.ilike(f'%{search_for}%')).all()
   # print('res:',result)
   for row in result:
-    print(row.id, row.name, row.shows)
+    print(row.id, row.venue_name, row.shows)
   response={
     "count": len(result),
     "data": [{
       "id": row.id,
-      "name": row.name,
+      "name": row.venue_name,
       "num_upcoming_shows": len(row.shows),
     } for row in result]
   }
