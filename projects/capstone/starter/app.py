@@ -108,22 +108,41 @@ def create_app(test_config=None):
 
     @app.route('/actors/<int:actor_id>', methods=['DELETE'])
     def delete_actor(actor_id):
-        try:
-            actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+        actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
-            if actor is None:
-                abort(404)
+        if actor is None:
+            abort(404)
 
-            actor.delete()
+        else:
+            try:
+                actor.delete()
 
-            return jsonify({
-                'status_code': 200,
-                'success': True,
-                'total_actors': len(Actor.query.all())
-            })
-        except BaseException:
-            abort(422)
+                return jsonify({
+                    'status_code': 200,
+                    'success': True,
+                    'total_actors': len(Actor.query.all())
+                })
+            except BaseException:
+                abort(422)
 
+    @app.route('/movies/<int:movie_id>', methods=['DELETE'])
+    def delete_movie(movie_id):
+
+        movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+
+        if movie is None:
+            abort(404)
+
+        else:
+            try:
+                movie.delete()
+                return jsonify({
+                    'status_code': 200,
+                    'success': True,
+                    'total_movies': len(Movie.query.all())
+                })
+            except BaseException:
+                abort(422)
 
     return app
 
