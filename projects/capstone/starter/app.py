@@ -144,6 +144,39 @@ def create_app(test_config=None):
             except BaseException:
                 abort(422)
 
+    @app.route('/actors/<int:actor_id>', methods=['PATCH'])
+    def update_actors(actor_id):
+        body = request.get_json()
+        actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+
+        if actor is None:
+            abort(404)
+
+        elif body is None:
+            abort(404)
+
+        else:
+            try:
+                if 'name' in body:
+                    actor.name = body.get('name')
+
+                if 'age' in body:
+                    actor.age = body.get('age')
+
+                if 'gender' in body:
+                    actor.gender = body.get('gender')
+
+                actor.update()
+
+                updated_actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+
+                return jsonify({
+                    'success': True,
+                    'actor': updated_actor.format()
+                })
+            except BaseException:
+                abort(422)
+
     return app
 
 
