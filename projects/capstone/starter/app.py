@@ -106,6 +106,25 @@ def create_app(test_config=None):
         except BaseException:
             abort(422)
 
+    @app.route('/actors/<int:actor_id>', methods=['DELETE'])
+    def delete_actor(actor_id):
+        try:
+            actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+
+            if actor is None:
+                abort(404)
+
+            actor.delete()
+
+            return jsonify({
+                'status_code': 200,
+                'success': True,
+                'total_actors': len(Actor.query.all())
+            })
+        except BaseException:
+            abort(422)
+
+
     return app
 
 
