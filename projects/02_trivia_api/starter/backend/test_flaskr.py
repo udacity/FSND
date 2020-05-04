@@ -37,7 +37,7 @@ class TriviaTestCase(unittest.TestCase):
     pass
 
   """
-  TODO
+  TODO -- done
   Write at least one test for each test for successful operation and for expected errors.
   """
   def test_get_paginated_questions(self):

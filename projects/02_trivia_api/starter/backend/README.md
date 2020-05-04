@@ -66,29 +66,146 @@ One note before you delve into your tasks: for each endpoint you are expected to
 8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
 
-REVIEW_COMMENT
-```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
+## Endpoints
 
-Endpoints
-GET '/categories'
-GET ...
-POST ...
-DELETE ...
-
-GET '/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+### GET '/categories'
+- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category.
 - Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
-
+- Returns: An object with a single key, categories, that contains an object of id: category_string key:value pairs. Also includes the total categories quantity.
+```
+{
+  "categories":{
+    "1" : "Science",
+    "2" : "Art",
+    "3" : "Geography",
+    "4" : "History",
+    "5" : "Entertainment",
+    "6" : "Sports"
+   },
+   "total_categories": 6
 ```
 
+### GET '/questions'
+- Fetches a dictionary of questions in which the keys are the fields of the Question model and the values are the corresponding string of the fields.
+- Request Arguments: None
+- Returns: An object with keys, Question model fields, and the total of questions. Also includes the categories.
+```
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": null,
+  "questions": [
+    {
+      "answer": "Apollo 13",
+      "category": 5,
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    },
+    ...
+  ],
+  "success": true,
+  "total_questions": 19
+}
+```
+
+### DELETE '/questions/<int:question_id>'
+- Deletes a specific questions.
+- Request Arguments: Question ID.
+- Returns: The deleted question ID, the remaining questions, and the quantity of them.
+```
+{
+  "questions": [...],
+  "deleted": <question_id>,
+  "success": true,
+  "total_questions": 18
+}
+```
+
+### POST '/questions' to create a new question
+- Creates a new question.
+- Request Arguments: A JSON object with the key:values of the Question model fields.
+```
+{
+  "question": "Test question",
+  "answer": "Test",
+  "category": 5,
+  "difficulty": 1
+}
+```
+- Returns the created question ID, the new list of questions, and the new total quantity of them.
+```
+{
+  "questions": [...],
+  "created": <question_id>,
+  "success": true,
+  "total_questions": 19
+}
+```
+
+### POST '/questions' to search for questions
+- Search for questions.
+- Request Arguments: A JSON object with the key:value of the search term.
+```
+{
+  "searchTerm": 'Test search'
+}
+```
+- Returns the questions of the search executed and the total quantity of them.
+```
+{
+  "questions": [...],
+  "success": true,
+  "total_questions": 19
+}
+```
+
+### GET '/categories/<int:category_id>/questions'
+- Fetches for questions from a specific category.
+- Request Arguments: Category ID.
+- Returns: The category ID, the questions of that category, and the quantity of them.
+```
+{
+  "questions": [...],
+  "current_category": <category_id>,
+  "success": true,
+  "total_questions": 18
+}
+```
+
+### POST '/quizzes'
+- Fetches for new questions to continue the game. When there is not more questions, the returned question will be None.
+- Request Arguments: A JSON object with the key:value of the Category model fields and an array of the previous questions IDs.
+```
+{
+  "previous_questions": [1, 2, ...],
+  "quiz_category": {
+    "id": "5",
+    "type": "Entertaiment"
+  }
+}
+```
+- Returns the next question randomly.
+```
+{
+  "question": [
+    {
+      "answer": "Apollo 13",
+      "category": 5,
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+  ],
+  "success": true
+}
+```
 
 ## Testing
 To run the tests, run
