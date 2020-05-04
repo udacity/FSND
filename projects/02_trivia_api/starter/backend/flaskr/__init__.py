@@ -195,7 +195,7 @@ def create_app(test_config=None):
     })
 
   '''
-  @TODO: 
+  @TODO: -- done
   Create a POST endpoint to get questions to play the quiz. 
   This endpoint should take category and previous question parameters 
   and return a random questions within the given category, 
@@ -207,20 +207,28 @@ def create_app(test_config=None):
   '''
   @app.route('/quizzes', methods=['POST'])
   def retrieve_quizzes_questions():
-    previous_questions = body.get('previousQuestions', None)
-    quiz_category = body.get('QuizCategory', None)
+    body = request.get_json()
 
-    questions = Question.query.filter_by(category=quiz_category.id).order_by(Question.id).all()
-    tmp_random = randrange(len(questions))
-    random = tmp_random if tmp_random != previous_questions else randrange(len(questions))
-    current_question = questions[random]
+    previous_questions = body.get('previous_questions', None)
+    quiz_category = body.get('quiz_category', None)
+    quiz_category_id = int(quiz_category['id'])
 
-    if len(current_question) == 0:
-      abort(404)
+    if quiz_category_id > 0:
+      questions = Question.query.filter_by(category=quiz_category_id).filter(Question.id.notin_(previous_questions)).order_by(Question.id).all() if previous_questions else Question.query.filter_by(category=quiz_category_id).order_by(Question.id).all()
+    else:
+      questions = Question.query.order_by(Question.id).all()
+
+    if len(questions) > 0:
+      tmp_random = randrange(len(questions))
+      random = tmp_random if tmp_random not in previous_questions else randrange(len(questions))
+      data_question = questions[random]
+      next_question = data_question.format()
+    else:
+      next_question = None
 
     return jsonify({
       'success': True,
-      'question': current_question
+      'question': next_question
     })
   '''
   @TODO: -- Done
@@ -243,6 +251,14 @@ def create_app(test_config=None):
         "message": "Not found"
         }), 404
   
+  @app.errorhandler(405)
+  def method_not_allowed(error):
+    return jsonify({
+        "success": False, 
+        "error": 405,
+        "message": "Method not allowed"
+        }), 405
+  
   @app.errorhandler(422)
   def unprocessable(error):
     return jsonify({
@@ -250,6 +266,14 @@ def create_app(test_config=None):
       "error": 422,
       "message": "Unprocessable"
       }), 422
+
+  @app.errorhandler(500)
+  def server_error(error):
+    return jsonify({
+      "success": False,
+      "error": 500,
+      "message": "Server error"
+      }), 500
 
   return app
 
