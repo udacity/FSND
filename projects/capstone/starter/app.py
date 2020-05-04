@@ -33,7 +33,7 @@ def create_app(test_config=None):
             'status_code': 200,
             'success': True,
             'number_of_actors': len(actor_list),
-            'actors_list': actor_list
+            'actor_list': actor_list
         })
 
     @app.route('/movies')
@@ -120,7 +120,7 @@ def create_app(test_config=None):
                 return jsonify({
                     'status_code': 200,
                     'success': True,
-                    'total_actors': len(Actor.query.all())
+                    'number_of_actors': len(Actor.query.all())
                 })
             except BaseException:
                 abort(422)
@@ -139,7 +139,7 @@ def create_app(test_config=None):
                 return jsonify({
                     'status_code': 200,
                     'success': True,
-                    'total_movies': len(Movie.query.all())
+                    'number_of_movies': len(Movie.query.all())
                 })
             except BaseException:
                 abort(422)
@@ -206,6 +206,9 @@ def create_app(test_config=None):
                 })
             except BaseException:
                 abort(422)
+
+
+    #TODO Create Error Handling
 
     return app
 
