@@ -170,37 +170,47 @@ def create_app(test_config=None):
         if not data:
             abort(400)
 
-        validation_errors = validate_create_question_input(data)
-        if validation_errors:
+        if "searchTerm" in data:
+            search_term = data.get("searchTerm", "")
+            questions = Question.query.\
+                filter(
+                    Question.question.ilike(f"%{search_term}%")
+                ).\
+                order_by(Question.id.desc()).\
+                all()
+
+            formatted_questions = [
+                question.format()
+                for question in questions
+            ]
+
             return jsonify({
-                "success": False,
-                "type": "invalid_request_error",
-                "message": "The request could not be processed because of invalid data.",
-                "validation_errors": validation_errors
-            }), 400
+                "success": True,
+                "questions": formatted_questions,
+                "total_questions": len(formatted_questions),
+                "current_category": None
+            })
+        else:
+            validation_errors = validate_create_question_input(data)
+            if validation_errors:
+                return jsonify({
+                    "success": False,
+                    "type": "invalid_request_error",
+                    "message": "The request could not be processed because of invalid data.",
+                    "validation_errors": validation_errors
+                }), 400
 
-        question = Question(
-            question=data.get("question"),
-            answer=data.get("ansser"),
-            category=data.get("category"),
-            difficulty=data.get("difficulty")
-        )
-        question.insert()
+            question = Question(
+                question=data.get("question"),
+                answer=data.get("ansser"),
+                category=data.get("category"),
+                difficulty=data.get("difficulty")
+            )
+            question.insert()
 
-        return jsonify({
-            "success": True
-        })
-
-    '''
-    @TODO:
-    Create a POST endpoint to get questions based on a search term.
-    It should return any questions for whom the search term
-    is a substring of the question.
-
-    TEST: Search by any phrase. The questions list will update to include
-    only question that include that string within their question.
-    Try using the word "title" to start.
-    '''
+            return jsonify({
+                "success": True
+            })
 
     '''
     @TODO:
