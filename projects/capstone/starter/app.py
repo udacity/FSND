@@ -3,7 +3,7 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models import setup_db, Actor, Movie
-
+from auth.auth import AuthError, requires_auth
 
 def format_list(selection_query):
     item_list = [item.format() for item in selection_query]
@@ -207,8 +207,31 @@ def create_app(test_config=None):
             except BaseException:
                 abort(422)
 
+    ## Error Handling
 
-    #TODO Create Error Handling
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            "success": False,
+            "error": 422,
+            "message": "unprocessable"
+        }), 422
+
+    @app.errorhandler(404)
+    def unprocessable(error):
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "Resource not found"
+        }), 404
+
+    @app.errorhandler(AuthError)
+    def auth_error(ex):
+        return jsonify({
+            "success": False,
+            "error": ex.status_code,
+            "message": ex.error['code']
+        }), 401
 
     return app
 
