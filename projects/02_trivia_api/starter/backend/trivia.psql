@@ -21,7 +21,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: categories; Type: TABLE; Schema: public; Owner: caryn
+-- Name: categories; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.categories (
@@ -30,10 +30,10 @@ CREATE TABLE public.categories (
 );
 
 
-ALTER TABLE public.categories OWNER TO caryn;
+ALTER TABLE public.categories OWNER TO postgres;
 
 --
--- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: caryn
+-- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.categories_id_seq
@@ -45,17 +45,17 @@ CREATE SEQUENCE public.categories_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.categories_id_seq OWNER TO caryn;
+ALTER TABLE public.categories_id_seq OWNER TO postgres;
 
 --
--- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: caryn
+-- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 
 
 --
--- Name: questions; Type: TABLE; Schema: public; Owner: caryn
+-- Name: questions; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.questions (
@@ -67,10 +67,10 @@ CREATE TABLE public.questions (
 );
 
 
-ALTER TABLE public.questions OWNER TO caryn;
+ALTER TABLE public.questions OWNER TO postgres;
 
 --
--- Name: questions_id_seq; Type: SEQUENCE; Schema: public; Owner: caryn
+-- Name: questions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.questions_id_seq
@@ -82,31 +82,31 @@ CREATE SEQUENCE public.questions_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.questions_id_seq OWNER TO caryn;
+ALTER TABLE public.questions_id_seq OWNER TO postgres;
 
 --
--- Name: questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: caryn
+-- Name: questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.questions_id_seq OWNED BY public.questions.id;
 
 
 --
--- Name: categories id; Type: DEFAULT; Schema: public; Owner: caryn
+-- Name: categories id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
 
 
 --
--- Name: questions id; Type: DEFAULT; Schema: public; Owner: caryn
+-- Name: questions id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.questions ALTER COLUMN id SET DEFAULT nextval('public.questions_id_seq'::regclass);
 
 
 --
--- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: caryn
+-- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.categories (id, type) FROM stdin;
@@ -120,7 +120,7 @@ COPY public.categories (id, type) FROM stdin;
 
 
 --
--- Data for Name: questions; Type: TABLE DATA; Schema: public; Owner: caryn
+-- Data for Name: questions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
@@ -147,21 +147,21 @@ COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
 
 
 --
--- Name: categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: caryn
+-- Name: categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.categories_id_seq', 6, true);
 
 
 --
--- Name: questions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: caryn
+-- Name: questions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.questions_id_seq', 23, true);
 
 
 --
--- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: caryn
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.categories
@@ -169,7 +169,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
--- Name: questions questions_pkey; Type: CONSTRAINT; Schema: public; Owner: caryn
+-- Name: questions questions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.questions
@@ -177,7 +177,7 @@ ALTER TABLE ONLY public.questions
 
 
 --
--- Name: questions category; Type: FK CONSTRAINT; Schema: public; Owner: caryn
+-- Name: questions category; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.questions
