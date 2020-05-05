@@ -181,7 +181,7 @@ def create_app(test_config=None):
   '''
   @app.route('/categories/<int:category_id>/questions')
   def retrieve_category_questions(category_id):
-    selection = Question.query.filter_by(category=category_id).order_by(Question.id).all()
+    selection = Question.query.filter(Question.category == category_id).order_by(Question.id).all()
     current_questions = paginate_questions(request, selection)
 
     if len(current_questions) == 0:
@@ -214,7 +214,7 @@ def create_app(test_config=None):
     quiz_category_id = int(quiz_category['id'])
 
     if quiz_category_id > 0:
-      questions = Question.query.filter_by(category=quiz_category_id).filter(Question.id.notin_(previous_questions)).order_by(Question.id).all() if previous_questions else Question.query.filter_by(category=quiz_category_id).order_by(Question.id).all()
+      questions = Question.query.filter(Question.category == quiz_category_id).filter(Question.id.notin_(previous_questions)).order_by(Question.id).all() if previous_questions else Question.query.filter(Question.category == quiz_category_id).order_by(Question.id).all()
     else:
       questions = Question.query.order_by(Question.id).all()
 
