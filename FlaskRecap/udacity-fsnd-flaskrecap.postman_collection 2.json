@@ -1,0 +1,86 @@
+{
+	"info": {
+		"_postman_id": "414a9fd3-5b93-4c72-bb2b-62329fd6a44b",
+		"name": "udacity-fsnd-flaskrecap",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/greeting",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/greeting",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"greeting"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/greeting/es",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/greeting",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"greeting"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/greeting",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"lang\": \"fr\",\n\t\"greeting\": \"bonjour\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/greeting",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"greeting"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
