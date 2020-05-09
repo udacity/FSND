@@ -33,21 +33,15 @@ class TriviaTestCase(unittest.TestCase):
     """
     def test_get_homepage(self):
         res = self.client().get('/')
-        data = json.loads(res.data) if res.status_code == 200 else None
-        print(res)
         
         self.assertEqual(res.status_code, 200)
-        if data:
-            self.assertIn(data, b'World')
+        self.assertIn(b'Hello, World!', res.data)
 
     def test_405_post_homepage(self):
         res = self.client().post('/', json={'question': 'Is this working?'})
-        data = json.loads(res.data) if res.status_code == 200 else None
-
+        
         self.assertEqual(res.status_code, 405)
-        if data:
-            self.assertIn(data, b'error')
-
+        self.assertIn(b'not allowed', res.data)
 
 
 # Make the tests conveniently executable
