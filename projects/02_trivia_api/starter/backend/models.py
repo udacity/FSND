@@ -3,10 +3,13 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-database_name = "trivia"
-db_user = 'postgres'
-password = input("Insert password for database user: ")
-database_path = f"postgres://{db_user}:{password}@localhost:5432/{database_name}"
+def create_db_path(**kwargs):
+  password = input("Insert password for database user: ")
+  db_user = kwargs.get('db_user', 'postgres')
+  database_name = kwargs.get('db_name', 'trivia')
+  return f"postgres://{db_user}:{password}@localhost:5432/{database_name}"
+
+database_path = create_db_path()
 db = SQLAlchemy()
 
 '''
