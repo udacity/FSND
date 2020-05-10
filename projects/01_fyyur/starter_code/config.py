@@ -7,7 +7,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 DEBUG = True
 
 # Connect to the database
-
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # TODO IMPLEMENT DATABASE URL
-SQLALCHEMY_DATABASE_URI = '<Put your local database url>'
+SQLALCHEMY_DATABASE_URI = 'postgresql://qingyuan:MAzhang199711#@127.0.0.1:5432/venueapp'
