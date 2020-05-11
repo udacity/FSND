@@ -26,16 +26,10 @@ class TriviaTestCase(unittest.TestCase):
             self.db = SQLAlchemy()
             self.db.init_app(self.app)
             # create all tables
-            print("check tables before test", self.db.engine.table_names())
-            # self.drop_all()
             self.db.create_all()
-            print("check tables after test", self.db.engine.table_names())
-    
+
     def tearDown(self):
         """Executed after reach test"""
-        # self.db.session.remove()
-        # self.db.drop_all()
-
 
     """
     TODO
@@ -62,19 +56,19 @@ class TriviaTestCase(unittest.TestCase):
         if rows:
             self.assertEqual(rows[0][0], int(5))
     def test_column_category_name(self):
-        def execute_sel_category_name():
+        def get_category_name_or_err_code():
             stmt_sel_name_categories = text('select name from categories;')
             with self.app.app_context():
                 try:
                     return self.db.engine.execute(stmt_sel_name_categories)
                 except DBAPIError as e:
-                    if e.orig.pgcode == '42703':#source: https://www.psycopg.org/docs/errors.html#sqlstate-exception-classes
-                        # raise Exception("Does not work")
-                        return None
+                    return e.orig.pgcode
         # self.assertRaises(ProgrammingError, execute_sel_category_name())
         # self.assertRaises(UndefinedColumn, execute_sel_category_name())
         # self.assertRaises(Exception("Does not work"), execute_sel_category_name())
-        self.assertIsNone(execute_sel_category_name())
+        
+        self.assertEqual('42703',get_category_name_or_err_code())
+        #Error codes: https://www.psycopg.org/docs/errors.html#sqlstate-exception-classes
         
 
 
