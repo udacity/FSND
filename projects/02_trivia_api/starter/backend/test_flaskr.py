@@ -27,6 +27,7 @@ class TriviaTestCase(unittest.TestCase):
             self.db.init_app(self.app)
             # create all tables
             print("check tables before test", self.db.engine.table_names())
+            # self.drop_all()
             self.db.create_all()
             print("check tables after test", self.db.engine.table_names())
     
@@ -73,7 +74,7 @@ class TriviaTestCase(unittest.TestCase):
         # self.assertRaises(ProgrammingError, execute_sel_category_name())
         # self.assertRaises(UndefinedColumn, execute_sel_category_name())
         # self.assertRaises(Exception("Does not work"), execute_sel_category_name())
-        self.assertIsNotNone(execute_sel_category_name())
+        self.assertIsNone(execute_sel_category_name())
         
 
 
