@@ -1,9 +1,13 @@
 import os
 import unittest
 import json
+# import inspect
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
+from sqlalchemy.exc import ProgrammingError,DBAPIError
 from flaskr import create_app
 from models import setup_db, Question, Category, database_path
+from psycopg2.errors import UndefinedColumn
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -23,10 +27,9 @@ class TriviaTestCase(unittest.TestCase):
             self.db.init_app(self.app)
             # create all tables
             self.db.create_all()
-    
+
     def tearDown(self):
         """Executed after reach test"""
-        pass
 
     """
     TODO
@@ -37,12 +40,37 @@ class TriviaTestCase(unittest.TestCase):
         
         self.assertEqual(res.status_code, 200)
         self.assertIn(b'Hello, World!', res.data)
-
     def test_405_post_homepage(self):
         res = self.client().post('/', json={'question': 'Is this working?'})
         
         self.assertEqual(res.status_code, 405)
         self.assertIn(b'not allowed', res.data)
+
+    def test_select_questions(self):
+        stmt_sel_all_questions = text('select * from questions;')
+        with self.app.app_context():           
+            result = self.db.engine.execute(stmt_sel_all_questions)
+        
+        rows = [row for row in result]
+        self.assertTrue(rows)
+        if rows:
+            self.assertEqual(rows[0][0], int(5))
+    def test_column_category_name(self):
+        def get_category_name_or_err_code():
+            stmt_sel_name_categories = text('select name from categories;')
+            with self.app.app_context():
+                try:
+                    return self.db.engine.execute(stmt_sel_name_categories)
+                except DBAPIError as e:
+                    return e.orig.pgcode
+        # self.assertRaises(ProgrammingError, execute_sel_category_name())
+        # self.assertRaises(UndefinedColumn, execute_sel_category_name())
+        # self.assertRaises(Exception("Does not work"), execute_sel_category_name())
+        
+        self.assertEqual('42703',get_category_name_or_err_code())
+        #Error codes: https://www.psycopg.org/docs/errors.html#sqlstate-exception-classes
+        
+
 
 
 # Make the tests conveniently executable
