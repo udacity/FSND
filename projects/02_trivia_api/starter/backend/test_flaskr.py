@@ -70,9 +70,48 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual('42703',get_category_name_or_err_code())
         #Error codes: https://www.psycopg.org/docs/errors.html#sqlstate-exception-classes
         
+    def test_select_qst_with_cat(self):
+        sel_stmnt = text("""
+        SELECT
+            q.id, q.question, q.category, c.id, c.category, c.type
+        FROM questions as q 
+            INNER JOIN category as c on q.category_id = c.id
+        ;""")
 
+        def exec_q_or_none():
+            with self.app.app_context():
+                try:
+                    return self.db.engine.execute(sel_stmnt)
+                except DBAPIError as e:
+                    print(e)
+                    return None
+        
+        q_result = exec_q_or_none()
+        self.assertIsNotNone(q_result)
+        if q_result:
+            rows = [row for row in q_result]
+            self.assertEqual(len(rows), 19)
+    def test_select_qst_where_cat_none(self):
+        sel_stmnt = text("""
+        SELECT q.id, q.question
+        FROM questions as q
+        WHERE q.category_id is null
+        ;""")
 
-
+        def exec_q_or_none():
+            with self.app.app_context():
+                try:
+                    return self.db.engine.execute(sel_stmnt)
+                except DBAPIError as e:
+                    print(e)
+                    return None
+        
+        q_result = exec_q_or_none()
+        self.assertIsNotNone(q_result)
+        if q_result:
+            rows = [row for row in q_result]
+            self.assertEqual(len(rows), 0)
+        
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
