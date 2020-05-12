@@ -34,6 +34,7 @@ def downgrade():
     sa.ForeignKeyConstraint(['category_id'], ['categories.id'], name='category_id', onupdate='CASCADE', ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id', name='questions_pkey')
     )
+    op.alter_column('questions', 'category', _type=Integer)
     op.create_table('categories',
     sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
     sa.Column('type', sa.TEXT(), autoincrement=False, nullable=True),

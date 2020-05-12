@@ -73,9 +73,9 @@ class TriviaTestCase(unittest.TestCase):
     def test_select_qst_with_cat(self):
         sel_stmnt = text("""
         SELECT
-            q.id, q.question, q.category, c.id, c.category, c.type
+            q.id, q.question, q.category_id, c.id, c.type
         FROM questions as q 
-            INNER JOIN category as c on q.category_id = c.id
+            INNER JOIN categories as c on q.category_id = c.id
         ;""")
 
         def exec_q_or_none():
