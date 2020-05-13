@@ -70,9 +70,17 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual('42703',get_category_name_or_err_code())
         #Error codes: https://www.psycopg.org/docs/errors.html#sqlstate-exception-classes
         
+    def test_get_all_questions(self):
+        res = self.client().get('/api/questions')
+        self.assertEqual(res.status_code, 200)
 
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(data['questions'][0]['id'], 5)
 
-
+    def test_404_get_all_questions(self):
+        res = self.client().get('/questions')
+        self.assertEqual(res.status_code, 404)
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
