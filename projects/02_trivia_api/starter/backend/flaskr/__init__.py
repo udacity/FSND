@@ -33,14 +33,17 @@ def paginate_result(result, page=1):
   return [result[ix].format() for ix in range(start, end)]
 
 def format_response(paginated_questions, current_category='all'):
-  """Formats the query results into a standard-formatted dict for this API. 
+  """Formats the paginated questions to API response with:
+      - success
+      - total_questions
+      - categories
+      - current_category (arg)
+      - questions (arg) 
 
   Arguments:
-      paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
-     result {list} -- 
-          A list of results return from SQLAlchemy Query object.
-          See: https://docs.sqlalchemy.org/en/13/orm/query.html#sqlalchemy.orm.query.Query.all
-
+    paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
+    current_category {int} -- the id of the current category (default: 'all')
+  
   Returns:
       dict -- A dictionary to be formatted as a JSON-encoded server response.
   """
