@@ -96,8 +96,11 @@ class TriviaTestCase(unittest.TestCase):
         if res.status_code == 200:
             data = json.loads(res.data)
             self.assertEqual(len(data['questions']), 3)
-            self.assertTrue(hasattr(data,'categories'))
-
+            self.assertIn('questions', data)
+            self.assertIn('total_questions', data)
+            self.assertIn('categories', data)
+            self.assertIn('current_category', data)
+            
 
     def test_404_get_all_questions_of_cat_not_present(self):
         category_id = 100000
