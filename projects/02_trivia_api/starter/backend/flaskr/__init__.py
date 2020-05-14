@@ -1,11 +1,12 @@
 import os
+import random
+import traceback
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
-import random
-
 from models import setup_db, Question, Category
+
 
 QUESTIONS_PER_PAGE = 10
 
@@ -56,6 +57,21 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route('/api/questions')
+  def get_all_questions():
+    try:
+      result = Question.query.all()
+      questions = [question.format() for question in result]
+      print(questions)
+      res = {
+        'success': True,
+        'questions': questions,
+        'total_questions': len(questions) 
+      }
+      return jsonify(res)
+    except:
+      print(traceback.print_exc())
+      return 'ERROR:' + str(traceback.print_exc()), 400
 
   '''
   @TODO: 
