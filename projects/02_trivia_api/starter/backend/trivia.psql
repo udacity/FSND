@@ -116,6 +116,7 @@ COPY public.categories (id, type) FROM stdin;
 4	History
 5	Entertainment
 6	Sports
+7	Without Category
 \.
 
 
