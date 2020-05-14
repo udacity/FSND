@@ -69,7 +69,7 @@ class Question(db.Model):
       'id': self.id,
       'question': self.question,
       'answer': self.answer,
-      'category': self.category,
+      'category_id': self.category,
       'difficulty': self.difficulty
     }
 
