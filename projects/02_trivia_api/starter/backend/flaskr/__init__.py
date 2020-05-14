@@ -1,13 +1,54 @@
 import os
+import random
+import traceback
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
-import random
-
 from models import setup_db, Question, Category
 
+
 QUESTIONS_PER_PAGE = 10
+
+def paginate_result(result, page=1):
+  """Paginates the query result by the globally defined QUESTIONS_PER_PAGE
+
+  Arguments:
+      result {list} -- 
+          A list of results return from SQLAlchemy Query object.
+          See: https://docs.sqlalchemy.org/en/13/orm/query.html#sqlalchemy.orm.query.Query.all
+        
+
+  Keyword Arguments:
+      page {int} -- 
+          The page to be returned by the API (e.g. to update the frontend)
+          (default: {1})
+
+  Returns:
+      list -- 
+          List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.
+  """
+  start = QUESTIONS_PER_PAGE * (page-1)
+  end = min(len(result), start+QUESTIONS_PER_PAGE)
+  return [result[ix].format() for ix in range(start, end)]
+
+def format_response(paginated_questions, result):
+  """Formats the query results into a standard-formatted dict for this API. 
+
+  Arguments:
+      paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
+     result {list} -- 
+          A list of results return from SQLAlchemy Query object.
+          See: https://docs.sqlalchemy.org/en/13/orm/query.html#sqlalchemy.orm.query.Query.all
+
+  Returns:
+      dict -- A dictionary to be formatted as a JSON-encoded server response.
+  """
+  return {
+        'success': True,
+        'questions': paginated_questions,
+        'total_questions': len(result) 
+      }
 
 def create_app(test_config=None):
   # create and configure the app
@@ -56,6 +97,17 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route('/api/questions')
+  def get_all_questions():
+    try:
+      result = Question.query.order_by(Question.id).all()
+      paginated_questions = paginate_result(result) 
+      return jsonify(
+          format_response(paginated_questions, result)
+        )
+    except:
+      print(traceback.print_exc())
+      return 'ERROR:' + str(traceback.print_exc()), 400
 
   '''
   @TODO: 
