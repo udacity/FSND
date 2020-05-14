@@ -10,6 +10,11 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+def paginate_result(result, page=1):
+  start = QUESTIONS_PER_PAGE * (page-1)
+  end = min(len(result), start+QUESTIONS_PER_PAGE)
+  return [result[ix].format() for ix in range(start, end)]
+
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
@@ -60,15 +65,14 @@ def create_app(test_config=None):
   @app.route('/api/questions')
   def get_all_questions():
     try:
-      result = Question.query.all()
-      questions = [question.format() for question in result]
-      print(questions)
-      res = {
+      result = Question.query.order_by(Question.id).all()
+      paginated_questions = paginate_result(result) 
+      
+      return jsonify({
         'success': True,
-        'questions': questions,
-        'total_questions': len(questions) 
-      }
-      return jsonify(res)
+        'questions': paginated_questions,
+        'total_questions': len(result) 
+      })
     except:
       print(traceback.print_exc())
       return 'ERROR:' + str(traceback.print_exc()), 400
