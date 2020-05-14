@@ -32,22 +32,29 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def format_response(paginated_questions, result):
-  """Formats the query results into a standard-formatted dict for this API. 
+def format_response(paginated_questions, current_category='all'):
+  """Formats the paginated questions to API response with:
+      - success
+      - total_questions
+      - categories
+      - current_category (arg)
+      - questions (arg) 
 
   Arguments:
-      paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
-     result {list} -- 
-          A list of results return from SQLAlchemy Query object.
-          See: https://docs.sqlalchemy.org/en/13/orm/query.html#sqlalchemy.orm.query.Query.all
-
+    paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
+    current_category {int} -- the id of the current category (default: 'all')
+  
   Returns:
       dict -- A dictionary to be formatted as a JSON-encoded server response.
   """
+  categories = [category.format() for category in Category.query.all()]
+  total_questions = len(Question.query.all())
   return {
         'success': True,
         'questions': paginated_questions,
-        'total_questions': len(result) 
+        'total_questions': total_questions,
+        'current_category': current_category,
+        'categories': categories
       }
 
 def create_app(test_config=None):
@@ -101,9 +108,25 @@ def create_app(test_config=None):
   def get_all_questions():
     try:
       result = Question.query.order_by(Question.id).all()
+      if not len(result):
+        return 'Resource does not exist', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
-          format_response(paginated_questions, result)
+          format_response(paginated_questions)
+        )
+    except:
+      print(traceback.print_exc())
+      return 'ERROR:' + str(traceback.print_exc()), 400
+  
+  @app.route('/api/questions/categories/<int:category_id>')
+  def get_all_questions_by_category(category_id):
+    try:
+      result = Question.query.filter_by(category_id=category_id).order_by(Question.id).all()
+      if not len(result):
+        return 'Resource does not exist', 404
+      paginated_questions = paginate_result(result) 
+      return jsonify(
+          format_response(paginated_questions, current_category=category_id)
         )
     except:
       print(traceback.print_exc())
