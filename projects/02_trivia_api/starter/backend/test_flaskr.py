@@ -5,7 +5,7 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError,DBAPIError
-from flaskr import create_app
+from flaskr import create_app, QUESTIONS_PER_PAGE
 from models import setup_db, Question, Category, database_path
 from psycopg2.errors import UndefinedColumn
 
@@ -97,6 +97,43 @@ class TriviaTestCase(unittest.TestCase):
         FROM questions as q
         WHERE q.category_id is null
         ;""")
+
+    def test_get_all_questions(self):
+        res = self.client().get('/api/questions')
+        self.assertEqual(res.status_code, 200)
+
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(data['questions'][0]['id'], 2)
+    def test_404_get_all_questions(self):
+        res = self.client().get('/questions')
+        self.assertEqual(res.status_code, 404)
+    
+    def test_pagination(self):
+        res = self.client().get('/api/questions')
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertLessEqual(len(data['questions']), QUESTIONS_PER_PAGE)
+            self.assertGreaterEqual(data['total_questions'], QUESTIONS_PER_PAGE)
+
+    def test_get_all_questions_of_cat_1(self):
+        category_id = 1
+        res = self.client().get('/api/questions/categories/' + str(category_id))
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(len(data['questions']), 3)
+            self.assertIn('questions', data)
+            self.assertIn('total_questions', data)
+            self.assertIn('categories', data)
+            self.assertIn('current_category', data)
+            
+
+    def test_404_get_all_questions_of_cat_not_present(self):
+        category_id = 100000
+        res = self.client().get('/api/questions/categories/' + str(category_id))
+        self.assertEqual(res.status_code, 404)
 
         def exec_q_or_none():
             with self.app.app_context():

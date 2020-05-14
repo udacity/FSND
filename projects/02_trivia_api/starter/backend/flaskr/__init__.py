@@ -1,13 +1,61 @@
 import os
+import random
+import traceback
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
-import random
-
 from models import setup_db, Question, Category
 
+
 QUESTIONS_PER_PAGE = 10
+
+def paginate_result(result, page=1):
+  """Paginates the query result by the globally defined QUESTIONS_PER_PAGE
+
+  Arguments:
+      result {list} -- 
+          A list of results return from SQLAlchemy Query object.
+          See: https://docs.sqlalchemy.org/en/13/orm/query.html#sqlalchemy.orm.query.Query.all
+        
+
+  Keyword Arguments:
+      page {int} -- 
+          The page to be returned by the API (e.g. to update the frontend)
+          (default: {1})
+
+  Returns:
+      list -- 
+          List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.
+  """
+  start = QUESTIONS_PER_PAGE * (page-1)
+  end = min(len(result), start+QUESTIONS_PER_PAGE)
+  return [result[ix].format() for ix in range(start, end)]
+
+def format_response(paginated_questions, current_category='all'):
+  """Formats the paginated questions to API response with:
+      - success
+      - total_questions
+      - categories
+      - current_category (arg)
+      - questions (arg) 
+
+  Arguments:
+    paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
+    current_category {int} -- the id of the current category (default: 'all')
+  
+  Returns:
+      dict -- A dictionary to be formatted as a JSON-encoded server response.
+  """
+  categories = [category.format() for category in Category.query.all()]
+  total_questions = len(Question.query.all())
+  return {
+        'success': True,
+        'questions': paginated_questions,
+        'total_questions': total_questions,
+        'current_category': current_category,
+        'categories': categories
+      }
 
 def create_app(test_config=None):
   # create and configure the app
@@ -56,6 +104,33 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route('/api/questions')
+  def get_all_questions():
+    try:
+      result = Question.query.order_by(Question.id).all()
+      if not len(result):
+        return 'Resource does not exist', 404
+      paginated_questions = paginate_result(result) 
+      return jsonify(
+          format_response(paginated_questions)
+        )
+    except:
+      print(traceback.print_exc())
+      return 'ERROR:' + str(traceback.print_exc()), 400
+  
+  @app.route('/api/questions/categories/<int:category_id>')
+  def get_all_questions_by_category(category_id):
+    try:
+      result = Question.query.filter_by(category_id=category_id).order_by(Question.id).all()
+      if not len(result):
+        return 'Resource does not exist', 404
+      paginated_questions = paginate_result(result) 
+      return jsonify(
+          format_response(paginated_questions, current_category=category_id)
+        )
+    except:
+      print(traceback.print_exc())
+      return 'ERROR:' + str(traceback.print_exc()), 400
 
   '''
   @TODO: 
