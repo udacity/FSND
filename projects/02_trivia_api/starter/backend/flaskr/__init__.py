@@ -101,7 +101,7 @@ def create_app(test_config=None):
   def get_all_questions():
     try:
       result = Question.query.order_by(Question.id).all()
-      if len(result) < 1:
+      if not len(result):
         return 'Resource not found', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
@@ -110,11 +110,12 @@ def create_app(test_config=None):
     except:
       print(traceback.print_exc())
       return 'ERROR:' + str(traceback.print_exc()), 400
+  
   @app.route('/api/questions/categories/<int:category_id>')
   def get_all_questions_by_category(category_id):
     try:
       result = Question.query.filter_by(category_id=category_id).order_by(Question.id).all()
-      if len(result) < 1:
+      if not len(result):
         return 'Resource not found', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
