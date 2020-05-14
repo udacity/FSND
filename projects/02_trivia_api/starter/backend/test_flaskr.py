@@ -83,6 +83,7 @@ class TriviaTestCase(unittest.TestCase):
     
     def test_pagination(self):
         res = self.client().get('/api/questions')
+        self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
             self.assertLessEqual(len(data['questions']), QUESTIONS_PER_PAGE)
