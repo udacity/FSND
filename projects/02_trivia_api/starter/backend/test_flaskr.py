@@ -5,7 +5,7 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError,DBAPIError
-from flaskr import create_app
+from flaskr import create_app, QUESTIONS_PER_PAGE
 from models import setup_db, Question, Category, database_path
 from psycopg2.errors import UndefinedColumn
 
@@ -76,11 +76,17 @@ class TriviaTestCase(unittest.TestCase):
 
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['questions'][0]['id'], 5)
-
+            self.assertEqual(data['questions'][0]['id'], 2)
     def test_404_get_all_questions(self):
         res = self.client().get('/questions')
         self.assertEqual(res.status_code, 404)
+    
+    def test_pagination(self):
+        res = self.client().get('/api/questions')
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertLessEqual(len(data['questions']), QUESTIONS_PER_PAGE)
+            self.assertGreaterEqual(data['total_questions'], QUESTIONS_PER_PAGE)
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
