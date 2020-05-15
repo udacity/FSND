@@ -57,7 +57,6 @@ class Artist(db.Model):
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
-# CUR-->
 db.create_all()
 #----------------------------------------------------------------------------#
 # Filters.
@@ -219,10 +218,24 @@ def create_venue_form():
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
+# CUR-->
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  form = VenueForm(request.form)
+  new_venue = Venue(
+    name=request.form['name'],
+    address=request.form['address'],
+    city=request.form['city'],
+    state=request.form['state'],
+    phone=request.form['phone'],
+    # website=request.form['website'],
+    facebook_link=request.form['facebook_link']
+    # image_link=request.form['image_link']
+  )
+  db.session.add(new_venue)
+  db.session.commit()
 
   # on successful db insert, flash success
   flash('Venue ' + request.form['name'] + ' was successfully listed!')
