@@ -1,32 +1,111 @@
 import os
+import random
+import traceback
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import random
-
+from flask_migrate import Migrate
 from models import setup_db, Question, Category
 
+
 QUESTIONS_PER_PAGE = 10
+
+def paginate_result(result, page=1):
+  """Paginates the query result by the globally defined QUESTIONS_PER_PAGE
+
+  Arguments:
+      result {list} -- 
+          A list of results return from SQLAlchemy Query object.
+          See: https://docs.sqlalchemy.org/en/13/orm/query.html#sqlalchemy.orm.query.Query.all
+        
+
+  Keyword Arguments:
+      page {int} -- 
+          The page to be returned by the API (e.g. to update the frontend)
+          (default: {1})
+
+  Returns:
+      list -- 
+          List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.
+  """
+  start = QUESTIONS_PER_PAGE * (page-1)
+  end = min(len(result), start+QUESTIONS_PER_PAGE)
+  return [result[ix].format() for ix in range(start, end)]
+
+def get_cats_and_format_response(paginated_questions=None, current_category='all'):
+  """
+  Provides the default response layout with and adds paginated_questions if present:
+      - success
+      - total_questions
+      - categories
+      - current_category
+      - questions (optional) 
+
+  Arguments:
+    paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
+    current_category {int} -- the id of the current category (default: 'all')
+  
+  Returns:
+      dict -- A dictionary to be formatted as a JSON-encoded server response.
+  """
+  
+  categories = [category.format() for category in Category.query.all()]
+  total_questions = len(Question.query.all())
+  res = {
+        'success': True,
+        'total_questions': total_questions,
+        'current_category': current_category,
+        'categories': categories
+  }
+  if paginated_questions:
+    res.update({'questions': paginated_questions})
+  return res
 
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
+  
+  db = SQLAlchemy()
+  Migrate(app, db)
+
   setup_db(app)
   
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  #!OK
   '''
-
+  cors = CORS(app, resources={r'/api/*': {"origins": "*"}})
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
+  #!OK
   '''
+  @app.after_request
+  def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+  @app.route('/')
+  def index():
+    """"Returns the homepage of the API."""
+    
+    return 'Hello, World!'
 
   '''
   @TODO: 
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-
+  @app.route('/categories')
+  def get_all_categories():
+    """"Returns a JSON-encoded response with attributes:
+      - success
+      - categories
+      - current_category
+      - total_questions
+    """
+    
+    return get_cats_and_format_response() # no need to query categories as they are provided by default response format
 
   '''
   @TODO: 
@@ -40,6 +119,49 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route('/api/questions')
+  def get_all_questions():
+    """"
+    Returns a JSON-encoded response with paginated questions and standard attributes:
+      - success (standard)
+      - categories (standard)
+      - total_questions (standard)
+      - current_category
+      - questions
+    """
+    try:
+      result = Question.query.order_by(Question.id).all()
+      if not len(result):
+        return 'Resource does not exist', 404
+      paginated_questions = paginate_result(result) 
+      return jsonify(
+          get_cats_and_format_response(paginated_questions)
+        )
+    except:
+      print(traceback.print_exc())
+      return 'ERROR:' + str(traceback.print_exc()), 400
+  
+  @app.route('/api/questions/categories/<int:category_id>')
+  def get_all_questions_by_category(category_id):
+    """"
+    Returns a JSON-encoded response with paginated questions for a given category_id and standard attributes:
+      - success (standard)
+      - categories (standard)
+      - total_questions (standard)
+      - current_category (required)
+      - questions
+    """
+    try:
+      result = Question.query.filter_by(category_id=category_id).order_by(Question.id).all()
+      if not len(result):
+        return 'Resource does not exist', 404
+      paginated_questions = paginate_result(result) 
+      return jsonify(
+          get_cats_and_format_response(paginated_questions, current_category=category_id)
+        )
+    except:
+      print(traceback.print_exc())
+      return 'ERROR:' + str(traceback.print_exc()), 400
 
   '''
   @TODO: 
