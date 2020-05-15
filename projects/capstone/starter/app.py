@@ -179,7 +179,8 @@ def create_app(test_config=None):
 
                 return jsonify({
                     'success': True,
-                    'actor': updated_actor.format()
+                    'actor': updated_actor.format(),
+                    'status_code': 200
                 })
             except BaseException:
                 abort(422)
@@ -210,7 +211,8 @@ def create_app(test_config=None):
 
                 return jsonify({
                     'success': True,
-                    'movie': updated_movie.format()
+                    'movie': updated_movie.format(),
+                    'status_code': 200
                 })
             except BaseException:
                 abort(422)
@@ -226,7 +228,7 @@ def create_app(test_config=None):
         }), 422
 
     @app.errorhandler(404)
-    def unprocessable(error):
+    def not_found(error):
         return jsonify({
             "success": False,
             "error": 404,
