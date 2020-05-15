@@ -148,6 +148,21 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/api/questions/categories/' + str(category_id))
         self.assertEqual(res.status_code, 404)
         
+    def test_get_all_categories(self):
+        res = self.client().get('/categories')
+
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(len(data['categories']), 7)
+            self.assertEqual(data['categories'][0]['id'], 1)
+
+    def test_404_get_category_1(self):
+        category_id = 1
+        res = self.client().get('/categories/' + str(category_id))
+
+        self.assertEqual(res.status_code, 404)
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
