@@ -135,7 +135,7 @@ def create_app(test_config=None):
                 "attribute": "category",
                 "message": required_attribute_template.format("category")
             })
-        elif type(data["category"]) != int:
+        elif not is_integer(data["category"]):
             errors.append({
                 "type": "integer_expected",
                 "attribute": "category",
@@ -148,13 +148,13 @@ def create_app(test_config=None):
                 "attribute": "difficulty",
                 "message": required_attribute_template.format("difficulty")
             })
-        elif type(data["difficulty"]) != int:
+        elif not is_integer(data["difficulty"]):
             errors.append({
                 "type": "integer_expected",
                 "attribute": "difficulty",
                 "message": integer_expected_template.format("difficulty")
             })
-        elif data["difficulty"] < 1 or data["difficulty"] > 5:
+        elif int(data["difficulty"]) < 1 or int(data["difficulty"]) > 5:
             errors.append({
                 "type": "number_out_of_range",
                 "attribute": "difficulty",
@@ -202,7 +202,7 @@ def create_app(test_config=None):
 
             question = Question(
                 question=data.get("question"),
-                answer=data.get("ansser"),
+                answer=data.get("answer"),
                 category=data.get("category"),
                 difficulty=data.get("difficulty")
             )
@@ -274,3 +274,17 @@ def create_app(test_config=None):
         }), 500
 
     return app
+
+
+def is_integer(value):
+    try:
+        if type(value) is int:
+            return True
+        elif type(value) is str:
+            int(value)
+        else:
+            return False
+    except:
+        return False
+
+    return True
