@@ -12,6 +12,7 @@ from psycopg2.errors import UndefinedColumn
 
 class TriviaTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
+    
 
     def setUp(self):
         """Define test variables and initialize app."""
@@ -20,6 +21,16 @@ class TriviaTestCase(unittest.TestCase):
 
         self.database_path = database_path.replace('trivia', 'trivia_test')
         setup_db(self.app, self.database_path)
+
+        self.new_qst = {
+            "question": {
+                "question": "In which Hollywood film did Michael Jordan act?"
+                , "answer": "Space Jam"
+                , "category_id": 5
+                , "difficulty": 3
+                },
+            "current_category": 1
+        }
 
         # binds the app to the current context
         with self.app.app_context():
@@ -35,18 +46,18 @@ class TriviaTestCase(unittest.TestCase):
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
-    def test_get_homepage(self):
+    def test_001_get_homepage(self):
         res = self.client().get('/')
         
         self.assertEqual(res.status_code, 200)
         self.assertIn(b'Hello, World!', res.data)
-    def test_405_post_homepage(self):
+    def test_002_405_post_homepage(self):
         res = self.client().post('/', json={'question': 'Is this working?'})
         
         self.assertEqual(res.status_code, 405)
         self.assertIn(b'not allowed', res.data)
 
-    def test_select_questions(self):
+    def test_003_select_questions(self):
         stmt_sel_all_questions = text('select * from questions;')
         with self.app.app_context():           
             result = self.db.engine.execute(stmt_sel_all_questions)
@@ -55,7 +66,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(rows)
         if rows:
             self.assertEqual(rows[0][0], int(5))
-    def test_column_category_name(self):
+    def test_004_column_category_name(self):
         def get_category_name_or_err_code():
             stmt_sel_name_categories = text('select name from categories;')
             with self.app.app_context():
@@ -70,7 +81,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual('42703',get_category_name_or_err_code())
         #Error codes: https://www.psycopg.org/docs/errors.html#sqlstate-exception-classes
         
-    def test_select_qst_with_cat(self):
+    def test_005_select_qst_with_cat(self):
         sel_stmnt = text("""
         SELECT
             q.id, q.question, q.category_id, c.id, c.type
@@ -90,8 +101,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertIsNotNone(q_result)
         if q_result:
             rows = [row for row in q_result]
-            self.assertEqual(len(rows), 19)
-    def test_select_qst_where_cat_none(self):
+            self.assertEqual(rows[0][0], 5)
+    def test_006_select_qst_where_cat_none(self):
         sel_stmnt = text("""
         SELECT q.id, q.question
         FROM questions as q
@@ -111,18 +122,18 @@ class TriviaTestCase(unittest.TestCase):
             rows = [row for row in q_result]
             self.assertEqual(len(rows), 0)
 
-    def test_get_all_questions(self):
+    def test_007_get_all_questions(self):
         res = self.client().get('/api/questions')
         self.assertEqual(res.status_code, 200)
 
         if res.status_code == 200:
             data = json.loads(res.data)
             self.assertEqual(data['questions'][0]['id'], 2)
-    def test_404_get_all_questions(self):
+    def test_008_404_get_all_questions(self):
         res = self.client().get('/questions')
         self.assertEqual(res.status_code, 404)
     
-    def test_pagination(self):
+    def test_009_pagination(self):
         res = self.client().get('/api/questions')
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
@@ -130,7 +141,7 @@ class TriviaTestCase(unittest.TestCase):
             self.assertLessEqual(len(data['questions']), QUESTIONS_PER_PAGE)
             self.assertGreaterEqual(data['total_questions'], QUESTIONS_PER_PAGE)
 
-    def test_get_all_questions_of_cat_1(self):
+    def test_010_get_all_questions_of_cat_1(self):
         category_id = 1
         res = self.client().get('/api/questions/categories/' + str(category_id))
         self.assertEqual(res.status_code, 200)
@@ -143,12 +154,12 @@ class TriviaTestCase(unittest.TestCase):
             self.assertIn('current_category', data)
             
 
-    def test_404_get_all_questions_of_cat_not_present(self):
+    def test_011_404_get_all_questions_of_cat_not_present(self):
         category_id = 100000
         res = self.client().get('/api/questions/categories/' + str(category_id))
         self.assertEqual(res.status_code, 404)
         
-    def test_get_all_categories(self):
+    def test_012_get_all_categories(self):
         res = self.client().get('/api/categories')
 
         self.assertEqual(res.status_code, 200)
@@ -157,14 +168,40 @@ class TriviaTestCase(unittest.TestCase):
             self.assertEqual(len(data['categories']), 7)
             self.assertEqual(data['categories'][0]['id'], 1)
 
-    def test_404_get_category_1(self):
+    def test_013_404_get_category_1(self):
         category_id = 1
         res = self.client().get('/api/categories/' + str(category_id))
 
         self.assertEqual(res.status_code, 404)
 
+    def test_014_post_question(self):
+        res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertIn('created', data)
 
+    def test_015_422_post_duplicate_question(self):
+        res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
+        
+        self.assertEqual(res.status_code, 422)
+        if res.status_code == 422:
+            responses = [rsp.decode('utf-8') for rsp in res.response]
+            self.assertIn('already present', responses[0])
 
+    def test_016_400_post_question_without_answer(self):
+        q = {
+            "question": { 
+                "question": "In which Hollywood film did Michael Jordan act?"
+            }
+        }
+        res = self.client().post(
+            '/api/questions', 
+            json=json.dumps(q)
+            )
+        self.assertEqual(res.status_code, 400)
+
+    
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
