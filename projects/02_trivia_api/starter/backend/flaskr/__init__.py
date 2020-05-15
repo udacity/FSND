@@ -1,4 +1,5 @@
 import os
+from sqlalchemy.sql.expression import func
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -112,6 +113,9 @@ def create_app(test_config=None):
     required_attribute_template = "A value is required for the attribute \"{}\"."
     integer_expected_template = "The attribute \"{}\" must be an integer."
     integer_out_of_range_template = "The attribute \"{}\" must be an integer from {} and {}."
+    list_expected_template = "The attribute \"{}\" must be a list."
+    object_expected_template = "The attribute \"{}\" must be an object"
+    not_found_template = "A resource for the attribute \"{}\" with the value \"{}\" was not found."
 
     def validate_create_question_input(data):
         errors = []
@@ -258,6 +262,91 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
     '''
+    def validate_send_quiz_input(data):
+        previous_questions = data.get("previous_questions", [])
+        quiz_category = data.get("quiz_category")
+
+        validation_errors = []
+        if "quiz_category" not in data:
+            validation_errors.append({
+                "type": "attribute_expected",
+                "attribute": "quiz_category",
+                "message": required_attribute_template.format("quiz_category")
+            })
+        elif type(quiz_category) is not dict:
+            validation_errors.append({
+                "type": "object_expected",
+                "attribute": "quiz_category",
+                "message": object_expected_template.format("quiz_category")
+            })
+        elif "id" not in data["quiz_category"]:
+            validation_errors.append({
+                "type": "attribute_expected",
+                "attribute": "quiz_category.id",
+                "message": required_attribute_template.format("quiz_category.id")
+            })
+
+        if "previous_questions" not in data:
+            validation_errors.append({
+                "type": "attribute_expected",
+                "attribute": "previous_questions",
+                "message": required_attribute_template.format("previous_questions")
+            })
+        elif type(previous_questions) is not list:
+            validation_errors.append({
+                "type": "invalid_type",
+                "attribute": "previous_questions",
+                "message": list_expected_template.format("previous_questions")
+            })
+
+        return validation_errors
+
+    @app.route("/quizzes", methods=["POST"])
+    def send_quiz():
+        data = request.get_json()
+        if not data:
+            abort(400)
+
+        validation_errors = validate_send_quiz_input(data)
+        if validation_errors:
+            return jsonify({
+                "success": False,
+                "type": "invalid_request_error",
+                "message": "The request could not be processed because of invalid data.",
+                "validation_errors": validation_errors
+            }), 400
+
+        previous_questions = data["previous_questions"]
+        category_id = data["quiz_category"]["id"]
+        category_query = Category.query.filter(Category.id == category_id)
+        if category_id != 0 and category_query.one_or_none() is None:
+            return jsonify({
+                "success": False,
+                "type": "invalid_request_error",
+                "message": "The request could not be processed because of invalid data.",
+                "validation_errors": [{
+                    "type": "not_found",
+                    "attribute": "quiz_category.id",
+                    "message": not_found_template.format("quiz_category.id", category_id)
+                }]
+            }), 400
+
+        question_category_condition = True
+        if category_id != 0:
+            question_category_condition = Question.category == category_id
+
+        question = Question.query.\
+            filter(
+                ~Question.id.in_(previous_questions),
+                question_category_condition
+            ).\
+            order_by(func.random()).\
+            first()
+
+        return jsonify({
+            "success": 200,
+            "question": question.format() if question else None
+        })
 
     @app.errorhandler(400)
     def bad_request(error):
