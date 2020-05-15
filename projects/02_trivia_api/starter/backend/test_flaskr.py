@@ -149,7 +149,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
         
     def test_get_all_categories(self):
-        res = self.client().get('/categories')
+        res = self.client().get('/api/categories')
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
@@ -159,9 +159,11 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_404_get_category_1(self):
         category_id = 1
-        res = self.client().get('/categories/' + str(category_id))
+        res = self.client().get('/api/categories/' + str(category_id))
 
         self.assertEqual(res.status_code, 404)
+
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

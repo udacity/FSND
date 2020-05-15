@@ -96,7 +96,7 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-  @app.route('/categories')
+  @app.route('/api/categories')
   def get_all_categories():
     """"Returns a JSON-encoded response with attributes:
       - success
