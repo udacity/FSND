@@ -38,6 +38,7 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -230,6 +231,7 @@ def create_venue_submission():
     city=request.form['city'],
     state=request.form['state'],
     phone=request.form['phone'],
+    genres=request.form.getlist('genres'),
     # website=request.form['website'],
     facebook_link=request.form['facebook_link']
     # image_link=request.form['image_link']
