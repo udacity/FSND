@@ -97,6 +97,19 @@ class TriviaTestCase(unittest.TestCase):
         FROM questions as q
         WHERE q.category_id is null
         ;""")
+        def exec_q_or_none():
+            with self.app.app_context():
+                try:
+                    return self.db.engine.execute(sel_stmnt)
+                except DBAPIError as e:
+                    print(e)
+                    return None
+        
+        q_result = exec_q_or_none()
+        self.assertIsNotNone(q_result)
+        if q_result:
+            rows = [row for row in q_result]
+            self.assertEqual(len(rows), 0)
 
     def test_get_all_questions(self):
         res = self.client().get('/api/questions')
@@ -134,20 +147,6 @@ class TriviaTestCase(unittest.TestCase):
         category_id = 100000
         res = self.client().get('/api/questions/categories/' + str(category_id))
         self.assertEqual(res.status_code, 404)
-
-        def exec_q_or_none():
-            with self.app.app_context():
-                try:
-                    return self.db.engine.execute(sel_stmnt)
-                except DBAPIError as e:
-                    print(e)
-                    return None
-        
-        q_result = exec_q_or_none()
-        self.assertIsNotNone(q_result)
-        if q_result:
-            rows = [row for row in q_result]
-            self.assertEqual(len(rows), 0)
         
 # Make the tests conveniently executable
 if __name__ == "__main__":
