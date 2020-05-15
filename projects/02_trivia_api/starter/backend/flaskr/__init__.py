@@ -32,13 +32,14 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def format_response(paginated_questions=None, current_category='all'):
-  """Formats the paginated questions to API response with:
+def get_cats_and_format_response(paginated_questions=None, current_category='all'):
+  """
+  Provides the default response layout with and adds paginated_questions if present:
       - success
       - total_questions
       - categories
-      - current_category (arg)
-      - questions (arg) 
+      - current_category
+      - questions (optional) 
 
   Arguments:
     paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
@@ -86,6 +87,8 @@ def create_app(test_config=None):
 
   @app.route('/')
   def index():
+    """"Returns the homepage of the API."""
+    
     return 'Hello, World!'
 
   '''
@@ -95,7 +98,14 @@ def create_app(test_config=None):
   '''
   @app.route('/categories')
   def get_all_categories():
-    return format_response() # no need to query categories as they are provided by default response format
+    """"Returns a JSON-encoded response with attributes:
+      - success
+      - categories
+      - current_category
+      - total_questions
+    """
+    
+    return get_cats_and_format_response() # no need to query categories as they are provided by default response format
 
   '''
   @TODO: 
@@ -111,13 +121,21 @@ def create_app(test_config=None):
   '''
   @app.route('/api/questions')
   def get_all_questions():
+    """"
+    Returns a JSON-encoded response with paginated questions and standard attributes:
+      - success (standard)
+      - categories (standard)
+      - total_questions (standard)
+      - current_category
+      - questions
+    """
     try:
       result = Question.query.order_by(Question.id).all()
       if not len(result):
         return 'Resource does not exist', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
-          format_response(paginated_questions)
+          get_cats_and_format_response(paginated_questions)
         )
     except:
       print(traceback.print_exc())
@@ -125,13 +143,21 @@ def create_app(test_config=None):
   
   @app.route('/api/questions/categories/<int:category_id>')
   def get_all_questions_by_category(category_id):
+    """"
+    Returns a JSON-encoded response with paginated questions for a given category_id and standard attributes:
+      - success (standard)
+      - categories (standard)
+      - total_questions (standard)
+      - current_category (required)
+      - questions
+    """
     try:
       result = Question.query.filter_by(category_id=category_id).order_by(Question.id).all()
       if not len(result):
         return 'Resource does not exist', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
-          format_response(paginated_questions, current_category=category_id)
+          get_cats_and_format_response(paginated_questions, current_category=category_id)
         )
     except:
       print(traceback.print_exc())
