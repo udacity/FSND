@@ -1,6 +1,7 @@
 import os
 import random
 import traceback
+import json
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -32,14 +33,15 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def get_cats_and_format_response(paginated_questions=None, current_category='all'):
+def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None):
   """
-  Provides the default response layout with and adds paginated_questions if present:
+  Provides the default response layout with and adds `questions` (paginated) & `created` if present:
       - success
       - total_questions
       - categories
       - current_category
       - questions (optional) 
+      - created (optional)
 
   Arguments:
     paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
@@ -59,6 +61,8 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
   }
   if paginated_questions:
     res.update({'questions': paginated_questions})
+  if created:
+    res.update({'created': created})
   return res
 
 def create_app(test_config=None):
@@ -105,7 +109,7 @@ def create_app(test_config=None):
       - total_questions
     """
     
-    return get_cats_and_format_response() # no need to query categories as they are provided by default response format
+    return jsonify(get_cats_and_format_response()) # no need to query categories as they are provided by default response format
 
   '''
   @TODO: 
@@ -119,7 +123,14 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
-  @app.route('/api/questions')
+  @app.route('/api/questions', methods=['GET', 'POST'])
+  def handle_questions():
+    if request.method == 'GET':
+      return get_all_questions()
+    elif request.method == 'POST':
+      data = json.loads(request.get_json())
+      return create_question(data)
+  
   def get_all_questions():
     """"
     Returns a JSON-encoded response with paginated questions and standard attributes:
@@ -141,6 +152,47 @@ def create_app(test_config=None):
       print(traceback.print_exc())
       return 'ERROR:' + str(traceback.print_exc()), 400
   
+  def create_question(data):
+    """"
+    Inserts the question into DB if:
+      - all required args are present
+      - No duplicate question is found
+
+    Returns the standard JSON response, adding:
+      - created: details of the newly created question
+    
+    The standard response includes the following attr:
+      - success
+      - categories
+      - total_questions
+      - current_category
+    """
+    if not all (key in data for key in ('question', 'answer', 'difficulty', 'category_id')):
+      return 'Bad Request - missing required parameter', 400
+  
+    try: # if current_category is present pass it on to response formatter later
+      cur_cat = data['current_category']
+    except KeyError as e:
+      cur_cat = None
+
+
+    try: # If no duplicate is found, create question
+      dupes = Question.query.filter(Question.question.ilike(f"%{data['question']}%")).all()
+      if len(dupes) > 0:
+        return 'Unprocessable - Resource already present', 422
+      
+      new_question = Question(**data)
+      new_question.insert()
+      return jsonify(
+        get_cats_and_format_response(created=new_question.format(), current_category=cur_cat)
+      )
+    except:
+      print('Rolled back. ERROR:', traceback.print_exc())
+      db.session.rollback()
+      return 'Unprocessable' + str(traceback.print_exc()), 422
+    finally:
+      db.session.close()    
+
   @app.route('/api/questions/categories/<int:category_id>')
   def get_all_questions_by_category(category_id):
     """"
