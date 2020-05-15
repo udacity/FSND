@@ -23,10 +23,13 @@ class TriviaTestCase(unittest.TestCase):
         setup_db(self.app, self.database_path)
 
         self.new_qst = {
-            "question": "In which Hollywood film did Michael Jordan act?"
-            , "answer": "Space Jam"
-            , "category_id": 5
-            , "difficulty": 3
+            "question": {
+                "question": "In which Hollywood film did Michael Jordan act?"
+                , "answer": "Space Jam"
+                , "category_id": 5
+                , "difficulty": 3
+                },
+            "current_category": 1
         }
 
         # binds the app to the current context
@@ -180,11 +183,17 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_015_422_post_duplicate_question(self):
         res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
+        
         self.assertEqual(res.status_code, 422)
+        if res.status_code == 422:
+            responses = [rsp.decode('utf-8') for rsp in res.response]
+            self.assertIn('already present', responses[0])
 
     def test_016_400_post_question_without_answer(self):
         q = {
-            "question": "In which Hollywood film did Michael Jordan act?"
+            "question": { 
+                "question": "In which Hollywood film did Michael Jordan act?"
+            }
         }
         res = self.client().post(
             '/api/questions', 

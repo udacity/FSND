@@ -155,7 +155,8 @@ def create_app(test_config=None):
   def create_question(data):
     """"
     Inserts the question into DB if:
-      - all required args are present
+      - body contains a 'question' property
+      - all required args are present in 'question' property
       - No duplicate question is found
 
     Returns the standard JSON response, adding:
@@ -167,21 +168,23 @@ def create_app(test_config=None):
       - total_questions
       - current_category
     """
-    if not all (key in data for key in ('question', 'answer', 'difficulty', 'category_id')):
-      return 'Bad Request - missing required parameter', 400
+    if not 'question' in data:
+      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+    if not all (key in data['question'] for key in ('question', 'answer', 'difficulty', 'category_id')):
+      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
   
     try: # if current_category is present pass it on to response formatter later
       cur_cat = data['current_category']
     except KeyError as e:
       cur_cat = None
 
-
+    qst = data['question']
     try: # If no duplicate is found, create question
-      dupes = Question.query.filter(Question.question.ilike(f"%{data['question']}%")).all()
+      dupes = Question.query.filter(Question.question.ilike(f"%{qst['question']}%")).all()
       if len(dupes) > 0:
         return 'Unprocessable - Resource already present', 422
       
-      new_question = Question(**data)
+      new_question = Question(**qst)
       new_question.insert()
       return jsonify(
         get_cats_and_format_response(created=new_question.format(), current_category=cur_cat)
