@@ -32,7 +32,7 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def format_response(paginated_questions, current_category='all'):
+def format_response(paginated_questions=None, current_category='all'):
   """Formats the paginated questions to API response with:
       - success
       - total_questions
@@ -47,15 +47,18 @@ def format_response(paginated_questions, current_category='all'):
   Returns:
       dict -- A dictionary to be formatted as a JSON-encoded server response.
   """
+  
   categories = [category.format() for category in Category.query.all()]
   total_questions = len(Question.query.all())
-  return {
+  res = {
         'success': True,
-        'questions': paginated_questions,
         'total_questions': total_questions,
         'current_category': current_category,
         'categories': categories
-      }
+  }
+  if paginated_questions:
+    res.update({'questions': paginated_questions})
+  return res
 
 def create_app(test_config=None):
   # create and configure the app
@@ -90,7 +93,9 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-
+  @app.route('/categories')
+  def get_all_categories():
+    return format_response() # no need to query categories as they are provided by default response format
 
   '''
   @TODO: 
