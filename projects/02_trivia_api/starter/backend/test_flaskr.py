@@ -229,7 +229,7 @@ class TriviaTestCase(unittest.TestCase):
             "search_term": "afkhbfkbfkjbfiubfifbu"
             , "search_on_answer": True
         })
-        res = self.client().post('/api/quesitons/searches', json=search)
+        res = self.client().post('/api/questions/searches', json=search)
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:

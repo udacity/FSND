@@ -63,7 +63,7 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
   }
   if total_questions is None:
     res.update({'total_questions': len(Question.query.all())})
-  if paginated_questions:
+  if paginated_questions is not None:
     res.update({'questions': paginated_questions})
   if created:
     res.update({'created': created})
