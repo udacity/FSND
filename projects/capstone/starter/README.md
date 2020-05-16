@@ -12,7 +12,7 @@ This code is currently deployed on Heroku and accessible at the following URL.
     
 ## Local Quick Start
 
-###Prepare your enviornment and app
+###Prepare your environment and app
 
 Start Postgresql
 
