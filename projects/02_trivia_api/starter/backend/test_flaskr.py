@@ -223,7 +223,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(len(data['questions']), 17)
+            self.assertEqual(data['total_questions'], 17)
     def test_020_search_question_without_result(self):
         search = json.dumps({
             "search_term": "afkhbfkbfkjbfiubfifbu"
@@ -246,7 +246,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(len(data['questions']), 13)
+            self.assertEqual(data['total_questions'], 13)
     
     def test_022_search_question_on_qst(self):
         search = json.dumps({
@@ -257,7 +257,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(len(data['categories']), 6)
+            self.assertEqual(data['total_categories'], 6)
 
     def test_023_400_search_without_term(self):
         res = self.client().post('/api/questions/searches')

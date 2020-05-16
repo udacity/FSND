@@ -33,16 +33,18 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None):
+def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None):
   """
   Provides the default response layout with and adds (if present) `questions` (paginated), `created` & `deleted`:
       - success
-      - total_questions
-      - categories
-      - current_category
       - questions (optional) 
+      - total_questions (in table or found by search)
+      - categories
+      - total_questions (in table or found by search)
+      - current_category
       - created (optional)
       - deleted (optional)
+      - search_term (optional)
 
   Arguments:
     paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
@@ -53,19 +55,24 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
   """
   
   categories = [category.format() for category in Category.query.all()]
-  total_questions = len(Question.query.all())
   res = {
         'success': True,
-        'total_questions': total_questions,
         'current_category': current_category,
-        'categories': categories
+        'categories': categories,
+        'total_questions': total_questions
   }
+  if total_questions is None:
+    res.update({'total_questions': len(Question.query.all())})
   if paginated_questions:
     res.update({'questions': paginated_questions})
   if created:
     res.update({'created': created})
   if deleted:
     res.update({'deleted': deleted})
+  if search_term:
+    res.update({'search_term': search_term})
+  if total_categories:
+    res.update({'total_categories': search_term})
   return res
 
 def create_app(test_config=None):
@@ -285,7 +292,12 @@ def create_app(test_config=None):
       search_result = Question.query.filter(filter_on.ilike(f'%{data["search_term"]}%')).all()
       paginated_questions = paginate_result(search_result)
       return jsonify(
-        get_cats_and_format_response(paginated_questions=paginated_questions)#, search_term=data['search_term']
+        get_cats_and_format_response(
+          paginated_questions=paginated_questions,
+          search_term=data['search_term'],
+          total_questions=len(search_result)
+
+          )
       )
     except AttributeError as e:
       print(e)
