@@ -202,14 +202,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 400)
 
     def test_017_delete_question(self):
-        qst_id = 24
-        res = self.client().delete('/api/questions/' + str(qst_id))
+        to_delete = Question.query.filter(Question.question.ilike('%jordan%')).first()
+        res = self.client().delete('/api/questions/' + str(to_delete.id))
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
             self.assertIn('deleted', data)
 
-    def test_404_delete_non_existent_question(self):
+    def test_018_404_delete_non_existent_question(self):
         qst_id = 100
         res = self.client().delete('/api/questions/' + str(qst_id))
         self.assertEqual(res.status_code, 404)
