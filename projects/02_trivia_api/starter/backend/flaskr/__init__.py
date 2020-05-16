@@ -233,7 +233,9 @@ def create_app(test_config=None):
     try:
       to_delete = Question.query.get(question_id)
       to_delete.delete()
-      return get_cats_and_format_response(deleted=to_delete.format())
+      return jsonify(
+        get_cats_and_format_response(deleted=to_delete.format())
+      )
     except AttributeError as e:
       db.session.rollback()
       print('Rolled back. AttributeError:', e)
@@ -263,7 +265,35 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+  @app.route('/api/questions/searches', methods=['POST'])
+  def search_question():
+    try:
+      data = json.loads(request.get_json())
+    except TypeError as e:
+      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+    if not 'search_term' in data:
+      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+    
+    if 'search_on_answer' in data:
+      if not isinstance(data['search_on_answer'], bool):
+        return 'Bad Request - Malformatted (e.g. boolean value)', 400
+      filter_on = Question.answer
+    else:
+      filter_on = Question.question
 
+    try:
+      search_result = Question.query.filter(filter_on.ilike(f'%{data["search_term"]}%')).all()
+      paginated_questions = paginate_result(search_result)
+      return jsonify(
+        get_cats_and_format_response(paginated_questions=paginated_questions)#, search_term=data['search_term']
+      )
+    except AttributeError as e:
+      print(e)
+      db.session.rollback()
+      return 'Something went wrong' + e, 422
+    finally:
+      db.session.close()
+        
   '''
   @TODO: 
   Create a GET endpoint to get questions based on category. 
