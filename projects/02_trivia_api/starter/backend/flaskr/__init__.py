@@ -232,13 +232,12 @@ def create_app(test_config=None):
   def delete_question(question_id):
     try:
       to_delete = Question.query.get(question_id)
-      print(to_delete.format())
       to_delete.delete()
       return get_cats_and_format_response(deleted=to_delete.format())
-    except:
+    except AttributeError as e:
       db.session.rollback()
-      print('Rolled back. ERROR:', traceback.print_exc())
-      return 'Something went wrong:' + str(traceback.print_exc()), 422
+      print('Rolled back. AttributeError:', e)
+      return 'Resource does not exist.', 404
     finally:
       db.session.close()
     return 
