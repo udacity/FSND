@@ -105,7 +105,7 @@ def create_app(test_config=None):
             })
         elif not is_integer(data["category"]):
             errors.append({
-                "type": "integer_expected",
+                "type": "invalid_type",
                 "attribute": "category",
                 "message": integer_expected_template.format("category")
             })
@@ -118,7 +118,7 @@ def create_app(test_config=None):
             })
         elif not is_integer(data["difficulty"]):
             errors.append({
-                "type": "integer_expected",
+                "type": "invalid_type",
                 "attribute": "difficulty",
                 "message": integer_expected_template.format("difficulty")
             })
@@ -220,7 +220,7 @@ def create_app(test_config=None):
             })
         elif type(quiz_category) is not dict:
             validation_errors.append({
-                "type": "object_expected",
+                "type": "invalid_type",
                 "attribute": "quiz_category",
                 "message": object_expected_template.format("quiz_category")
             })
