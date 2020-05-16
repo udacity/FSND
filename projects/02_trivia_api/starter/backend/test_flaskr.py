@@ -236,7 +236,7 @@ class TriviaTestCase(unittest.TestCase):
             data = json.loads(res.data)
             self.assertEqual(len(data['questions']), 0)
 
-    def test_021_search_question_on_qst(self):
+    def test_021_search_question_on_ans(self):
         search = json.dumps({
             "search_term": "a"
             , "search_on_answer": True
@@ -246,9 +246,9 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['total_questions'], 13)
+            self.assertEqual(data['total_questions'], 14)
     
-    def test_022_search_question_on_qst(self):
+    def test_022_search_category(self):
         search = json.dumps({
             "search_term": "a"
         })
