@@ -92,7 +92,7 @@ def create_app(test_config=None):
 
         if "answer" not in data:
             errors.append({
-                "type": "attribute_require",
+                "type": "attribute_required",
                 "attribute": "answer",
                 "message": required_attribute_template.format("answer")
             })
