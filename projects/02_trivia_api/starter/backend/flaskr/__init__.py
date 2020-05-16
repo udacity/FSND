@@ -35,13 +35,14 @@ def paginate_result(result, page=1):
 
 def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None):
   """
-  Provides the default response layout with and adds `questions` (paginated) & `created` if present:
+  Provides the default response layout with and adds (if present) `questions` (paginated), `created` & `deleted`:
       - success
       - total_questions
       - categories
       - current_category
       - questions (optional) 
       - created (optional)
+      - deleted (optional)
 
   Arguments:
     paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
