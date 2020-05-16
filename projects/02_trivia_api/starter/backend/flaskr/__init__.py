@@ -33,7 +33,7 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None):
+def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None, categories=None):
   """
   Provides the default response layout with and adds (if present) `questions` (paginated), `created` & `deleted`:
       - success
@@ -53,14 +53,17 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
   Returns:
       dict -- A dictionary to be formatted as a JSON-encoded server response.
   """
-  
-  categories = [category.format() for category in Category.query.all()]
   res = {
         'success': True,
         'current_category': current_category,
         'categories': categories,
-        'total_questions': total_questions
+        'total_questions': total_questions,
+        'total_categories': total_categories
   }
+  if categories is None and total_categories is None:
+    categories = [category.format() for category in Category.query.all()]
+    res.update({'categories': categories})
+    res.update({'total_categories': len(categories)})
   if total_questions is None:
     res.update({'total_questions': len(Question.query.all())})
   if paginated_questions is not None:
@@ -71,8 +74,6 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
     res.update({'deleted': deleted})
   if search_term:
     res.update({'search_term': search_term})
-  if total_categories:
-    res.update({'total_categories': search_term})
   return res
 
 def create_app(test_config=None):
@@ -297,6 +298,32 @@ def create_app(test_config=None):
           search_term=data['search_term'],
           total_questions=len(search_result)
 
+          )
+      )
+    except AttributeError as e:
+      print(e)
+      db.session.rollback()
+      return 'Something went wrong' + e, 422
+    finally:
+      db.session.close()
+  
+  @app.route('/api/categories/searches', methods=['POST'])
+  def search_categories():
+    try:
+      data = json.loads(request.get_json())
+    except TypeError as e:
+      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+    if not 'search_term' in data:
+      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+    
+    try:
+      search_result = Category.query.filter(Category.type.ilike(f'%{data["search_term"]}%')).all()
+      categories = [category.format() for category in search_result]
+      return jsonify(
+        get_cats_and_format_response(
+          categories=categories,
+          search_term=data['search_term'],
+          total_categories=len(search_result)
           )
       )
     except AttributeError as e:

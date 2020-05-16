@@ -257,7 +257,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['total_categories'], 6)
+            self.assertEqual(data['total_categories'], 4)
 
     def test_023_400_search_without_term(self):
         res = self.client().post('/api/questions/searches')
