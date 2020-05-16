@@ -33,7 +33,7 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None):
+def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None):
   """
   Provides the default response layout with and adds `questions` (paginated) & `created` if present:
       - success
@@ -63,6 +63,8 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
     res.update({'questions': paginated_questions})
   if created:
     res.update({'created': created})
+  if deleted:
+    res.update({'deleted': deleted})
   return res
 
 def create_app(test_config=None):
