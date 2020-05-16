@@ -213,6 +213,61 @@ class TriviaTestCase(unittest.TestCase):
         qst_id = 100
         res = self.client().delete('/api/questions/' + str(qst_id))
         self.assertEqual(res.status_code, 404)
+    
+    def test_019_search_question_on_qst(self):
+        search = json.dumps({
+            "search_term": "a"
+        })
+        res = self.client().post('/api/questions/searches', json=search)
+
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(data['total_questions'], 17)
+    def test_020_search_question_without_result(self):
+        search = json.dumps({
+            "search_term": "afkhbfkbfkjbfiubfifbu"
+            , "search_on_answer": True
+        })
+        res = self.client().post('/api/questions/searches', json=search)
+
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(len(data['questions']), 0)
+
+    def test_021_search_question_on_ans(self):
+        search = json.dumps({
+            "search_term": "a"
+            , "search_on_answer": True
+        })
+        res = self.client().post('/api/questions/searches', json=search)
+
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(data['total_questions'], 14)
+    
+    def test_022_search_category(self):
+        search = json.dumps({
+            "search_term": "a"
+        })
+        res = self.client().post('/api/categories/searches', json=search)
+
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertEqual(data['total_categories'], 4)
+
+    def test_023_400_search_without_term(self):
+        res = self.client().post('/api/questions/searches')
+
+        self.assertEqual(res.status_code, 400)
+    def test_024_405_get_search(self):
+        res = self.client().get('/api/questions/searches')
+
+        self.assertEqual(res.status_code, 405)
+    
 
 
 
