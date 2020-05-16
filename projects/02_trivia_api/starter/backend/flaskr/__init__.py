@@ -33,15 +33,16 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None):
+def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None):
   """
-  Provides the default response layout with and adds `questions` (paginated) & `created` if present:
+  Provides the default response layout with and adds (if present) `questions` (paginated), `created` & `deleted`:
       - success
       - total_questions
       - categories
       - current_category
       - questions (optional) 
       - created (optional)
+      - deleted (optional)
 
   Arguments:
     paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
@@ -63,6 +64,8 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
     res.update({'questions': paginated_questions})
   if created:
     res.update({'created': created})
+  if deleted:
+    res.update({'deleted': deleted})
   return res
 
 def create_app(test_config=None):
@@ -225,6 +228,19 @@ def create_app(test_config=None):
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page. 
   '''
+  @app.route('/api/questions/<int:question_id>', methods=['DELETE'])
+  def delete_question(question_id):
+    try:
+      to_delete = Question.query.get(question_id)
+      to_delete.delete()
+      return get_cats_and_format_response(deleted=to_delete.format())
+    except AttributeError as e:
+      db.session.rollback()
+      print('Rolled back. AttributeError:', e)
+      return 'Resource does not exist.', 404
+    finally:
+      db.session.close()
+    return 
 
   '''
   @TODO: 
