@@ -2,6 +2,7 @@
 __pycache__
 venv
 env
+backend/prepare-test-db.ps1
 
 # OS generated files #
 ######################
