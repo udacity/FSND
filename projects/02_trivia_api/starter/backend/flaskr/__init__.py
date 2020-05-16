@@ -58,7 +58,7 @@ def create_app(test_config=None):
     def retrieve_questions():
         page = request.args.get('page', 1, type=int)
         questions_page = Question.query.\
-            order_by(Question.id.desc()).\
+            order_by(Question.id.asc()).\
             paginate(page, per_page=QUESTIONS_PER_PAGE)
         total_questions = questions_page.total
 
@@ -180,7 +180,7 @@ def create_app(test_config=None):
                 filter(
                     Question.question.ilike(f"%{search_term}%")
                 ).\
-                order_by(Question.id.desc()).\
+                order_by(Question.id.asc()).\
                 all()
 
             formatted_questions = [
@@ -237,7 +237,7 @@ def create_app(test_config=None):
 
         questions = Question.query.\
             filter(Question.category == category_id).\
-            order_by(Question.id.desc()).\
+            order_by(Question.id.asc()).\
             all()
 
         formatted_questions = [
