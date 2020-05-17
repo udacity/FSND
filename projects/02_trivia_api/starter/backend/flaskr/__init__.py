@@ -33,15 +33,17 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None, categories=None):
+def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None, categories=None, question=None, answer=None):
   """
-  Provides the default response layout with and adds (if present) `questions` (paginated), `created` & `deleted`:
+  Provides the default response layout and adds (if present) `questions` (paginated), `created`, `deleted`, `search_term`, `question` or `answer`:
       - success
       - questions (optional) 
       - total_questions (in table or found by search)
       - categories
       - total_questions (in table or found by search)
       - current_category
+      - question
+      - answer
       - created (optional)
       - deleted (optional)
       - search_term (optional)
@@ -74,6 +76,10 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
     res.update({'deleted': deleted})
   if search_term:
     res.update({'search_term': search_term})
+  if question:
+    res.update({'question': question})
+  if answer:
+    res.update({'answer': answer})
   return res
 
 def create_app(test_config=None):
@@ -354,6 +360,18 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/api/questions/random')
+  def get_random_question():
+    all_questions = Question.query.all()
+    if len(all_questions) < 1:
+      return 'Resource does not exist', 404
+    rand_ix = random.randint(0, len(all_questions)-1)
+    questions = [qst for qst in all_questions]
+    q = questions[rand_ix].format()
+    return jsonify(
+      get_cats_and_format_response(question=q['question'], answer=q['answer'], current_category=q['category_id'])
+    )
+    
 
   '''
   @TODO: 
