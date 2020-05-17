@@ -267,6 +267,21 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/api/questions/searches')
 
         self.assertEqual(res.status_code, 405)
+
+    def test_025_get_random_question(self):
+        res = self.client().get('/api/questions/random')
+
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = json.loads(res.data)
+            self.assertIn('question', data)
+            self.assertIn('answer', data)
+
+    def test_026_405_post_random_question(self):
+        res = self.client().post('/api/questions/random')
+
+        self.assertEqual(res.status_code, 405)
+
     
 
 
