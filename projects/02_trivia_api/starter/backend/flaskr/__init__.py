@@ -168,6 +168,24 @@ def create_app(test_config=None):
                     "validation_errors": validation_errors
                 }), 400
 
+            category_id = data.get("category")
+            category = Category.query.\
+                filter(Category.id == category_id).\
+                one_or_none()
+            if not category:
+                return jsonify({
+                    "success": False,
+                    "type": "invalid_request_error",
+                    "message": "The request could not be processed because of invalid data.",
+                    "validation_errors": [
+                        {
+                            "attribute": "category",
+                            "type": "not_found",
+                            "message": not_found_template.format("category", category_id)
+                        }
+                    ]
+                }), 400
+
             question = Question(
                 question=data.get("question"),
                 answer=data.get("answer"),
@@ -289,7 +307,7 @@ def create_app(test_config=None):
             first()
 
         return jsonify({
-            "success": 200,
+            "success": True,
             "question": question.format() if question else None
         })
 
@@ -326,7 +344,7 @@ def create_app(test_config=None):
         }), 422
 
     @app.errorhandler(500)
-    def internal_server_errro(error):
+    def internal_server_error(error):
         return jsonify({
             "success": False,
             "type": "api_error",
