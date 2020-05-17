@@ -62,8 +62,10 @@ span.page-num {
   font-size: 16px;
 }
 
-span.page-num.active {
-  color: blue;
+span.page-num.active,
+.category.active {
+  color: purple;
+  cursor: pointer;
 }
 
 img.category {

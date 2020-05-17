@@ -11,6 +11,11 @@
 
 .App-header > h1 {
   color: dodgerblue;
+  cursor: pointer;
+}
+
+.App-header > h2 {
+  cursor: pointer;
 }
 
 .App-intro {
