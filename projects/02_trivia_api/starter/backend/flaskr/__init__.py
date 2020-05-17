@@ -34,6 +34,28 @@ def paginate_result(result, page=1):
   return [result[ix].format() for ix in range(start, end)]
 
 def format_search_response(search_term, paginated_questions=None, total_questions_found=None, categories=None, total_categories_found=None, page=1):
+  """Formats JSON-encoded API-response after search operation. 
+  Supports search for categry and question.
+  
+  Keyword arguments:
+  search_term* -- The text string for which to search
+  paginated_questions -- List of 1 page of questions with details to returned by query
+  page -- Page of questions (default 1)
+  total_questions_found -- Total number questions returned by query
+  categories -- List of categories with details returned by query
+  total_categories_found -- Total number of categories returned by query
+
+  
+  Return: dict with some standard attributes for search:
+    - success,
+    - page,
+    - search_term,
+    - total_categories_found (relevant for both category & question search)
+  Adding the following if relevant to CRUD operation:
+    - paginated_questions (question search only)
+    - total_questions_found (question search only),
+    - categories (category search only)
+    """
   res = {
     "success": True
     , "page": page
@@ -47,6 +69,31 @@ def format_search_response(search_term, paginated_questions=None, total_question
     res.update({'categories': categories})
   return res
 def format_crud_response(deleted=None, created=None, paginated_questions=None, page=1, total_questions=None, current_category='all', categories=None, total_categories=None):
+  """Formats JSON-encoded API-response after CRUD operation
+  
+  Keyword arguments:
+  deleted -- The deleted question with id, question, answer, difficulty, category_id
+  created -- The created question with id, question, answer, difficulty, category_id
+  paginated_questions -- List of 1 page of questions with details to render to frontend
+  page -- Page of questions (default 1)
+  total_questions -- Total number questions
+  current_category -- Current category_id (default 'all')
+  categories --List of categories with details to render to frontend
+  total_categories -- Total number of categories
+
+  
+  Return: dict with some standard attributes for CRUD:
+    - success,
+    - total_questions,
+    - current_category,
+    - total_categories
+  Adding the following if relevant to CRUD operation:
+    - deleted,
+    - created,
+    - paginated_questions OR categories
+    - page,
+    - total_questions OR total_categories
+    """
   res =  {
     "success": True
     , "total_questions": total_questions
@@ -70,61 +117,22 @@ def format_crud_response(deleted=None, created=None, paginated_questions=None, p
 
   return res
 def format_play_response(question, answer, current_category):
+  """Formats random question to JSON-encoded API-response
+  
+  Keyword arguments:
+  question -- Random Question
+  answer -- Question's answer
+  current_category -- Question's category
+  
+  Return: dict adding success attribute
+  """
+  
   return {
     "success": True
     , "question": question
     , "answer": answer
     , "current_category": current_category
   }
-
-def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None, categories=None, question=None, answer=None):
-  """
-  Provides the default response layout and adds (if present) `questions` (paginated), `created`, `deleted`, `search_term`, `question` or `answer`:
-      - success
-      - questions (optional) 
-      - total_questions (in table or found by search)
-      - categories
-      - total_questions (in table or found by search)
-      - current_category
-      - question
-      - answer
-      - created (optional)
-      - deleted (optional)
-      - search_term (optional)
-
-  Arguments:
-    paginated_questions {list} -- List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.]
-    current_category {int} -- the id of the current category (default: 'all')
-  
-  Returns:
-      dict -- A dictionary to be formatted as a JSON-encoded server response.
-  """
-  res = {
-        'success': True,
-        'current_category': current_category,
-        'categories': categories,
-        'total_questions': total_questions,
-        'total_categories': total_categories
-  }
-  if categories is None and total_categories is None:
-    categories = [category.format() for category in Category.query.all()]
-    res.update({'categories': categories})
-    res.update({'total_categories': len(categories)})
-  if total_questions is None:
-    res.update({'total_questions': len(Question.query.all())})
-  if paginated_questions is not None:
-    res.update({'questions': paginated_questions})
-  if created:
-    res.update({'created': created})
-  if deleted:
-    res.update({'deleted': deleted})
-  if search_term:
-    res.update({'search_term': search_term})
-  if question:
-    res.update({'question': question})
-  if answer:
-    res.update({'answer': answer})
-  return res
 
 def create_app(test_config=None):
   # create and configure the app
