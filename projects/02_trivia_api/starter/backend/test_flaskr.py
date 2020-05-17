@@ -150,7 +150,6 @@ class TriviaTestCase(unittest.TestCase):
             self.assertEqual(len(data['questions']), 3)
             self.assertIn('questions', data)
             self.assertIn('total_questions', data)
-            self.assertIn('categories', data)
             self.assertIn('current_category', data)
             
 
@@ -223,7 +222,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['total_questions'], 17)
+            self.assertEqual(data['total_questions_found'], 17)
     def test_020_search_question_without_result(self):
         search = json.dumps({
             "search_term": "afkhbfkbfkjbfiubfifbu"
@@ -246,7 +245,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['total_questions'], 14)
+            self.assertEqual(data['total_questions_found'], 14)
     
     def test_022_search_category(self):
         search = json.dumps({
@@ -257,7 +256,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['total_categories'], 4)
+            self.assertEqual(data['total_categories_found'], 4)
 
     def test_023_400_search_without_term(self):
         res = self.client().post('/api/questions/searches')
