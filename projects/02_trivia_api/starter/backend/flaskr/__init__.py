@@ -33,15 +33,61 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None, categories=None):
+def format_search_response(search_term, paginated_questions=None, total_questions_found=None, categories=None, total_categories_found=None, page=1):
+  res = {
+    "success": True
+    , "page": page
+    , "search_term": search_term
+    , "total_categories_found": total_categories_found
+  }
+  if paginated_questions is not None: # returning empty list if without result
+    res.update({'questions': paginated_questions})
+    res.update({'total_questions_found': total_questions_found})
+  if categories:
+    res.update({'categories': categories})
+  return res
+def format_crud_response(deleted=None, created=None, paginated_questions=None, page=1, total_questions=None, current_category='all', categories=None, total_categories=None):
+  res =  {
+    "success": True
+    , "total_questions": total_questions
+    , "current_category": current_category
+    , "total_categories": total_categories
+  }
+  if deleted:
+    res.update({"deleted": deleted})
+  if created:
+    res.update({"created": created})
+  if paginated_questions:
+    res.update({"questions": paginated_questions})
+  if page:
+    res.update({"page": page})
+  if total_questions is None:
+    res.update({"total_questions": len(Question.query.order_by(Question.id).all())})
+  if categories:
+    res.update({"categories": categories})
+  if total_categories is None:
+    res.update({"total_categories": len(Category.query.order_by(Category.id).all())})
+
+  return res
+def format_play_response(question, answer, current_category):
+  return {
+    "success": True
+    , "question": question
+    , "answer": answer
+    , "current_category": current_category
+  }
+
+def get_cats_and_format_response(paginated_questions=None, current_category='all', created=None, deleted=None, total_questions=None, search_term=None, total_categories=None, categories=None, question=None, answer=None):
   """
-  Provides the default response layout with and adds (if present) `questions` (paginated), `created` & `deleted`:
+  Provides the default response layout and adds (if present) `questions` (paginated), `created`, `deleted`, `search_term`, `question` or `answer`:
       - success
       - questions (optional) 
       - total_questions (in table or found by search)
       - categories
       - total_questions (in table or found by search)
       - current_category
+      - question
+      - answer
       - created (optional)
       - deleted (optional)
       - search_term (optional)
@@ -74,6 +120,10 @@ def get_cats_and_format_response(paginated_questions=None, current_category='all
     res.update({'deleted': deleted})
   if search_term:
     res.update({'search_term': search_term})
+  if question:
+    res.update({'question': question})
+  if answer:
+    res.update({'answer': answer})
   return res
 
 def create_app(test_config=None):
@@ -119,8 +169,8 @@ def create_app(test_config=None):
       - current_category
       - total_questions
     """
-    
-    return jsonify(get_cats_and_format_response()) # no need to query categories as they are provided by default response format
+    all_categories = [category.format() for category in Category.query.all()]
+    return jsonify(format_crud_response(categories=all_categories))
 
   '''
   @TODO: 
@@ -157,7 +207,7 @@ def create_app(test_config=None):
         return 'Resource does not exist', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
-          get_cats_and_format_response(paginated_questions)
+          format_crud_response(paginated_questions=paginated_questions)
         )
     except:
       print(traceback.print_exc())
@@ -184,10 +234,21 @@ def create_app(test_config=None):
     if not all (key in data['question'] for key in ('question', 'answer', 'difficulty', 'category_id')):
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
   
-    try: # if current_category is present pass it on to response formatter later
-      cur_cat = data['current_category']
-    except KeyError as e:
-      cur_cat = None
+    response_attr = {}
+    
+    if 'current_category' in data:
+      response_attr.update({'current_category': data['current_category']})
+    
+    paginate_result_attr = {
+      "result": Question.query.order_by(Question.id).all()
+    }
+    if 'page' in data:
+      paginate_result_attr.update({'page': data['page']})
+      response_attr.update({'page': data['page']}) 
+    
+    response_attr.update({
+      'paginated_questions': paginate_result(**paginate_result_attr)
+    })
 
     qst = data['question']
     try: # If no duplicate is found, create question
@@ -197,8 +258,13 @@ def create_app(test_config=None):
       
       new_question = Question(**qst)
       new_question.insert()
+      
+      response_attr.update({
+        'created': new_question.format()
+      })
+
       return jsonify(
-        get_cats_and_format_response(created=new_question.format(), current_category=cur_cat)
+        format_crud_response(**response_attr)
       )
     except:
       print('Rolled back. ERROR:', traceback.print_exc())
@@ -223,7 +289,7 @@ def create_app(test_config=None):
         return 'Resource does not exist', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
-          get_cats_and_format_response(paginated_questions, current_category=category_id)
+          format_crud_response(paginated_questions=paginated_questions, current_category=category_id)
         )
     except:
       print(traceback.print_exc())
@@ -242,7 +308,7 @@ def create_app(test_config=None):
       to_delete = Question.query.get(question_id)
       to_delete.delete()
       return jsonify(
-        get_cats_and_format_response(deleted=to_delete.format())
+        format_crud_response(deleted=to_delete.format())
       )
     except AttributeError as e:
       db.session.rollback()
@@ -279,6 +345,7 @@ def create_app(test_config=None):
       data = json.loads(request.get_json())
     except TypeError as e:
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+    
     if not 'search_term' in data:
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
     
@@ -292,12 +359,13 @@ def create_app(test_config=None):
     try:
       search_result = Question.query.filter(filter_on.ilike(f'%{data["search_term"]}%')).all()
       paginated_questions = paginate_result(search_result)
+      categories = {question.category_id for question in search_result}
       return jsonify(
-        get_cats_and_format_response(
+        format_search_response(
           paginated_questions=paginated_questions,
           search_term=data['search_term'],
-          total_questions=len(search_result)
-
+          total_questions_found=len(search_result),
+          total_categories_found=len(categories)
           )
       )
     except AttributeError as e:
@@ -320,10 +388,10 @@ def create_app(test_config=None):
       search_result = Category.query.filter(Category.type.ilike(f'%{data["search_term"]}%')).all()
       categories = [category.format() for category in search_result]
       return jsonify(
-        get_cats_and_format_response(
+        format_search_response(
           categories=categories,
           search_term=data['search_term'],
-          total_categories=len(search_result)
+          total_categories_found=len(search_result)
           )
       )
     except AttributeError as e:
@@ -354,6 +422,18 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/api/questions/random')
+  def get_random_question():
+    all_questions = Question.query.all()
+    if len(all_questions) < 1:
+      return 'Resource does not exist', 404
+    rand_ix = random.randint(0, len(all_questions)-1)
+    questions = [qst for qst in all_questions]
+    q = questions[rand_ix].format()
+    return jsonify(
+      format_play_response(question=q['question'], answer=q['answer'], current_category=q['category_id'])
+    )
+    
 
   '''
   @TODO: 
