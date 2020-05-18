@@ -50,7 +50,9 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/')
         
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'Hello, World!', res.data)
+        if res.status_code == 200:
+            self.assertIn(b'Udacitrivia', res.data)
+            self.assertNotIn(b'Hello, World!', res.data)
     def test_002_405_post_homepage(self):
         res = self.client().post('/', json={'question': 'Is this working?'})
         
