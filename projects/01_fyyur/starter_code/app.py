@@ -251,7 +251,7 @@ def create_venue_submission():
     state=request.form['state'],
     phone=request.form['phone'],
     genres=request.form.getlist('genres'),
-    website=request.form['website'],
+    # website=request.form['website'],
     facebook_link=request.form['facebook_link']
     # image_link=request.form['image_link']
   )
