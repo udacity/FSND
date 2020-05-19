@@ -2,7 +2,7 @@ import os
 import random
 import traceback
 import json
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -136,7 +136,9 @@ def format_play_response(question, answer, current_category):
 
 def create_app(test_config=None):
   # create and configure the app
-  app = Flask(__name__)
+  template_dir,static_dir = os.path.abspath('./frontend/build'), os.path.abspath('../frontend/build/static')
+  
+  app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
   
   db = SQLAlchemy()
   Migrate(app, db)
@@ -158,11 +160,20 @@ def create_app(test_config=None):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-  @app.route('/')
-  def index():
-    """"Returns the homepage of the API."""
+  @app.route('/', defaults={'path': ''})
+  @app.route('/<path:path>')
+  def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+      return send_from_directory(app.static_folder, path)
+    else:
+      return render_template('index.html')
+
+
+
+  # def index():
+  #   """"Returns the homepage of the API."""
     
-    return 'Hello, World!'
+  #   return render_template('index.html')
 
   '''
   @TODO: 
@@ -214,8 +225,12 @@ def create_app(test_config=None):
       if not len(result):
         return 'Resource does not exist', 404
       paginated_questions = paginate_result(result) 
+      
+      categories = {question.category.id: question.category.type for question in result}
+      # categories = list({question.category.type for question in result})
+      
       return jsonify(
-          format_crud_response(paginated_questions=paginated_questions)
+          format_crud_response(paginated_questions=paginated_questions, categories=categories)
         )
     except:
       print(traceback.print_exc())
@@ -297,7 +312,7 @@ def create_app(test_config=None):
         return 'Resource does not exist', 404
       paginated_questions = paginate_result(result) 
       return jsonify(
-          format_crud_response(paginated_questions=paginated_questions, current_category=category_id)
+          format_crud_response(paginated_questions=paginated_questions, total_questions=len(result), current_category=category_id)
         )
     except:
       print(traceback.print_exc())
