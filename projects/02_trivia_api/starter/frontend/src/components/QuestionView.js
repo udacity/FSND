@@ -14,6 +14,7 @@ class QuestionView extends Component {
       totalQuestions: 0,
       categories: {},
       currentCategory: null,
+      searchTerm: null,
     }
   }
 
@@ -26,7 +27,6 @@ class QuestionView extends Component {
       url: `/api/questions?page=${this.state.page}`, //TODO: update request URL
       type: "GET",
       success: (result) => {
-        console.log(result)
         this.setState({
           questions: result.questions,
           totalQuestions: result.total_questions,
@@ -42,7 +42,14 @@ class QuestionView extends Component {
   }
 
   selectPage(num) {
-    this.setState({page: num}, () => this.getQuestions());
+    this.setState({page: num}, () => {
+      if (!!this.state.searchTerm) {
+        return this.submitSearch(this.state.searchTerm)
+      } else {
+        return this.getQuestions()
+      }
+      
+    });
   }
 
   createPagination(){
@@ -79,11 +86,14 @@ class QuestionView extends Component {
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
+      url: `/api/questions/searches`, //TODO: update request URL
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
-      data: JSON.stringify({searchTerm: searchTerm}),
+      data: JSON.stringify({
+        searchTerm: searchTerm,
+        page: this.state.page
+      }),
       xhrFields: {
         withCredentials: true
       },
@@ -92,7 +102,8 @@ class QuestionView extends Component {
         this.setState({
           questions: result.questions,
           totalQuestions: result.total_questions,
-          currentCategory: result.current_category })
+          currentCategory: result.current_category,
+          searchTerm: searchTerm })
         return;
       },
       error: (error) => {
@@ -128,7 +139,6 @@ class QuestionView extends Component {
           <ul>
             {Object.keys(this.state.categories).map((id, ) => 
             {
-              console.log(id)
               return (
                 <li key={id} onClick={() => {this.getByCategory(id)}}>
                   {this.state.categories[id]}

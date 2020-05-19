@@ -33,7 +33,7 @@ def paginate_result(result, page=1):
   end = min(len(result), start+QUESTIONS_PER_PAGE)
   return [result[ix].format() for ix in range(start, end)]
 
-def format_search_response(search_term, paginated_questions=None, total_questions_found=None, categories=None, total_categories_found=None, page=1):
+def format_search_response(search_term, paginated_questions=None, total_questions=None, categories=None, total_categories=None, page=1):
   """Formats JSON-encoded API-response after search operation. 
   Supports search for categry and question.
   
@@ -41,30 +41,30 @@ def format_search_response(search_term, paginated_questions=None, total_question
   search_term* -- The text string for which to search
   paginated_questions -- List of 1 page of questions with details to returned by query
   page -- Page of questions (default 1)
-  total_questions_found -- Total number questions returned by query
+  total_questions -- Total number questions returned by query
   categories -- List of categories with details returned by query
-  total_categories_found -- Total number of categories returned by query
+  total_categories -- Total number of categories returned by query
 
   
   Return: dict with some standard attributes for search:
     - success,
     - page,
     - search_term,
-    - total_categories_found (relevant for both category & question search)
+    - total_categories (relevant for both category & question search)
   Adding the following if relevant to CRUD operation:
     - paginated_questions (question search only)
-    - total_questions_found (question search only),
+    - total_questions (question search only),
     - categories (category search only)
     """
   res = {
     "success": True
     , "page": page
     , "search_term": search_term
-    , "total_categories_found": total_categories_found
+    , "total_categories": total_categories
   }
   if paginated_questions is not None: # returning empty list if without result
     res.update({'questions': paginated_questions})
-    res.update({'total_questions_found': total_questions_found})
+    res.update({'total_questions': total_questions})
   if categories:
     res.update({'categories': categories})
   return res
@@ -206,12 +206,13 @@ def create_app(test_config=None):
   @app.route('/api/questions', methods=['GET', 'POST'])
   def handle_questions():
     if request.method == 'GET':
-      return get_all_questions()
+      args = {key: int(val) if key == 'page' else val for key, val in request.args.items()}
+      return get_all_questions(**args)
     elif request.method == 'POST':
       data = json.loads(request.get_json())
       return create_question(data)
   
-  def get_all_questions():
+  def get_all_questions(page=1):
     """"
     Returns a JSON-encoded response with paginated questions and standard attributes:
       - success (standard)
@@ -221,13 +222,12 @@ def create_app(test_config=None):
       - questions
     """
     try:
+      page = int(page)
       result = Question.query.order_by(Question.id).all()
       if not len(result):
         return 'Resource does not exist', 404
-      paginated_questions = paginate_result(result) 
-      
+      paginated_questions = paginate_result(result, page) 
       categories = {question.category.id: question.category.type for question in result}
-      # categories = list({question.category.type for question in result})
       
       return jsonify(
           format_crud_response(paginated_questions=paginated_questions, categories=categories)
@@ -365,31 +365,32 @@ def create_app(test_config=None):
   @app.route('/api/questions/searches', methods=['POST'])
   def search_question():
     try:
-      data = json.loads(request.get_json())
+      data = request.get_json()      
     except TypeError as e:
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
     
-    if not 'search_term' in data:
+    if not 'searchTerm' in data:
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
     
-    if 'search_on_answer' in data:
+    if 'searchOnAnswer' in data:
       if not isinstance(data['search_on_answer'], bool):
         return 'Bad Request - Malformatted (e.g. boolean value)', 400
       filter_on = Question.answer
     else:
       filter_on = Question.question
 
+    page = data['page'] if 'page' in data else 1
     try:
-      search_result = Question.query.filter(filter_on.ilike(f'%{data["search_term"]}%')).all()
-      paginated_questions = paginate_result(search_result)
+      search_result = Question.query.filter(filter_on.ilike(f'%{data["searchTerm"]}%')).all()
+      paginated_questions = paginate_result(search_result, page)
       categories = {question.category_id for question in search_result}
       return jsonify(
         format_search_response(
           paginated_questions=paginated_questions,
-          search_term=data['search_term'],
-          total_questions_found=len(search_result),
-          total_categories_found=len(categories)
-          )
+          search_term=data['searchTerm'],
+          total_questions=len(search_result),
+          total_categories=len(categories)
+        )
       )
     except AttributeError as e:
       print(e)
@@ -414,7 +415,7 @@ def create_app(test_config=None):
         format_search_response(
           categories=categories,
           search_term=data['search_term'],
-          total_categories_found=len(search_result)
+          total_categories=len(search_result)
           )
       )
     except AttributeError as e:
