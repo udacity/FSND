@@ -26,7 +26,7 @@ class TriviaTestCase(unittest.TestCase):
             "question": {
                 "question": "In which Hollywood film did Michael Jordan act?"
                 , "answer": "Space Jam"
-                , "category_id": 5
+                , "category": 5
                 , "difficulty": 3
                 },
             "current_category": 1
@@ -50,7 +50,9 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/')
         
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'Hello, World!', res.data)
+        if res.status_code == 200:
+            self.assertIn(b'<title>React App</title>', res.data)
+            self.assertNotIn(b'Hello, World!', res.data)
     def test_002_405_post_homepage(self):
         res = self.client().post('/', json={'question': 'Is this working?'})
         
@@ -129,9 +131,9 @@ class TriviaTestCase(unittest.TestCase):
         if res.status_code == 200:
             data = json.loads(res.data)
             self.assertEqual(data['questions'][0]['id'], 2)
-    def test_008_404_get_all_questions(self):
-        res = self.client().get('/questions')
-        self.assertEqual(res.status_code, 404)
+    # def test_008_404_get_all_questions(self):
+    #     res = self.client().get('/questions')
+    #     self.assertEqual(res.status_code, 404)
     
     def test_009_pagination(self):
         res = self.client().get('/api/questions')
@@ -165,13 +167,13 @@ class TriviaTestCase(unittest.TestCase):
         if res.status_code == 200:
             data = json.loads(res.data)
             self.assertEqual(len(data['categories']), 7)
-            self.assertEqual(data['categories'][0]['id'], 1)
+            self.assertEqual(data['categories']['1'], 'Science')
 
-    def test_013_404_get_category_1(self):
-        category_id = 1
-        res = self.client().get('/api/categories/' + str(category_id))
+    # def test_013_404_get_category_1(self):
+    #     category_id = 1
+    #     res = self.client().get('/api/categories/' + str(category_id))
 
-        self.assertEqual(res.status_code, 404)
+    #     self.assertEqual(res.status_code, 404)
 
     def test_014_post_question(self):
         res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
@@ -201,12 +203,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 400)
 
     def test_017_delete_question(self):
-        to_delete = Question.query.filter(Question.question.ilike('%jordan%')).first()
-        res = self.client().delete('/api/questions/' + str(to_delete.id))
-        self.assertEqual(res.status_code, 200)
-        if res.status_code == 200:
-            data = json.loads(res.data)
-            self.assertIn('deleted', data)
+        with self.app.app_context():
+            search_for = '%jordan%'
+            id_to_delete = self.db.session.query(Question.id).filter(Question.question.ilike(search_for)).one()._asdict()['id']
+            res = self.client().delete('/api/questions/' + str(id_to_delete))
+            self.assertEqual(res.status_code, 200)
+            if res.status_code == 200:
+                data = json.loads(res.data)
+                self.assertIn('deleted', data)
 
     def test_018_404_delete_non_existent_question(self):
         qst_id = 100
@@ -215,17 +219,17 @@ class TriviaTestCase(unittest.TestCase):
     
     def test_019_search_question_on_qst(self):
         search = json.dumps({
-            "search_term": "a"
+            "searchTerm": "a"
         })
         res = self.client().post('/api/questions/searches', json=search)
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['total_questions_found'], 17)
+            self.assertEqual(data['total_questions'], 17)
     def test_020_search_question_without_result(self):
         search = json.dumps({
-            "search_term": "afkhbfkbfkjbfiubfifbu"
+            "searchTerm": "afkhbfkbfkjbfiubfifbu"
             , "search_on_answer": True
         })
         res = self.client().post('/api/questions/searches', json=search)
@@ -235,51 +239,56 @@ class TriviaTestCase(unittest.TestCase):
             data = json.loads(res.data)
             self.assertEqual(len(data['questions']), 0)
 
-    def test_021_search_question_on_ans(self):
-        search = json.dumps({
-            "search_term": "a"
-            , "search_on_answer": True
-        })
-        res = self.client().post('/api/questions/searches', json=search)
+    # def test_021_search_question_on_ans(self):
+    #     search = json.dumps({
+    #         "searchTerm": "a"
+    #         , "search_on_answer": True
+    #     })
+    #     res = self.client().post('/api/questions/searches', json=search)
 
-        self.assertEqual(res.status_code, 200)
-        if res.status_code == 200:
-            data = json.loads(res.data)
-            self.assertEqual(data['total_questions_found'], 14)
+    #     self.assertEqual(res.status_code, 200)
+    #     if res.status_code == 200:
+    #         data = json.loads(res.data)
+    #         self.assertEqual(data['total_questions'], 14)
     
     def test_022_search_category(self):
         search = json.dumps({
-            "search_term": "a"
+            "searchTerm": "a"
         })
         res = self.client().post('/api/categories/searches', json=search)
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
-            self.assertEqual(data['total_categories_found'], 4)
+            self.assertEqual(data['total_categories'], 4)
 
     def test_023_400_search_without_term(self):
         res = self.client().post('/api/questions/searches')
 
         self.assertEqual(res.status_code, 400)
-    def test_024_405_get_search(self):
-        res = self.client().get('/api/questions/searches')
 
-        self.assertEqual(res.status_code, 405)
+    # def test_024_405_get_search(self):
+    #     res = self.client().get('/api/questions/searches')
+
+    #     self.assertEqual(res.status_code, 405)
 
     def test_025_get_random_question(self):
-        res = self.client().get('/api/questions/random')
+        play_json = json.dumps({
+            'quiz_category': {'id': 0, 'type': 'all'}
+            , 'previous_questions': [1, 2]
+        })
+        res = self.client().post('/api/questions/random', json=play_json)
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = json.loads(res.data)
             self.assertIn('question', data)
-            self.assertIn('answer', data)
+            self.assertNotEqual(2, data['question']['id'])
 
-    def test_026_405_post_random_question(self):
-        res = self.client().post('/api/questions/random')
+    # def test_026_405_post_random_question(self):
+    #     res = self.client().post('/api/questions/random')
 
-        self.assertEqual(res.status_code, 405)
+    #     self.assertEqual(res.status_code, 405)
 
     
 

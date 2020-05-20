@@ -23,7 +23,7 @@ SET default_with_oids = false;
 --
 -- Name: categories; Type: TABLE; Schema: public; Owner: postgres
 --
-
+DROP TABLE IF EXISTS public.categories;  
 CREATE TABLE public.categories (
     id integer NOT NULL,
     type text
@@ -57,7 +57,7 @@ ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
 --
 -- Name: questions; Type: TABLE; Schema: public; Owner: postgres
 --
-
+DROP TABLE IF EXISTS public.questions;
 CREATE TABLE public.questions (
     id integer NOT NULL,
     question text,
