@@ -4,6 +4,7 @@ import traceback
 import json
 from flask import Flask, request, abort, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import and_
 from flask_cors import CORS
 from flask_migrate import Migrate
 from models import setup_db, Question, Category
@@ -116,7 +117,7 @@ def format_crud_response(deleted=None, created=None, paginated_questions=None, p
     res.update({"total_categories": len(Category.query.order_by(Category.id).all())})
 
   return res
-def format_play_response(question, answer, current_category):
+def format_play_response(question, current_category):
   """Formats random question to JSON-encoded API-response
   
   Keyword arguments:
@@ -130,7 +131,6 @@ def format_play_response(question, answer, current_category):
   return {
     "success": True
     , "question": question
-    , "answer": answer
     , "current_category": current_category
   }
 
@@ -447,16 +447,26 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
-  @app.route('/api/questions/random')
+  @app.route('/api/questions/random', methods=['POST'])
   def get_random_question():
-    all_questions = Question.query.all()
-    if len(all_questions) < 1:
+    data = request.get_json()
+    previous_questions, category_id = data['previous_questions'], data['quiz_category']['id']
+
+    categories_to_include = [c.id for c in Category.query.all()] if category_id == 0 else [category_id]
+    # store query filter conditions for readbility
+    for_categories = Question.category_id.in_(categories_to_include)
+    not_in_previous_questions = ~Question.id.in_(previous_questions)
+    
+    available_questions = Question.query.filter(and_(for_categories, not_in_previous_questions)).all()    
+    if len(available_questions) < 1:
       return 'Resource does not exist', 404
-    rand_ix = random.randint(0, len(all_questions)-1)
-    questions = [qst for qst in all_questions]
+    
+    rand_ix = random.randint(0, len(available_questions)-1)
+    questions = [qst for qst in available_questions]
     q = questions[rand_ix].format()
+    print(q)
     return jsonify(
-      format_play_response(question=q['question'], answer=q['answer'], current_category=q['category_id'])
+      format_play_response(question=q, current_category=q['category_id'])
     )
     
 
