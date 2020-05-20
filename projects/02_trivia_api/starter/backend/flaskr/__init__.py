@@ -136,7 +136,7 @@ def format_play_response(question, current_category):
 
 def create_app(test_config=None):
   # create and configure the app
-  template_dir,static_dir = os.path.abspath('./frontend/build'), os.path.abspath('../frontend/build/static')
+  template_dir,static_dir = os.path.abspath('./frontend/public'), os.path.abspath('../frontend/build/static')
   
   app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
   
@@ -209,8 +209,11 @@ def create_app(test_config=None):
       args = {key: int(val) if key == 'page' else val for key, val in request.args.items()}
       return get_all_questions(**args)
     elif request.method == 'POST':
-      data = request.get_json()
-      return create_question(**data)
+      data = json.loads(request.get_json())
+      try:
+        return create_question(**data['question'])
+      except TypeError as e:
+        return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
   
   def get_all_questions(page=1):
     """"
@@ -366,7 +369,7 @@ def create_app(test_config=None):
   @app.route('/api/questions/searches', methods=['POST'])
   def search_question():
     try:
-      data = request.get_json()      
+      data = json.loads(request.get_json())  
     except TypeError as e:
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
     
@@ -406,16 +409,16 @@ def create_app(test_config=None):
       data = json.loads(request.get_json())
     except TypeError as e:
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
-    if not 'search_term' in data:
+    if not 'searchTerm' in data:
       return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
     
     try:
-      search_result = Category.query.filter(Category.type.ilike(f'%{data["search_term"]}%')).all()
+      search_result = Category.query.filter(Category.type.ilike(f'%{data["searchTerm"]}%')).all()
       categories = [category.format() for category in search_result]
       return jsonify(
         format_search_response(
           categories=categories,
-          search_term=data['search_term'],
+          search_term=data['searchTerm'],
           total_categories=len(search_result)
           )
       )
@@ -450,6 +453,8 @@ def create_app(test_config=None):
   @app.route('/api/questions/random', methods=['POST'])
   def get_random_question():
     data = request.get_json()
+    if isinstance(data, str):
+      data = json.loads(data)
     previous_questions, category_id = data['previous_questions'], data['quiz_category']['id']
 
     categories_to_include = [c.id for c in Category.query.all()] if category_id == 0 else [category_id]
@@ -464,7 +469,6 @@ def create_app(test_config=None):
     rand_ix = random.randint(0, len(available_questions)-1)
     questions = [qst for qst in available_questions]
     q = questions[rand_ix].format()
-    print(q)
     return jsonify(
       format_play_response(question=q, current_category=q['category_id'])
     )
