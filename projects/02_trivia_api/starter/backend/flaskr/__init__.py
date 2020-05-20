@@ -188,7 +188,7 @@ def create_app(test_config=None):
       - current_category
       - total_questions
     """
-    all_categories = [category.format() for category in Category.query.all()]
+    all_categories = {category.id: category.type for category in Category.query.all()}
     return jsonify(format_crud_response(categories=all_categories))
 
   '''
@@ -209,8 +209,8 @@ def create_app(test_config=None):
       args = {key: int(val) if key == 'page' else val for key, val in request.args.items()}
       return get_all_questions(**args)
     elif request.method == 'POST':
-      data = json.loads(request.get_json())
-      return create_question(data)
+      data = request.get_json()
+      return create_question(**data)
   
   def get_all_questions(page=1):
     """"
@@ -236,7 +236,7 @@ def create_app(test_config=None):
       print(traceback.print_exc())
       return 'ERROR:' + str(traceback.print_exc()), 400
   
-  def create_question(data):
+  def create_question(question, answer, difficulty, **kwargs):
     """"
     Inserts the question into DB if:
       - body contains a 'question' property
@@ -252,28 +252,29 @@ def create_app(test_config=None):
       - total_questions
       - current_category
     """
-    if not 'question' in data:
-      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
-    if not all (key in data['question'] for key in ('question', 'answer', 'difficulty', 'category_id')):
-      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
-  
     response_attr = {}
+    qst = {
+      'question': question
+      , 'answer': answer
+      , 'difficulty': difficulty
+    }
+    if 'category' in kwargs:
+      qst.update({'category_id': kwargs['category']})
     
-    if 'current_category' in data:
-      response_attr.update({'current_category': data['current_category']})
+    if 'current_category' in kwargs:
+      response_attr.update({'current_category': current_category})
     
     paginate_result_attr = {
       "result": Question.query.order_by(Question.id).all()
     }
-    if 'page' in data:
-      paginate_result_attr.update({'page': data['page']})
-      response_attr.update({'page': data['page']}) 
+    if 'page' in kwargs:
+      paginate_result_attr.update({'page': page})
+      response_attr.update({'page': page}) 
     
     response_attr.update({
       'paginated_questions': paginate_result(**paginate_result_attr)
     })
 
-    qst = data['question']
     try: # If no duplicate is found, create question
       dupes = Question.query.filter(Question.question.ilike(f"%{qst['question']}%")).all()
       if len(dupes) > 0:

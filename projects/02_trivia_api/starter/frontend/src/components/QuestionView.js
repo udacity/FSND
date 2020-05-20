@@ -20,6 +20,7 @@ class QuestionView extends Component {
 
   componentDidMount() {
     this.getQuestions();
+    this.setState(state =>  ({searchTerm: this.props.searchTerm}))
   }
 
   getQuestions = () => {
@@ -46,6 +47,7 @@ class QuestionView extends Component {
       if (!!this.state.searchTerm) {
         return this.submitSearch(this.state.searchTerm)
       } else {
+        this.setState({searchTerm: null})
         return this.getQuestions()
       }
       
@@ -115,12 +117,17 @@ class QuestionView extends Component {
 
   questionAction = (id) => (action) => {
     if(action === 'DELETE') {
-      if(window.confirm('are you sure you want to delete the question?')) {
+      if(window.confirm(`are you sure you want to delete the question with id ${id}?`)) {
         $.ajax({
-          url: `/questions/${id}`, //TODO: update request URL
+          url: `/api/questions/${id}`, //TODO: update request URL
           type: "DELETE",
           success: (result) => {
-            this.getQuestions();
+            if (!!this.state.searchTerm) {
+              return this.submitSearch(this.state.searchTerm)
+            } else {
+              this.setState({searchTerm: null})
+              return this.getQuestions()
+            }
           },
           error: (error) => {
             alert('Unable to load questions. Please try your request again')
@@ -157,7 +164,7 @@ class QuestionView extends Component {
               key={q.id}
               question={q.question}
               answer={q.answer}
-              category={this.state.categories[q.category]} 
+              category={this.state.categories[q.category_id]} 
               difficulty={q.difficulty}
               questionAction={this.questionAction(q.id)}
             />

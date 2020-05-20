@@ -55,7 +55,7 @@ class App extends Component {
       <Header path />
       <Router>
         <Switch>
-          <Route path="/" exact component={QuestionView} />
+          <Route path="/" exact component={QuestionView} searchTerm={null} />
           <Route path="/add" component={FormView} />
           <Route path="/play" component={QuizView} />
           <Route component={QuestionView} />
