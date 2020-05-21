@@ -57,7 +57,15 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/', json={'question': 'Is this working?'})
         
         self.assertEqual(res.status_code, 405)
-        self.assertIn(b'not allowed', res.data)
+        response = [rsp.decode('utf-8') for rsp in res.response][0]
+        print('CHECK MEEE', response)
+        
+        
+        # standard flask without errorhanlder: self.assertIn('<title>405 Method Not Allowed</title>', response)
+        self.assertIn('success', response)
+        self.assertIn('error_code', response)
+        self.assertIn('error_message', response)
+        # self.assertIn(b'not allowed', res.data)
 
     def test_003_select_questions(self):
         stmt_sel_all_questions = text('select * from questions;')
@@ -159,6 +167,11 @@ class TriviaTestCase(unittest.TestCase):
         category_id = 100000
         res = self.client().get('/api/questions/categories/' + str(category_id))
         self.assertEqual(res.status_code, 404)
+        response = [rsp.decode('utf-8') for rsp in res.response][0]
+        print('CHECKE ME 2', response)
+        self.assertIn('success', response)
+        self.assertIn('error_code', response)
+        self.assertIn('error_message', response)
         
     def test_012_get_all_categories(self):
         res = self.client().get('/api/categories')
@@ -186,6 +199,11 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
         
         self.assertEqual(res.status_code, 422)
+        response = [rsp.decode('utf-8') for rsp in res.response][0]
+        print(response)
+        self.assertIn('success', response)
+        self.assertIn('error_code', response)
+        self.assertIn('error_message', response)
         if res.status_code == 422:
             responses = [rsp.decode('utf-8') for rsp in res.response]
             self.assertIn('already present', responses[0])
@@ -201,6 +219,13 @@ class TriviaTestCase(unittest.TestCase):
             json=json.dumps(q)
             )
         self.assertEqual(res.status_code, 400)
+        
+        response =  [rsp.decode('utf-8') for rsp in res.response][0]
+        print(response)
+
+        self.assertIn('success', response)
+        self.assertIn('error_code', response)
+        self.assertIn('error_message', response)
 
     def test_017_delete_question(self):
         with self.app.app_context():
@@ -216,6 +241,11 @@ class TriviaTestCase(unittest.TestCase):
         qst_id = 100
         res = self.client().delete('/api/questions/' + str(qst_id))
         self.assertEqual(res.status_code, 404)
+        response = [rsp.decode('utf-8') for rsp in res.response][0]
+        print(response)
+        self.assertIn('success', response)
+        self.assertIn('error_code', response)
+        self.assertIn('error_message', response)
     
     def test_019_search_question_on_qst(self):
         search = json.dumps({
@@ -266,6 +296,11 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/api/questions/searches')
 
         self.assertEqual(res.status_code, 400)
+        response = [rsp.decode('utf-8') for rsp in res.response][0]
+        print(response)
+        self.assertIn('success', response)
+        self.assertIn('error_code', response)
+        self.assertIn('error_message', response)
 
     # def test_024_405_get_search(self):
     #     res = self.client().get('/api/questions/searches')
