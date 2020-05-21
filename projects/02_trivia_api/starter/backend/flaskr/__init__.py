@@ -8,6 +8,7 @@ from sqlalchemy import and_
 from flask_cors import CORS
 from flask_migrate import Migrate
 from models import setup_db, Question, Category
+from werkzeug.exceptions import BadRequest, NotFound, UnprocessableEntity, MethodNotAllowed
 
 
 QUESTIONS_PER_PAGE = 10
@@ -134,6 +135,26 @@ def format_play_response(question, current_category):
     , "current_category": current_category
   }
 
+def format_error(error_code, error_name, error_description):
+  """Formats a JSON-encoded API-response for the respective error.
+  Please refer to werkzeug docs for info:
+  https://werkzeug.palletsprojects.com/en/1.0.x/exceptions/#werkzeug.exceptions.BadRequest
+  
+  Keyword arguments:
+  error_code -- werkzeug's error code
+  error_name -- werkzeugs's error name
+  error_description -- werkzeugs's error description
+  
+  Return: dict adding success attribute
+  """
+  
+  return {
+    'success': False
+    , 'error_code': error_code
+    , 'error_name': error_name
+    , 'error_description': error_description
+  }
+
 def create_app(test_config=None):
   # create and configure the app
   template_dir,static_dir = os.path.abspath('./frontend/public'), os.path.abspath('../frontend/build/static')
@@ -213,7 +234,7 @@ def create_app(test_config=None):
       try:
         return create_question(**data['question'])
       except TypeError as e:
-        return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+        abort(400)
   
   def get_all_questions(page=1):
     """"
@@ -227,17 +248,21 @@ def create_app(test_config=None):
     try:
       page = int(page)
       result = Question.query.order_by(Question.id).all()
-      if not len(result):
-        return 'Resource does not exist', 404
+      if len(result)<1:
+        abort(404)
       paginated_questions = paginate_result(result, page) 
       categories = {question.category.id: question.category.type for question in result}
       
       return jsonify(
           format_crud_response(paginated_questions=paginated_questions, categories=categories)
         )
-    except:
-      print(traceback.print_exc())
-      return 'ERROR:' + str(traceback.print_exc()), 400
+    except Exception as e:
+      db.session.rollback()
+      if e.code == 404:
+        abort(404)
+      else:
+        print(e, traceback.print_exc())
+        abort(400)
   
   def create_question(question, answer, difficulty, **kwargs):
     """"
@@ -280,8 +305,8 @@ def create_app(test_config=None):
 
     try: # If no duplicate is found, create question
       dupes = Question.query.filter(Question.question.ilike(f"%{qst['question']}%")).all()
-      if len(dupes) > 0:
-        return 'Unprocessable - Resource already present', 422
+      if len(dupes)>0:
+        abort(422)
       
       new_question = Question(**qst)
       new_question.insert()
@@ -293,10 +318,12 @@ def create_app(test_config=None):
       return jsonify(
         format_crud_response(**response_attr)
       )
-    except:
-      print('Rolled back. ERROR:', traceback.print_exc())
+    except Exception as e:
       db.session.rollback()
-      return 'Unprocessable' + str(traceback.print_exc()), 422
+      if e.code == 422:
+        abort(422)
+      else:
+        print('Rolled back. ERROR:', traceback.print_exc())
     finally:
       db.session.close()    
 
@@ -312,15 +339,18 @@ def create_app(test_config=None):
     """
     try:
       result = Question.query.filter_by(category_id=category_id).order_by(Question.id).all()
-      if not len(result):
-        return 'Resource does not exist', 404
+      if len(result)<1:
+        abort(404)
       paginated_questions = paginate_result(result) 
       return jsonify(
           format_crud_response(paginated_questions=paginated_questions, total_questions=len(result), current_category=category_id)
         )
-    except:
-      print(traceback.print_exc())
-      return 'ERROR:' + str(traceback.print_exc()), 400
+    except Exception as e:
+      db.session.rollback()
+      if e.code == 404:
+        abort(404)
+      else:
+        abort(422)
 
   '''
   @TODO: 
@@ -340,7 +370,7 @@ def create_app(test_config=None):
     except AttributeError as e:
       db.session.rollback()
       print('Rolled back. AttributeError:', e)
-      return 'Resource does not exist.', 404
+      abort(404)
     finally:
       db.session.close()
     return 
@@ -371,10 +401,10 @@ def create_app(test_config=None):
     try:
       data = json.loads(request.get_json())  
     except TypeError as e:
-      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+      abort(400)
     
     if not 'searchTerm' in data:
-      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+      abort(400)
     
     if 'searchOnAnswer' in data:
       if not isinstance(data['search_on_answer'], bool):
@@ -399,7 +429,7 @@ def create_app(test_config=None):
     except AttributeError as e:
       print(e)
       db.session.rollback()
-      return 'Something went wrong' + e, 422
+      abort(422)
     finally:
       db.session.close()
   
@@ -408,9 +438,9 @@ def create_app(test_config=None):
     try:
       data = json.loads(request.get_json())
     except TypeError as e:
-      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+      abort(400)
     if not 'searchTerm' in data:
-      return 'Bad Request - Malformatted (e.g. missing required parameter)', 400
+      abort(400)
     
     try:
       search_result = Category.query.filter(Category.type.ilike(f'%{data["searchTerm"]}%')).all()
@@ -425,7 +455,7 @@ def create_app(test_config=None):
     except AttributeError as e:
       print(e)
       db.session.rollback()
-      return 'Something went wrong' + e, 422
+      abort(422)
     finally:
       db.session.close()
         
@@ -464,7 +494,7 @@ def create_app(test_config=None):
     
     available_questions = Question.query.filter(and_(for_categories, not_in_previous_questions)).all()    
     if len(available_questions) < 1:
-      return 'Resource does not exist', 404
+      abort(404)
     
     rand_ix = random.randint(0, len(available_questions)-1)
     questions = [qst for qst in available_questions]
@@ -479,6 +509,50 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+  @app.errorhandler(BadRequest)
+  def handle_bad_request(e):
+    """"returns a JSON response with error information"""
+    # message = 'something I want the user to know.'
+    response_attributes = {'error_name': e.name
+      , 'error_code': e.code
+      , 'error_description': e.description}
+    response = e.get_response()
+    response.data = json.dumps(format_error(**response_attributes))
+    response.content_type = 'application/json'
+    return response
+  @app.errorhandler(NotFound)
+  def handle_bad_request(e):
+    """"returns a JSON response with error information"""
+    # message = 'something I want the user to know.'
+    response_attributes = {'error_name': e.name
+      , 'error_code': e.code
+      , 'error_description': e.description}
+    response = e.get_response()
+    response.data = json.dumps(format_error(**response_attributes))
+    response.content_type = 'application/json'
+    return response
+  @app.errorhandler(UnprocessableEntity)
+  def handle_bad_request(e):
+    """"returns a JSON response with error information"""
+    # message = 'something I want the user to know.'
+    response_attributes = {'error_name': e.name
+      , 'error_code': e.code
+      , 'error_description': e.description}
+    response = e.get_response()
+    response.data = json.dumps(format_error(**response_attributes))
+    response.content_type = 'application/json'
+    return response
+  @app.errorhandler(MethodNotAllowed)
+  def handle_bad_request(e):
+    """"returns a JSON response with error information"""
+    # message = 'something I want the user to know.'
+    response_attributes = {'error_name': e.name
+      , 'error_code': e.code
+      , 'error_description': e.description}
+    response = e.get_response()
+    response.data = json.dumps(format_error(**response_attributes))
+    response.content_type = 'application/json'
+    return response
   
   return app
 
