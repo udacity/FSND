@@ -60,7 +60,7 @@ class TriviaTestCase(unittest.TestCase):
         data = res.get_json()
         if isinstance(data, str):
             data = json.loads(data)
-        print(data)
+        
         self.assertIsNotNone(data)
         if data:
             self.assertIn('success', data)
@@ -178,7 +178,7 @@ class TriviaTestCase(unittest.TestCase):
         data = res.get_json()
         if isinstance(data, str):
             data = json.loads(data)
-        print(data)
+        
         self.assertIsNotNone(data)
         if data:
             self.assertIn('success', data)
@@ -219,17 +219,14 @@ class TriviaTestCase(unittest.TestCase):
         data = res.get_json()
         if isinstance(data, str):
             data = json.loads(data)
-        print(data)
+        
         self.assertIsNotNone(data)
         if data:
             self.assertIn('success', data)
             self.assertIn('error_code', data)
             self.assertIn('error_name', data)
             self.assertIn('error_description', data)
-        if res.status_code == 422:
-            responses = [rsp.decode('utf-8') for rsp in res.response]
-            self.assertIn('already present', responses[0])
-
+        
     def test_016_400_post_question_without_answer(self):
         q = {
             "question": { 
@@ -271,7 +268,6 @@ class TriviaTestCase(unittest.TestCase):
         data = res.get_json()
         if isinstance(data, str):
             data = json.loads(data)
-        print(data)
         self.assertIsNotNone(data)
         if data:
             self.assertIn('success', data)
@@ -339,7 +335,7 @@ class TriviaTestCase(unittest.TestCase):
         data = res.get_json()
         if isinstance(data, str):
             data = json.loads(data)
-        print(data)
+
         self.assertIsNotNone(data)
         if data:
             self.assertIn('success', data)
