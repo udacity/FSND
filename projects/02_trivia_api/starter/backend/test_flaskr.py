@@ -57,14 +57,16 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/', json={'question': 'Is this working?'})
         
         self.assertEqual(res.status_code, 405)
-        response = [rsp.decode('utf-8') for rsp in res.response][0]
-        print('CHECK MEEE', response)
-        
-        
-        # standard flask without errorhanlder: self.assertIn('<title>405 Method Not Allowed</title>', response)
-        self.assertIn('success', response)
-        self.assertIn('error_code', response)
-        self.assertIn('error_message', response)
+        data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+        print(data)
+        self.assertIsNotNone(data)
+        if data:
+            self.assertIn('success', data)
+            self.assertIn('error_code', data)
+            self.assertIn('error_name', data)
+            self.assertIn('error_description', data)
         # self.assertIn(b'not allowed', res.data)
 
     def test_003_select_questions(self):
@@ -137,7 +139,9 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
 
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertEqual(data['questions'][0]['id'], 2)
     # def test_008_404_get_all_questions(self):
     #     res = self.client().get('/questions')
@@ -147,7 +151,9 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/api/questions')
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertLessEqual(len(data['questions']), QUESTIONS_PER_PAGE)
             self.assertGreaterEqual(data['total_questions'], QUESTIONS_PER_PAGE)
 
@@ -156,7 +162,9 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/api/questions/categories/' + str(category_id))
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertEqual(len(data['questions']), 3)
             self.assertIn('questions', data)
             self.assertIn('total_questions', data)
@@ -167,18 +175,25 @@ class TriviaTestCase(unittest.TestCase):
         category_id = 100000
         res = self.client().get('/api/questions/categories/' + str(category_id))
         self.assertEqual(res.status_code, 404)
-        response = [rsp.decode('utf-8') for rsp in res.response][0]
-        print('CHECKE ME 2', response)
-        self.assertIn('success', response)
-        self.assertIn('error_code', response)
-        self.assertIn('error_message', response)
+        data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+        print(data)
+        self.assertIsNotNone(data)
+        if data:
+            self.assertIn('success', data)
+            self.assertIn('error_code', data)
+            self.assertIn('error_name', data)
+            self.assertIn('error_description', data)
         
     def test_012_get_all_categories(self):
         res = self.client().get('/api/categories')
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertEqual(len(data['categories']), 7)
             self.assertEqual(data['categories']['1'], 'Science')
 
@@ -192,18 +207,25 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertIn('created', data)
 
     def test_015_422_post_duplicate_question(self):
         res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
         
         self.assertEqual(res.status_code, 422)
-        response = [rsp.decode('utf-8') for rsp in res.response][0]
-        print(response)
-        self.assertIn('success', response)
-        self.assertIn('error_code', response)
-        self.assertIn('error_message', response)
+        data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+        print(data)
+        self.assertIsNotNone(data)
+        if data:
+            self.assertIn('success', data)
+            self.assertIn('error_code', data)
+            self.assertIn('error_name', data)
+            self.assertIn('error_description', data)
         if res.status_code == 422:
             responses = [rsp.decode('utf-8') for rsp in res.response]
             self.assertIn('already present', responses[0])
@@ -220,12 +242,15 @@ class TriviaTestCase(unittest.TestCase):
             )
         self.assertEqual(res.status_code, 400)
         
-        response =  [rsp.decode('utf-8') for rsp in res.response][0]
-        print(response)
-
-        self.assertIn('success', response)
-        self.assertIn('error_code', response)
-        self.assertIn('error_message', response)
+        data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+        self.assertIsNotNone(data)
+        if data:
+            self.assertIn('success', data)
+            self.assertIn('error_code', data)
+            self.assertIn('error_name', data)
+            self.assertIn('error_description', data)
 
     def test_017_delete_question(self):
         with self.app.app_context():
@@ -234,18 +259,25 @@ class TriviaTestCase(unittest.TestCase):
             res = self.client().delete('/api/questions/' + str(id_to_delete))
             self.assertEqual(res.status_code, 200)
             if res.status_code == 200:
-                data = json.loads(res.data)
+                data = res.get_json()
+                if isinstance(data, str):
+                    data = json.loads(data)
                 self.assertIn('deleted', data)
 
     def test_018_404_delete_non_existent_question(self):
         qst_id = 100
         res = self.client().delete('/api/questions/' + str(qst_id))
         self.assertEqual(res.status_code, 404)
-        response = [rsp.decode('utf-8') for rsp in res.response][0]
-        print(response)
-        self.assertIn('success', response)
-        self.assertIn('error_code', response)
-        self.assertIn('error_message', response)
+        data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+        print(data)
+        self.assertIsNotNone(data)
+        if data:
+            self.assertIn('success', data)
+            self.assertIn('error_code', data)
+            self.assertIn('error_name', data)
+            self.assertIn('error_description', data)
     
     def test_019_search_question_on_qst(self):
         search = json.dumps({
@@ -255,7 +287,9 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertEqual(data['total_questions'], 17)
     def test_020_search_question_without_result(self):
         search = json.dumps({
@@ -266,7 +300,9 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertEqual(len(data['questions']), 0)
 
     # def test_021_search_question_on_ans(self):
@@ -278,7 +314,9 @@ class TriviaTestCase(unittest.TestCase):
 
     #     self.assertEqual(res.status_code, 200)
     #     if res.status_code == 200:
-    #         data = json.loads(res.data)
+    #         data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
     #         self.assertEqual(data['total_questions'], 14)
     
     def test_022_search_category(self):
@@ -289,18 +327,25 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertEqual(data['total_categories'], 4)
 
     def test_023_400_search_without_term(self):
         res = self.client().post('/api/questions/searches')
 
         self.assertEqual(res.status_code, 400)
-        response = [rsp.decode('utf-8') for rsp in res.response][0]
-        print(response)
-        self.assertIn('success', response)
-        self.assertIn('error_code', response)
-        self.assertIn('error_message', response)
+        data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+        print(data)
+        self.assertIsNotNone(data)
+        if data:
+            self.assertIn('success', data)
+            self.assertIn('error_code', data)
+            self.assertIn('error_name', data)
+            self.assertIn('error_description', data)
 
     # def test_024_405_get_search(self):
     #     res = self.client().get('/api/questions/searches')
@@ -316,7 +361,9 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
-            data = json.loads(res.data)
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
             self.assertIn('question', data)
             self.assertNotEqual(2, data['question']['id'])
 
