@@ -47,7 +47,7 @@ class Question(db.Model):
   category_id = Column(Integer, ForeignKey('categories.id'), nullable=False, default=7)
   difficulty = Column(Integer)
 
-  def __init__(self, question, answer, category_id, difficulty):
+  def __init__(self, question, answer, difficulty, category_id=7):
     self.question = question
     self.answer = answer
     self.category_id = category_id
