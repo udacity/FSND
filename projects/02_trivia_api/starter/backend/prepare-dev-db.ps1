@@ -1,0 +1,1 @@
+$env:PGPASSWORD='<INSERT_YOUR_PW>'; dropdb trivia; createdb trivia; psql -U <INSERT_YOUR_USER> -d trivia -a -f .\backend\trivia.psql

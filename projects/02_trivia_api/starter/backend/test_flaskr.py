@@ -31,6 +31,14 @@ class TriviaTestCase(unittest.TestCase):
                 },
             "current_category": 1
         }
+        self.new_qst_without_cat = {
+            "question": {
+                "question": "How old am I?"
+                , "answer": "Too old"
+                , "difficulty": 5
+                },
+            "current_category": 1
+        }
 
         # binds the app to the current context
         with self.app.app_context():
@@ -211,6 +219,7 @@ class TriviaTestCase(unittest.TestCase):
         if isinstance(data, str):
             data = json.loads(data)
             self.assertIn('created', data)
+    
 
     def test_015_422_post_duplicate_question(self):
         res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
@@ -367,6 +376,26 @@ class TriviaTestCase(unittest.TestCase):
     #     res = self.client().post('/api/questions/random')
 
     #     self.assertEqual(res.status_code, 405)
+
+    def test_026_post_question_without_category(self):
+        res = self.client().post('/api/questions', json=json.dumps(self.new_qst_without_cat))
+        self.assertEqual(res.status_code, 200)
+        if res.status_code == 200:
+            data = res.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+            self.assertIn('created', data)
+    def test_027_delete_question(self):
+        with self.app.app_context():
+            search_for = '%How old am I%'
+            id_to_delete = self.db.session.query(Question.id).filter(Question.question.ilike(search_for)).one()._asdict()['id']
+            res = self.client().delete('/api/questions/' + str(id_to_delete))
+            self.assertEqual(res.status_code, 200)
+            if res.status_code == 200:
+                data = res.get_json()
+                if isinstance(data, str):
+                    data = json.loads(data)
+                    self.assertIn('deleted', data)
 
     
 
