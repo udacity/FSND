@@ -406,20 +406,22 @@ def create_app(test_config=None):
   def search_question():
     try:
       data = request.get_json()
+      if not data:
+        abort(400)
       if isinstance(data, str):
-        data = json.loads(data)  
+        data = json.loads(data)
+      if not 'searchTerm' in data:
+        abort(400)
+      if 'searchOnAnswer' in data:
+        if not isinstance(data['searchOnAnswer'], bool):
+          return 'Bad Request - Malformatted (e.g. boolean value)', 400
+        filter_on = Question.answer
+      else:
+        filter_on = Question.question
     except TypeError as e:
       abort(400)
     
-    if not 'searchTerm' in data:
-      abort(400)
     
-    if 'searchOnAnswer' in data:
-      if not isinstance(data['searchOnAnswer'], bool):
-        return 'Bad Request - Malformatted (e.g. boolean value)', 400
-      filter_on = Question.answer
-    else:
-      filter_on = Question.question
 
     page = data['page'] if 'page' in data else 1
     try:
