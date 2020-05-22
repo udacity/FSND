@@ -405,7 +405,9 @@ def create_app(test_config=None):
   @app.route('/api/questions/searches', methods=['POST'])
   def search_question():
     try:
-      data = json.loads(request.get_json())  
+      data = request.get_json()
+      if isinstance(data, str):
+        data = json.loads(data)  
     except TypeError as e:
       abort(400)
     
@@ -413,7 +415,7 @@ def create_app(test_config=None):
       abort(400)
     
     if 'searchOnAnswer' in data:
-      if not isinstance(data['search_on_answer'], bool):
+      if not isinstance(data['searchOnAnswer'], bool):
         return 'Bad Request - Malformatted (e.g. boolean value)', 400
       filter_on = Question.answer
     else:
@@ -442,10 +444,12 @@ def create_app(test_config=None):
   @app.route('/api/categories/searches', methods=['POST'])
   def search_categories():
     try:
-      data = json.loads(request.get_json())
+      data = request.get_json()
+      if isinstance(data, str):
+        data = json.loads(data)
+      if not 'searchTerm' in data:
+        abort(400)
     except TypeError as e:
-      abort(400)
-    if not 'searchTerm' in data:
       abort(400)
     
     try:
