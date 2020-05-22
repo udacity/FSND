@@ -157,8 +157,11 @@ def format_error(error_code, error_name, error_description):
 
 def create_app(test_config=None):
   # create and configure the app
-  template_dir,static_dir = os.path.abspath('./frontend/public'), os.path.abspath('../frontend/build/static')
-  
+  cwd = os.getcwd()
+  backend_ix = cwd.find('\\backend')
+  end = len(cwd) if backend_ix == -1 else backend_ix
+  template_dir,static_dir = os.path.abspath(cwd[:end] + '/frontend/public'), os.path.abspath(cwd[:end] + '/frontend/build/static')
+
   app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
   
   db = SQLAlchemy()
@@ -230,7 +233,9 @@ def create_app(test_config=None):
       args = {key: int(val) if key == 'page' else val for key, val in request.args.items()}
       return get_all_questions(**args)
     elif request.method == 'POST':
-      data = json.loads(request.get_json())
+      data = request.get_json()
+      if isinstance(data, str):
+        data = json.loads(data)
       try:
         return create_question(**data['question'])
       except TypeError as e:
@@ -242,7 +247,7 @@ def create_app(test_config=None):
       - success (standard)
       - categories (standard)
       - total_questions (standard)
-      - current_category
+      - current_category (default: 'all')
       - questions
     """
     try:
@@ -320,8 +325,9 @@ def create_app(test_config=None):
       )
     except Exception as e:
       db.session.rollback()
-      if e.code == 422:
-        abort(422)
+      if e.code:
+        if e.code == 422:
+          abort(422)
       else:
         print('Rolled back. ERROR:', traceback.print_exc())
     finally:
