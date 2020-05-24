@@ -5,19 +5,18 @@ import json
 
 
 def create_db_path(**kwargs):
-    """Returns the database URI after prompting the user for the password. Supports only localhost.
+    """Returns the database URI after prompting the user for the password.
+    Supports only localhost.
 
     Keyword arguments:
     db_user -- user with which to access the database
     db_name -- the database name
-    Return: Returns a URI-string formatted as '<RDBMS-dialect>://<db_user>:<password>@localhost:5432/<db_name>'
+    Return: Returns a URI-string formatted as:
+         '<RDBMS-dialect>://<db_user>:<password>@localhost:5432/<db_name>'
     """
     db_user = kwargs.get('db_user', 'postgres')
     database_name = kwargs.get('db_name', 'trivia')
 
-    # default_or_testing = 'default' if database_name == 'trivia' else 'testing'
-    # ask_for_pw = f"Insert password for {default_or_testing} database user: "
-    # user_pw = input(ask_for_pw)
     password = '234107'  # if user_pw is not None else user_pw
     return f"postgresql://{db_user}:{password}@localhost:5432/{database_name}"
 

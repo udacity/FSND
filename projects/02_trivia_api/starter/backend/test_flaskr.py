@@ -47,7 +47,9 @@ class TriviaTestCase(unittest.TestCase):
 
     """
     TODO
-    Write at least one test for each test for successful operation and for expected errors.
+    Write at least one test for each:
+    1) successful operation
+    2) expected errors.
     """
 
     def test_001_get_homepage(self):
@@ -92,9 +94,6 @@ class TriviaTestCase(unittest.TestCase):
                     return self.db.engine.execute(stmt_sel_name_categories)
                 except DBAPIError as e:
                     return e.orig.pgcode
-        # self.assertRaises(ProgrammingError, execute_sel_category_name())
-        # self.assertRaises(UndefinedColumn, execute_sel_category_name())
-        # self.assertRaises(Exception("Does not work"), execute_sel_category_name())
 
         self.assertEqual('42703', get_category_name_or_err_code())
         # Error codes:
@@ -170,7 +169,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_010_get_all_questions_of_cat_1(self):
         category_id = 1
-        res = self.client().get('/api/questions/categories/' + str(category_id))
+        res = self.client().get('/api/questions/categories/'+str(category_id))
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = res.get_json()
@@ -183,7 +182,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_011_404_get_all_questions_of_cat_not_present(self):
         category_id = 100000
-        res = self.client().get('/api/questions/categories/' + str(category_id))
+        res = self.client().get('/api/questions/categories/'+str(category_id))
         self.assertEqual(res.status_code, 404)
         data = res.get_json()
         if isinstance(data, str):
@@ -209,12 +208,13 @@ class TriviaTestCase(unittest.TestCase):
 
     # def test_013_404_get_category_1(self):
     #     category_id = 1
-    #     res = self.client().get('/api/categories/' + str(category_id))
+    #     res = self.client().get('/api/categories/'+str(category_id))
 
     #     self.assertEqual(res.status_code, 404)
 
     def test_014_post_question(self):
-        res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
+        json = json.dumps(self.new_qst)
+        res = self.client().post('/api/questions', json=json)
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = res.get_json()
@@ -223,8 +223,8 @@ class TriviaTestCase(unittest.TestCase):
             self.assertIn('created', data)
 
     def test_015_422_post_duplicate_question(self):
-        res = self.client().post('/api/questions', json=json.dumps(self.new_qst))
-
+        json = json.dumps(self.new_qst)
+        res = self.client().post('/api/questions', json=json)
         self.assertEqual(res.status_code, 422)
         data = res.get_json()
         if isinstance(data, str):
@@ -361,7 +361,8 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_025_get_random_question(self):
         play_json = json.dumps({
-            'quiz_category': {'id': 0, 'type': 'all'}, 'previous_questions': [1, 2]
+            'quiz_category': {'id': 0, 'type': 'all'},
+            'previous_questions': [1, 2]
         })
         res = self.client().post('/api/questions/random', json=play_json)
 

@@ -8,7 +8,12 @@ from sqlalchemy import and_
 from flask_cors import CORS
 from flask_migrate import Migrate
 from models import setup_db, Question, Category
-from werkzeug.exceptions import BadRequest, NotFound, UnprocessableEntity, MethodNotAllowed
+from werkzeug.exceptions import (
+    BadRequest,
+    NotFound,
+    UnprocessableEntity,
+    MethodNotAllowed
+)
 
 
 QUESTIONS_PER_PAGE = 10
@@ -20,7 +25,7 @@ def paginate_result(result, page=1):
     Arguments:
         result {list} --
             A list of results return from SQLAlchemy Query object.
-            See: https://docs.sqlalchemy.org/en/13/orm/query.html#sqlalchemy.orm.query.Query.all
+            See: https://bit.ly/2AUnQt7
 
 
     Keyword Arguments:
@@ -30,7 +35,8 @@ def paginate_result(result, page=1):
 
     Returns:
         list --
-            List of questions as dicts with a maximum length defined by QUESTIONS_PER_PAGE per page.
+            List of questions as dicts with a maximum length defined by
+            QUESTIONS_PER_PAGE per page.
     """
     start = QUESTIONS_PER_PAGE * (page - 1)
     end = min(len(result), start + QUESTIONS_PER_PAGE)
@@ -49,7 +55,7 @@ def format_search_response(
 
     Keyword arguments:
     search_term* -- The text string for which to search
-    paginated_questions -- List of 1 page of questions with details to returned by query
+    paginated_questions -- List of questions returned by query
     page -- Page of questions (default 1)
     total_questions -- Total number questions returned by query
     categories -- List of categories with details returned by query
@@ -71,8 +77,8 @@ def format_search_response(
         "page": page,
         "search_term": search_term,
         "total_categories": total_categories}
-    if paginated_questions is not None:  # returning empty list if without result
-        res.update({'questions': paginated_questions})
+    if paginated_questions is not None:  # returns empty list if without result
+        res.update({'questions': paginated_questions})1
         res.update({'total_questions': total_questions})
     if categories:
         res.update({'categories': categories})
@@ -91,9 +97,9 @@ def format_crud_response(
     """Formats JSON-encoded API-response after CRUD operation
 
     Keyword arguments:
-    deleted -- The deleted question with id, question, answer, difficulty, category_id
-    created -- The created question with id, question, answer, difficulty, category_id
-    paginated_questions -- List of 1 page of questions with details to render to frontend
+    deleted -- The deleted question with details
+    created -- The created question with details
+    paginated_questions -- List of questions with details to render view
     page -- Page of questions (default 1)
     total_questions -- Total number questions
     current_category -- Current category_id (default 'all')
@@ -180,9 +186,8 @@ def create_app(test_config=None):
     cwd = os.getcwd()
     backend_ix = cwd.find('\\backend')
     end = len(cwd) if backend_ix == -1 else backend_ix
-    template_dir, static_dir = os.path.abspath(
-        cwd[:end] + '/frontend/public'), os.path.abspath(cwd[:end] + '/frontend/build/static')
-
+    template_dir = os.path.abspath(cwd[:end] + '/frontend/public')
+    static_dir = os.path.abspath(cwd[:end] + '/frontend/build/static')
     app = Flask(
         __name__,
         template_folder=template_dir,
@@ -194,7 +199,8 @@ def create_app(test_config=None):
     setup_db(app)
 
     '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  @TODO: Set up CORS. Allow '*' for origins.
+  Delete the sample route after completing the TODOs
   #!OK
   '''
     cors = CORS(app, resources={r'/api/*': {"origins": "*"}})
@@ -251,7 +257,8 @@ def create_app(test_config=None):
 
   TEST: At this point, when you start the application
   you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
+  ten questions per page
+  and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions.
   '''
     @app.route('/api/questions', methods=['GET', 'POST'])
@@ -272,7 +279,7 @@ def create_app(test_config=None):
 
     def get_all_questions(page=1):
         """"
-        Returns a JSON-encoded response with paginated questions and standard attributes:
+        Returns a JSON-encoded response with questions and other attributes:
           - success (standard)
           - categories (standard)
           - total_questions (standard)
@@ -286,7 +293,8 @@ def create_app(test_config=None):
                 abort(404)
             paginated_questions = paginate_result(result, page)
             categories = {
-                question.category.id: question.category.type for question in result}
+                qst.category.id: qst.category.type for qst in result
+            }
 
             return jsonify(
                 format_crud_response(
@@ -366,7 +374,7 @@ def create_app(test_config=None):
     @app.route('/api/questions/categories/<int:category_id>')
     def get_all_questions_by_category(category_id):
         """"
-        Returns a JSON-encoded response with paginated questions for a given category_id and standard attributes:
+        Returns a JSON-encoded response with questions for a given category:
           - success (standard)
           - categories (standard)
           - total_questions (standard)
@@ -396,7 +404,8 @@ def create_app(test_config=None):
   @TODO:
   Create an endpoint to DELETE question using a question ID.
 
-  TEST: When you click the trash icon next to a question, the question will be removed.
+  TEST: When you click the trash icon next to a question,
+  the question will be removed.
   This removal will persist in the database and when you refresh the page.
   '''
     @app.route('/api/questions/<int:question_id>', methods=['DELETE'])
@@ -448,7 +457,7 @@ def create_app(test_config=None):
                 abort(400)
             if 'searchOnAnswer' in data:
                 if not isinstance(data['searchOnAnswer'], bool):
-                    return 'Bad Request - Malformatted (e.g. boolean value)', 400
+                    return abort(400)
                 filter_on = Question.answer
             else:
                 filter_on = Question.question
@@ -530,10 +539,11 @@ def create_app(test_config=None):
         data = request.get_json()
         if isinstance(data, str):
             data = json.loads(data)
-        previous_questions, category_id = data['previous_questions'], data['quiz_category']['id']
-
+        previous_questions = data['previous_questions']
+        category_id = data['quiz_category']['id']
         categories_to_include = [
-            c.id for c in Category.query.all()] if category_id == 0 else [category_id]
+            c.id for c in Category.query.all()
+            ] if category_id == 0 else [category_id]
         # store query filter conditions for readbility
         for_categories = Question.category_id.in_(categories_to_include)
         not_in_previous_questions = ~Question.id.in_(previous_questions)
