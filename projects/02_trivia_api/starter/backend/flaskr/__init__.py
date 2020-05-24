@@ -78,7 +78,7 @@ def format_search_response(
         "search_term": search_term,
         "total_categories": total_categories}
     if paginated_questions is not None:  # returns empty list if without result
-        res.update({'questions': paginated_questions})1
+        res.update({'questions': paginated_questions})
         res.update({'total_questions': total_questions})
     if categories:
         res.update({'categories': categories})
@@ -543,7 +543,7 @@ def create_app(test_config=None):
         category_id = data['quiz_category']['id']
         categories_to_include = [
             c.id for c in Category.query.all()
-            ] if category_id == 0 else [category_id]
+        ] if category_id == 0 else [category_id]
         # store query filter conditions for readbility
         for_categories = Question.category_id.in_(categories_to_include)
         not_in_previous_questions = ~Question.id.in_(previous_questions)

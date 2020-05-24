@@ -213,8 +213,8 @@ class TriviaTestCase(unittest.TestCase):
     #     self.assertEqual(res.status_code, 404)
 
     def test_014_post_question(self):
-        json = json.dumps(self.new_qst)
-        res = self.client().post('/api/questions', json=json)
+        d = json.dumps(self.new_qst)
+        res = self.client().post('/api/questions', json=d)
         self.assertEqual(res.status_code, 200)
         if res.status_code == 200:
             data = res.get_json()
@@ -223,8 +223,8 @@ class TriviaTestCase(unittest.TestCase):
             self.assertIn('created', data)
 
     def test_015_422_post_duplicate_question(self):
-        json = json.dumps(self.new_qst)
-        res = self.client().post('/api/questions', json=json)
+        d = json.dumps(self.new_qst)
+        res = self.client().post('/api/questions', json=d)
         self.assertEqual(res.status_code, 422)
         data = res.get_json()
         if isinstance(data, str):
