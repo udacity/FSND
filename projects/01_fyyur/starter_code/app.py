@@ -104,28 +104,44 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+
+  # query for all venues in db
+  venues = Venue.query.order_by('state').order_by('city').all()
+  data = []
+  cityStateInfo = {}
+  prevCity = ''
+
+  for venue in venues:
+    currCity = venue.city
+
+    # add next venue to current city's venues
+    if prevCity == currCity:
+      if cityStateInfo["city"] == venue.city and cityStateInfo["state"] == venue.state:
+        newVenue = {
+          "id": venue.id,
+          "name": venue.name,
+          "num_upcoming_shows": 0
+        }
+
+      cityStateInfo["venues"].append(newVenue)
+    else: # add new city/state combo to data list w/ venue
+      if cityStateInfo != {}:
+        data.append(cityStateInfo)
+
+      cityStateInfo = {
+        "city": venue.city,
+        "state": venue.state,
+        "venues": [{
+          "id": venue.id,
+          "name": venue.name,
+          "num_upcoming_shows": 0, ### fix later
+        }]
+      }
+      
+    prevCity = currCity # update current city
+
+  data.append(cityStateInfo) # append last group of venues
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
