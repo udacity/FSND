@@ -25,8 +25,6 @@ db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 
-# TODO: connect to a local postgresql database
-
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
@@ -44,8 +42,8 @@ class Venue(db.Model):
   facebook_link = db.Column(db.String(120))
   genres = db.Column(db.ARRAY(db.String(120)), nullable=False)
   website = db.Column(db.String(120))
-  seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
-  seeking_desc = db.Column(db.String(), nullable=False)
+  seeking_talent = db.Column(db.Boolean, default=False)
+  seeking_desc = db.Column(db.String())
   shows = db.relationship('Show', backref='venue', lazy=True)
 
   def __repr__(self):
@@ -242,14 +240,27 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  try:
+    venue_form = VenueForm()
+    venue = Venue(name = venue_form.name.data, city = venue_form.city.data, state = venue_form.state.data,
+      address = venue_form.address.data, phone = venue_form.phone.data, genres = venue_form.genres.data, 
+      facebook_link = venue_form.facebook_link.data, image_link = venue_form.image_link.data, 
+      seeking_talent = venue_form.seeking_talent.data, seeking_desc = venue_form.seeking_desc.data,
+      website = venue_form.website.data)
 
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+    db.session.add(venue)
+    db.session.commit()
+
+    # on successful db insert, flash success
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
+
+  #SELFTODO throw error for validation errors (such as in phone number)
+  except:
+    db.session.rollback()
+    flash('An error occured. Venue ' + request.form['name'] + ' could not be listed.')
+  finally:
+    db.session.close()
+
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])

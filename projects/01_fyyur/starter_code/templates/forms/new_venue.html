@@ -1,6 +1,11 @@
 {% extends 'layouts/main.html' %}
 {% block title %}New Venue{% endblock %}
 {% block content %}
+  <style>
+    .hidden-desc {
+      display: none;
+    }
+  </style>
   <div class="form-wrapper">
     <form method="post" class="form">
       <h3 class="form-heading">List a new venue <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
@@ -26,17 +31,53 @@
       <div class="form-group">
           <label for="phone">Phone</label>
           {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
-        </div>
+      </div>
       <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
+        <label for="seeking_talent">Seeking Talent</label>
+        {{ form.seeking_talent(id='seeking-talent', class_ = 'form-control', placeholder='Are you seeking talent?', autofocus = true) }}
+      </div>
+      <div id="seeking-desc" class="form-group hidden-desc">
+        <label for="seeking_desc">Seeking Description</label>
+        {{ form.seeking_desc(class_ = 'form-control', placeholder='What are you looking for?', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="website">Website</label>
+        {{ form.website(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="image_link">Image Link</label>
+        {{ form.image_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+          <label for="facebook_link">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
-        </div>
+      </div>
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
+  <script>
+    const seekingTalent = document.getElementById('seeking-talent')
+    const seekingDesc = document.getElementById('seeking-desc')
+
+    if(seekingTalent.checked) {
+      seekingDesc.className = "form-group"
+    }
+
+    seekingTalent.onclick = function(e) {
+      toggleCheck(this)
+    }
+
+    function toggleCheck(check) {
+      if(check.checked) {
+        seekingDesc.className = "form-group"
+      } else {
+        seekingDesc.className = "form-group hidden-desc"
+      }
+    }
+  </script>
 {% endblock %}
