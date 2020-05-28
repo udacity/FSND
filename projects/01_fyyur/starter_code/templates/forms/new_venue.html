@@ -1,11 +1,6 @@
 {% extends 'layouts/main.html' %}
 {% block title %}New Venue{% endblock %}
 {% block content %}
-  <style>
-    .hidden-desc {
-      display: none;
-    }
-  </style>
   <div class="form-wrapper">
     <form method="post" class="form">
       <h3 class="form-heading">List a new venue <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
@@ -60,24 +55,4 @@
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
-  <script>
-    const seekingTalent = document.getElementById('seeking-talent')
-    const seekingDesc = document.getElementById('seeking-desc')
-
-    if(seekingTalent.checked) {
-      seekingDesc.className = "form-group"
-    }
-
-    seekingTalent.onclick = function(e) {
-      toggleCheck(this)
-    }
-
-    function toggleCheck(check) {
-      if(check.checked) {
-        seekingDesc.className = "form-group"
-      } else {
-        seekingDesc.className = "form-group hidden-desc"
-      }
-    }
-  </script>
 {% endblock %}
