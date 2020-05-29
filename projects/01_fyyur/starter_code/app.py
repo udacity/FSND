@@ -51,6 +51,36 @@ class Venue(db.Model):
   def __repr__(self):
     return f'<Venue {self.id} {self.name}>'
 
+class Artist(db.Model):
+  __tablename__ = 'Artist'
+
+  id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String(), nullable=False)
+  city = db.Column(db.String(120), nullable=False)
+  state = db.Column(db.String(120), nullable=False)
+  phone = db.Column(db.String(120), nullable=False)
+  genres = db.Column(db.ARRAY(db.String(120)), nullable=False)
+  image_link = db.Column(db.String(500))
+  facebook_link = db.Column(db.String(120))
+  website = db.Column(db.String(120))
+  seeking_venue = db.Column(db.Boolean, default=False)
+  seeking_desc = db.Column(db.String())
+  shows = db.relationship('Show', backref='artist', lazy=True)
+
+  def __repr__(self):
+    return f'<Artist {self.id} {self.name}>'
+
+class Show(db.Model):
+  __tablename__ = 'Show'
+
+  id = db.Column(db.Integer, primary_key=True)
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
+  start_time = db.Column(db.DateTime, nullable=False)
+
+  def __repr__(self):
+    return f'<Show {self.id} Venue {self.venue.id} Artist {self.artist.id}>'
+
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -110,7 +140,53 @@ def venues():
       "num_upcoming_shows": 0,
     }]
   }]
-  return render_template('pages/venues.html', areas=data);
+
+  # list of dictionaries of unique city/state -> list of dictionary venues
+
+  # list to store data from the Venues table
+  data = [] 
+  city_state = {}
+  venues = []
+  previous_state = ''
+  previous_city = ''
+  
+  ordered_venues = Venue.query.order_by(Venue.state).order_by(Venue.city).all()
+
+  for venue in ordered_venues:
+    current_state = venue.state
+    current_city = venue.city
+
+    #add all venues that reside in the same city and state
+    if current_city == previous_city and current_state == previous_state:
+      print(current_state)
+      print(current_city)
+      add_venue = {
+        "id": venue.id,
+        "name": venue.name
+      }
+      venues.append(add_venue)
+      print(venues)
+      if not (city_state["city"] == current_city or city_state["state"] == current_state) and not (city_state == {}):
+        data.append(city_state)
+
+    #if the city and state is different than before, add a new city/state to the list
+    else:
+      venues = [] #reset venues dictionary when city and state changes
+      add_venue = {
+        "id": venue.id,
+        "name": venue.name
+      }
+      city_state = {
+        "city": current_city,
+        "state": current_state,
+        "venues": venues
+      }
+      venues.append(add_venue)
+      data.append(city_state)
+    previous_city = current_city
+    previous_state = current_state
+
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -517,13 +593,24 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
+  try:
+    show_form = ShowForm()
 
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Show could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+    show = Show(artist_id = show_form.artist_id.data, venue_id = show_form.venue_id.data,
+      start_time = show_form.start_time.data)
+
+    db.session.add(show)
+    db.session.commit()
+
+    # on successful db insert, flash success
+    flash('Show was successfully listed!')
+
+  except:
+    db.session.rollback()
+    flash('An error occured. Show could not be listed.')
+  finally:
+    db.session.close()
+
   return render_template('pages/home.html')
 
 @app.errorhandler(404)
