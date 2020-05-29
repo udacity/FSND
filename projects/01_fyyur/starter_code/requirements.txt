@@ -5,3 +5,4 @@ flask-wtf
 flask-sqlalchemy
 flask-migrate
 psycopg2
+phonenumbers
