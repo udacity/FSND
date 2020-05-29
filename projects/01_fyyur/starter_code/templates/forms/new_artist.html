@@ -29,10 +29,26 @@
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
-          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
-        </div>
-      <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
+        <label for="facebook">Facebook Link</label>
+        {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="website">Website Link</label>
+        {{ form.website_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="image">Image Link</label>
+        {{ form.image_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="venue">Seeking Venues to Perform At?</label>
+        {{ form.seeking_venue(class_ = 'form-control', placeholder='Seeking Venues to Perform At?', autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="venue_desc">Describe Type of Venue Wanted</label>
+        {{ form.seeking_desc(class_ = 'form-control', placeholder='Description; optional', autofocus = true) }}
+      </div>
+      <input type="submit" value="Create Artist" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
 {% endblock %}
