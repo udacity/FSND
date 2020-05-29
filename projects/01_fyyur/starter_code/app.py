@@ -14,6 +14,7 @@ from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 from datetime import datetime
+from wtforms import ValidationError
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -83,6 +84,12 @@ def format_datetime(value, format='medium'):
   return babel.dates.format_datetime(date, format)
 
 app.jinja_env.filters['datetime'] = format_datetime
+
+# phone number validator 
+def phone_validator(num):
+    parsed = phonenumbers.parse(num, "US")
+    if not phonenumbers.is_valid_number(parsed):
+        raise ValidationError('Must be a valid US phone number.')
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -257,6 +264,9 @@ def create_venue_submission():
     # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
     
+  except ValidationError as error:
+    db.session.rollback()
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed. ' + str(error))
   except:
     db.session.rollback()
     flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
@@ -453,6 +463,9 @@ def create_artist_submission():
     # on successful db insert, flash success
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
     
+  except ValidationError as error:
+    db.session.rollback()
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed. ' + str(error))
   except:
     db.session.rollback()
     flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
