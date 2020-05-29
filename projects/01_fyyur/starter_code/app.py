@@ -13,6 +13,8 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
+import phonenumbers
+from wtforms.validators import ValidationError
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -49,36 +51,6 @@ class Venue(db.Model):
   def __repr__(self):
     return f'<Venue {self.id} {self.name}>'
 
-class Artist(db.Model):
-  __tablename__ = 'Artist'
-
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(), nullable=False)
-  city = db.Column(db.String(120), nullable=False)
-  state = db.Column(db.String(120), nullable=False)
-  phone = db.Column(db.String(120), nullable=False)
-  genres = db.Column(db.ARRAY(db.String(120)), nullable=False)
-  image_link = db.Column(db.String(500))
-  facebook_link = db.Column(db.String(120))
-  website = db.Column(db.String(120))
-  seeking_venue = db.Column(db.Boolean, default=False)
-  seeking_desc = db.Column(db.String())
-  shows = db.relationship('Show', backref='artist', lazy=True)
-
-  def __repr__(self):
-    return f'<Artist {self.id} {self.name}>'
-
-class Show(db.Model):
-  __tablename__ = 'Show'
-
-  id = db.Column(db.Integer, primary_key=True)
-  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
-  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
-  start_time = db.Column(db.DateTime, nullable=False)
-
-  def __repr__(self):
-    return f'<Show {self.id} Venue {self.venue.id} Artist {self.artist.id}>'
-
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -92,6 +64,15 @@ def format_datetime(value, format='medium'):
   return babel.dates.format_datetime(date, format)
 
 app.jinja_env.filters['datetime'] = format_datetime
+
+#----------------------------------------------------------------------------#
+# Validators.
+#----------------------------------------------------------------------------#
+def phone_validation(number):
+  parsed_num = phonenumbers.parse(number, "US") #assuming US phone numbers
+  if not phonenumbers.is_valid_number(parsed_num):
+    raise ValidationError('Invalid phone number.')
+
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -242,6 +223,10 @@ def create_venue_form():
 def create_venue_submission():
   try:
     venue_form = VenueForm()
+
+    #check if phone is valid before moving on; else error will throw
+    phone_validation(venue_form.phone.data)
+
     venue = Venue(name = venue_form.name.data, city = venue_form.city.data, state = venue_form.state.data,
       address = venue_form.address.data, phone = venue_form.phone.data, genres = venue_form.genres.data, 
       facebook_link = venue_form.facebook_link.data, image_link = venue_form.image_link.data, 
@@ -254,7 +239,9 @@ def create_venue_submission():
     # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
 
-  #SELFTODO throw error for validation errors (such as in phone number)
+  except ValidationError as error:
+    db.session.rollback()
+    flash('An error occured listing Venue ' + request.form['name'] + ". " + str(error))
   except:
     db.session.rollback()
     flash('An error occured. Venue ' + request.form['name'] + ' could not be listed.')
@@ -447,13 +434,31 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  try:
+    artist_form = ArtistForm()
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+    #check if phone is valid before moving on; else error will throw
+    phone_validation(artist_form.phone.data)
+
+    artist = Artist(name = artist_form.name.data, city = artist_form.city.data, state = artist_form.state.data, phone = artist_form.phone.data, genres = artist_form.genres.data, 
+      facebook_link = artist_form.facebook_link.data, image_link = artist_form.image_link.data, 
+      seeking_venue = artist_form.seeking_venue.data, seeking_desc = artist_form.seeking_desc.data,
+      website = artist_form.website.data)
+
+    db.session.add(artist)
+    db.session.commit()
+
+    # on successful db insert, flash success
+    flash('Artist ' + request.form['name'] + ' was successfully listed!')
+
+  except ValidationError as error:
+    db.session.rollback()
+    flash('An error occured listing Artist ' + request.form['name'] + ". " + str(error))
+  except:
+    db.session.rollback()
+    flash('An error occured. Artist ' + request.form['name'] + ' could not be listed.')
+  finally:
+    db.session.close()
   return render_template('pages/home.html')
 
 
