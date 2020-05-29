@@ -217,6 +217,7 @@ def show_venue(venue_id):
         "start_time": format_datetime(str(show.start_time))
       })
 
+  #populate page with the venue data
   data = {
     "id": venue.id,
     "name": venue.name,
@@ -367,6 +368,7 @@ def show_artist(artist_id):
         "start_time": format_datetime(str(show.start_time))
       })
 
+  #populate page with data from artist
   data = {
     "id": artist.id,
     "name": artist.name,
@@ -395,6 +397,7 @@ def edit_artist(artist_id):
   artist = Artist.query.filter_by(id=artist_id).first()
 
   #populate form with data from the artist
+  #must process default values for select fields
   form.genres.default = artist.genres
   form.state.default = artist.state
   form.process()
@@ -454,6 +457,7 @@ def edit_venue(venue_id):
   venue = Venue.query.filter_by(id=venue_id).first()
 
   #populate form with data from the venue
+  #must process default values for select fields
   form.genres.default = venue.genres
   form.state.default = venue.state
   form.process()
