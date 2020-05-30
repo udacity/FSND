@@ -15,6 +15,7 @@ from forms import *
 from flask_migrate import Migrate
 from datetime import datetime
 from wtforms import ValidationError
+import phonenumbers
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -208,7 +209,6 @@ def show_venue(venue_id):
         "start_time": str(show.date_time)
       })
 
-  print(venue.genres)
   data = {    
     "id": venue.id,
     "name": venue.name,
@@ -241,6 +241,10 @@ def create_venue_form():
 def create_venue_submission():
   try:
     form = VenueForm()
+
+    # check phone number validity 
+    phone_validator(form.phone.data)
+
     name = form.name.data
     city = form.city.data
     state = form.state.data
@@ -370,8 +374,6 @@ def show_artist(artist_id):
         "start_time": str(show.date_time)
       })
 
-  print(artist.genres)
-
   data = {
     "id": artist.id,
     "name": artist.name,
@@ -389,6 +391,7 @@ def show_artist(artist_id):
     "past_shows_count": len(past_shows),
     "upcoming_shows_count": len(upcoming_shows),
   }
+
   return render_template('pages/show_artist.html', artist=data)
 
 #  Update
@@ -420,6 +423,9 @@ def edit_artist_submission(artist_id):
   try:
     form = ArtistForm()
     artist = Artist.query.filter_by(id=artist_id).first()
+
+    # check phone number validity 
+    phone_validator(form.phone.data)
 
     # update Artist
     artist.name = form.name.data
@@ -478,6 +484,9 @@ def edit_venue_submission(venue_id):
     form = VenueForm()
     venue = Venue.query.filter_by(id=venue_id).first()
 
+    # check phone number validity 
+    phone_validator(form.phone.data)
+
     # update Venue
     venue.name = form.name.data
     venue.address = form.address.data
@@ -519,6 +528,10 @@ def create_artist_form():
 def create_artist_submission():
   try:
     form = ArtistForm()
+    
+    # check phone number validity 
+    phone_validator(form.phone.data)
+
     name = form.name.data
     city = form.city.data
     state = form.state.data
