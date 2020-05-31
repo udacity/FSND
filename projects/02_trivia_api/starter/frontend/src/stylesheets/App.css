@@ -37,3 +37,11 @@ form {
   width: 80%;
   margin: auto;
 }
+
+.clickable:hover {
+cursor: pointer;
+color: #FFFF00;
+}
+#navToHome:hover{
+cursor: pointer;
+}
