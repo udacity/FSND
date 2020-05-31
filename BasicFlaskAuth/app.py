@@ -124,7 +124,11 @@ def requires_auth(req_permissions=''):
     def authenticate_authorize(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            token = get_token_auth_header()
+            try:
+                token = get_token_auth_header()
+            except:
+                print('failed on header format')
+                abort(400)
             try:
                 payload = verify_decode_jwt(token)
                 if not check_permissions(req_permissions, payload):
