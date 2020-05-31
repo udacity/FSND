@@ -1,4 +1,7 @@
 venv/
+env/
+BasicFlaskAuth/env/
+FlaskRecap/env/
 .vscode/
 __pycache__/
 test.db
