@@ -220,7 +220,16 @@ One note before you delve into your tasks: for each endpoint you are expected to
   returns a new question to keep the trivia game going <br>
   <b>Sample:</b>
   ```
-!!!!add sample output!!!
+{
+  "question": {
+    "answer": "Tom Cruise",
+    "category": 5,
+    "difficulty": 4,
+    "id": 4,
+    "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+  },
+  "success": true
+}
 ```
 ## Testing
 To run the tests, run
