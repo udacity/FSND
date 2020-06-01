@@ -194,6 +194,15 @@ def create_app(test_config=None):
       "error":500,
       "message":"internal server error"
       }),500
+
+  # Error 400
+  @app.errorhandler(400)
+  def badRequest(error):
+    return jsonify({
+      "success":False,
+      "error":400,
+      "message":"bad request"
+      }),400
   
   return app
 
