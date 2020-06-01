@@ -22,11 +22,22 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-# TODO: connect to a local postgresql database
+# TODO-check: connect to a local postgresql database
 
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
+
+class Show(db.Model):
+  __tablename__ = 'show_table'
+
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), primary_key=True)
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
+  start_time = db.Column(db.DateTime(), nullable=False)
+
+  artist = db.relationship('Artist', back_populates='venues')
+  venue = db.relationship('Venue', back_populates='artists')
+
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
@@ -37,10 +48,19 @@ class Venue(db.Model):
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
+    website = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    genres = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.String(500))
+    
+    artists = db.relationship('Show', back_populates='venue')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+
+    def __repr__(self):
+      return f'<{self.name} in {self.city}, {self.state}>'
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -50,9 +70,11 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    genres = db.Column(db.String(120))
+
+    venues = db.relationship('Show', back_populates='artist')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -86,30 +108,34 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
+  # TODO-check: replace with real venues data.
+  # TODO: num_shows should be aggregated based on number of upcoming shows per venue.
+  data=[]
+  try:
+    cities = db.session.query(Venue.city, Venue.state).group_by(Venue.city).group_by(Venue.state).all()
+    newcity = {}
+    for city in cities:
+      newcity['city'] = city[0]
+      newcity['state'] = city[1]
+      newcity['venues'] = []
+      venues = Venue.query.filter_by(city=newcity['city']).all()
+      for venue in venues:
+        newcity['venues'].append({
+          'id' : venue.id,
+          'name' : venue.name,
+          "num_upcoming_shows": 2,
+        })
+      data.append(newcity)
+      newcity = {}
+  except Exception as error:
+    print(error)
+    data=[{
+    "city": "test1",
+    "state": "test2",
+    "venues": []
     }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  finally:
+    return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -130,14 +156,15 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+  venue = Venue.query.filter_by(id=venue_id).first()
   data1={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
+    "id":       venue.id,
+    "name":     venue.name,
+    "genres":   venue.genres.split(';'),
+    "address":  venue.address,
+    "city":     venue.city,
+    "state":    venue.state,
+    "phone":    venue.phone,
     "website": "https://www.themusicalhop.com",
     "facebook_link": "https://www.facebook.com/TheMusicalHop",
     "seeking_talent": True,
