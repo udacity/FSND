@@ -20,10 +20,10 @@ class TriviaTestCase(unittest.TestCase):
         setup_db(self.app, self.database_path)
 
         self.new_question = Question(
-            question = 'What is the diameter of the Earth?',
-            answer = '12,742 km',
+            question = 'What is the fifth day of the week?',
+            answer = 'the fifth',
             category ='1',
-            difficulty = 5
+            difficulty = 0
         )
 
 
