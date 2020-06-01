@@ -66,11 +66,13 @@ def create_app(test_config=None):
 
     print(question_id)
     question = Question.query.get(question_id)
+    reference_copy=question.format()
     if question:
         Question.delete(question)
         result = {
             "success": True,
-        }
+            "deleted_question":reference_copy
+          }
         return jsonify(result)
     abort(404)
       
@@ -89,7 +91,8 @@ def create_app(test_config=None):
       question=Question(question=new_question,answer=new_answer,difficulty=new_difficulty,category=new_category)
       question.insert()
 
-      return jsonify({'success':True})
+      return jsonify({'success':True,
+                      'new_question':question.format()})
 
     except:
       abort(422)
@@ -160,7 +163,7 @@ def create_app(test_config=None):
           'success':True,
           'question':next_question})
     except:
-      abort(400)
+      abort(500)
     
 
   # ---------------- Error handlers ----------------
