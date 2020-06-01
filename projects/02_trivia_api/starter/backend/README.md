@@ -66,30 +66,171 @@ One note before you delve into your tasks: for each endpoint you are expected to
 8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
 
-REVIEW_COMMENT
+## Endpoints
+
+### GET '/categories'
+  Returns a list of all avaliable categories <br>
+  <b>Sample:</b>
+  ```
+  {
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "success": true
+}
+  ```
+### GET '/questions'
+ Returns a list of all questions paginated, with each page containing 10 questions. Along with the list of categories and information about the total number of questions avaliable <br>
+  <b>Sample:</b>
+  ```
+  {
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": null,
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Muhammad Ali",
+      "category": 4,
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay?"
+    },
+    {
+      "answer": "Apollo 13",
+      "category": 5,
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    },
+    ...
+    {
+      "answer": "Lake Victoria",
+      "category": 3,
+      "difficulty": 2,
+      "id": 13,
+      "question": "What is the largest lake in Africa?"
+    },
+    {
+      "answer": "The Palace of Versailles",
+      "category": 3,
+      "difficulty": 3,
+      "id": 14,
+      "question": "In which royal palace would you find the Hall of Mirrors?"
+    }
+  ],
+  "success": true,
+  "total_questions": 29
+}
+  ```
+### DELETE '/questions/<question_id>'
+  Deletes a question using its ID, and returns information about the deleted question <br>
+  <b>Sample:</b> ``` DELETE http://localhost:5000/questions/56 ```
+  ```
+  {
+  "deleted_question": {
+    "answer": "udacitrivia",
+    "category": 5,
+    "difficulty": 1,
+    "id": 56,
+    "question": "What's the name of this game?"
+  },
+  "success": true
+}
+  ```
+  
+ ### POST '/questions/new'
+  adds a new question to the collection, using arguments of the request body: (question,answer, category, difficulty) <br>
+  <b>Sample:</b> 
+  ```
+{
+  "new_question": {
+    "answer": "udacitrivia",
+    "category": 5,
+    "difficulty": 1,
+    "id": 57,
+    "question": "What's the name of this game?"
+  },
+  "success": true
+}
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
-
-Endpoints
-GET '/categories'
-GET ...
-POST ...
-DELETE ...
-
-GET '/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
-
+ ### POST '/questions/'
+  search for questions containing an input search term provided within the body of the request <br>
+  <b>Sample:</b> ``` "searchTerm":"taj" ```
+  ```
+{
+  "current_category": null,
+  "questions": [
+    {
+      "answer": "Agra",
+      "category": 3,
+      "difficulty": 2,
+      "id": 15,
+      "question": "The Taj Mahal is located in which Indian city?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
 ```
-
-
+### GET '/categories/<category_id>/questions'
+  return a list of questions under the category with the provided id <br>
+  <b>Sample:</b> ``` GET http://localhost:5000/categories/6/questions ```
+  ```
+{
+  "current_category": "6",
+  "questions": [
+    {
+      "answer": "Brazil",
+      "category": 6,
+      "difficulty": 3,
+      "id": 10,
+      "question": "Which is the only team to play in every soccer World Cup tournament?"
+    },
+    {
+      "answer": "Uruguay",
+      "category": 6,
+      "difficulty": 4,
+      "id": 11,
+      "question": "Which country won the first ever soccer World Cup in 1930?"
+    }
+  ],
+  "success": true,
+  "total_questions": 2
+}
+```
+ ### POST '/quizzes/'
+  returns a new question to keep the trivia game going <br>
+  <b>Sample:</b>
+  ```
+{
+  "question": {
+    "answer": "Tom Cruise",
+    "category": 5,
+    "difficulty": 4,
+    "id": 4,
+    "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+  },
+  "success": true
+}
+```
 ## Testing
 To run the tests, run
 ```
