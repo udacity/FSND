@@ -162,9 +162,26 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+  @app.route('/questions',methods=['POST'])
+  def search():
+    try:
+      body=request.get_json()
+      search_term=body.get('searchTerm',None)
+      #questions=Question.query.
+      selection = Question.query.order_by(Question.id).filter(
+                      Question.question.ilike('%{}%'.format(search_term)))
+      current_questions = paginate_questions(request, selection)
 
+      return jsonify({
+                      'success': True,
+                      'questions': current_questions,
+                      'total_questions': len(selection.all()),
+                      'current_category': None
+                  })
+    except():
+      abort(404)
   '''
-  @TODO: 
+  @TODO: Done!
   Create a GET endpoint to get questions based on category. 
 
   TEST: In the "List" tab / main screen, clicking on one of the 
@@ -174,15 +191,18 @@ def create_app(test_config=None):
   @app.route('/categories/<category_id>/questions',methods=['GET'])
   def get_questions_by_category(category_id):
 
-    selection = Question.query.filter(Question.category == category_id).all()
-    questions = paginate_questions(request, selection)
+    try:
+      selection = Question.query.filter(Question.category == category_id).all()
+      questions = paginate_questions(request, selection)
 
-    return jsonify({
+      return jsonify({
                 'success': True,
                 'questions': questions,
                 'total_questions': len(questions),
                 'current_category': category_id
                 })
+    except:
+      abort(422)
   '''
   @TODO: 
   Create a POST endpoint to get questions to play the quiz. 
@@ -196,7 +216,7 @@ def create_app(test_config=None):
   '''
 
   '''
-  @TODO: 
+  @TODO: Done!
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
