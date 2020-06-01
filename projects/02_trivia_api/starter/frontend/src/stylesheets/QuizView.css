@@ -17,6 +17,7 @@
 
 .play-category:hover {
     color: dodgerblue;
+    cursor:pointer;
 }
 
 .button {
