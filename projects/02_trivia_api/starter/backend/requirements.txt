@@ -1,5 +1,6 @@
 alembic==1.4.2
 aniso8601==6.0.0
+autopep8==1.5.2
 Click==7.0
 Flask==1.1.2
 Flask-Cors==3.0.8
@@ -11,6 +12,7 @@ Jinja2==2.10.1
 Mako==1.1.2
 MarkupSafe==1.1.1
 psycopg2==2.8.5
+pycodestyle==2.6.0
 python-dateutil==2.8.1
 python-editor==1.0.4
 pytz==2019.1
