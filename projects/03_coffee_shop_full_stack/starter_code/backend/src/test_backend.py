@@ -3,12 +3,13 @@ import tempfile
 
 import pytest
 
-from src import app
-from .database import setup_db
+from src import create_app
+from .database import setup_db, Drink, db
 
 
 @pytest.fixture
 def client():
+    app = create_app()
     db_fd, app.config['DATABASE'] = tempfile.mkstemp()
     app.config['TESTING'] = True
 
@@ -34,3 +35,12 @@ def test_404_get_random_route(client):
     rv = client.get('/not-yet-implemented')
     assert b'not found' in rv.data.lower()
     assert 404 == rv.status_code
+
+
+def test_drink_title(client):
+    """"Test if drink.title exists"""
+    try:
+        q = db.session.query(Drink.title)
+        assert q.column_descriptions[0]['name'] == 'title'
+    except Exception as e:
+        print(e)
