@@ -34,8 +34,22 @@ cur.execute("""
 
 """)
 
+cur.execute(""" SELECT * from todos;""")
+result = cur.fetchall()
+print("fetched all: ")
+print("result\n{}".format(result))
+result = cur.fetchone()
+print("fetched one: ")
+print("result\n{}".format(result))
+
+print("committing")
 # commit, so it does the executions on the db and persists in the db
 conn.commit()
+
+cur.execute(""" SELECT * from todos;""")
+result = cur.fetchone()
+print("fetched one: ")
+print("result\n{}".format(result))
 
 cur.close()
 conn.close()
