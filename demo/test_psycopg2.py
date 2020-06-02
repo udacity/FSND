@@ -5,7 +5,7 @@ password_path = os.path.dirname(os.path.abspath(__file__)) + '/../../.dbpassword
 print('password_path: {}'.format(password_path))
 
 with open(password_path) as fp:
-	password = fp.read()
+    password = fp.read()
 
 print("password: {}".format(password))
 
@@ -26,6 +26,12 @@ cur.execute("""
     id serial PRIMARY KEY,
     description VARCHAR NOT NULL
   );
+""")
+
+cur.execute("""
+    INSERT INTO todos ( description )
+    VALUES ('do some udacity'), ('learn some good stuff'), ('get better at things');
+
 """)
 
 # commit, so it does the executions on the db and persists in the db
