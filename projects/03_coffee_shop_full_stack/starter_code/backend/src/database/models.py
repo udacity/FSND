@@ -34,12 +34,13 @@ db_drop_and_create_all()
 def db_drop_and_create_all():
     db.drop_all()
     db.create_all()
+    # pass
 
 
-'''
+"""
 Drink
 a persistent drink entity, extends the base SQLAlchemy Model
-'''
+"""
 
 
 class Drink(db.Model):
