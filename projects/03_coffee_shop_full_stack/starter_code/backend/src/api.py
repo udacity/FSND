@@ -3,28 +3,34 @@ from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
-
-from .database.models import db_drop_and_create_all, setup_db, Drink
+from flask_migrate import Migrate
+from .database.models import db, db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
 
-app = Flask(__name__)
-setup_db(app)
-CORS(app)
 
-'''
-@TODO uncomment the following line to initialize the datbase
-!! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
-!! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
-'''
-db_drop_and_create_all()
+def create_app(test_config=None):
+    app = Flask(__name__)
+    setup_db(app)
+    CORS(app)
+    if test_config:
+        app.config.from_mapping(test_config)
+
+    '''
+    @TODO uncomment the following line to initialize the datbase
+    !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
+    !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
+    '''
+    db_drop_and_create_all()
+    Migrate(app, db)
+
+    # ROUTES
+    @app.route('/')
+    def index():
+        return 'hello'
+    return app
+
 
 # ROUTES
-
-
-@app.route('/')
-def index():
-    return 'hello'
-
 
 '''
 @TODO implement endpoint
@@ -88,13 +94,13 @@ Example error handling for unprocessable entity
 '''
 
 
-@app.errorhandler(422)
-def unprocessable(error):
-    return jsonify({
-        "success": False,
-        "error": 422,
-        "message": "unprocessable"
-    }), 422
+# @app.errorhandler(422)
+# def unprocessable(error):
+#     return jsonify({
+#         "success": False,
+#         "error": 422,
+#         "message": "unprocessable"
+# }), 422
 
 
 '''
