@@ -213,6 +213,42 @@
 						"description": "Initially, this should return 'hello'"
 					},
 					"response": []
+				},
+				{
+					"name": "/ no Auth",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5b3ba96c-d149-4f64-a3b4-29f4ac6159ef",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Body returns Auth failed\", function () {\r",
+									"    pm.response.to.have.body('Auth failed. Please login');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}",
+							"host": [
+								"{{host}}"
+							]
+						},
+						"description": "Initially, this should return 'hello'"
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
