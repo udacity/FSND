@@ -3,6 +3,7 @@ from flask import request, _request_ctx_stack
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
+import traceback
 
 
 AUTH0_DOMAIN = 'p6l-richard.eu.auth0.com'
@@ -62,7 +63,13 @@ def get_token_auth_header():
 
 
 def check_permissions(permission, payload):
-    raise Exception('Not Implemented')
+    if 'permissions' not in payload:
+        raise AuthError({"code": "invalid_token",
+                                 "description": "can't read permission"}, 401)
+    if permission not in payload['permissions']:
+        raise AuthError({"code": "insufficient_permissions",
+                                 "description": "required permission not found"}, 401)
+    pass
 
 
 '''
@@ -146,13 +153,11 @@ def requires_auth(permission=''):
             try:
                 token = get_token_auth_header()
                 payload = verify_decode_jwt(token)
-                print('got payload successfully')
                 check_permissions(permission, payload)
                 return f(payload, *args, **kwargs)
             except Exception as e:
-                if str(e) == 'Not Implemented':
-                    return payload
-
+                print(e)
+                print(traceback.print_exc())
                 return str(e)
 
         return wrapper
