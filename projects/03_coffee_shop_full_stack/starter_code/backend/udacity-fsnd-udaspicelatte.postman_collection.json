@@ -176,16 +176,17 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b5cfdd88-e728-4c02-9df2-4600f8d79679",
+								"id": "9100132f-15bf-49a7-9eb1-7929a850a124",
 								"exec": [
-									"tk = pm.globals.get(\"manager_token\");\r",
+									"permissions = [\"get:drinks-detail\"];// See https://jwt.io/ for decoded payload of JWT\r",
+									"\r",
 									"pm.test(\"Status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Body returns token\", function () {\r",
-									"    pm.response.to.have.body(tk);\r",
-									"});\r",
-									""
+									"pm.test(\"Your test name\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.permissions).to.eql(permissions);\r",
+									"});"
 								],
 								"type": "text/javascript"
 							}
