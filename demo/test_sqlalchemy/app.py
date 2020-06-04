@@ -30,8 +30,30 @@ db.create_all()
 
 @app.route('/')
 def index():
-    person = Person.query.first()
-    return "hello {}".format(person.name)
+    new_bob = Person(name='Bob')
+    another_bob = Person(name='Bobby')
+    a_different_bob = Person(name='Bobera')
+    wow_more_bob = Person(name='Bo\'b')
+    still_bob = Person(name='Bobb')
+    just_bob = Person(name='bob')
+    db.session.add_all([new_bob, a_different_bob, 
+        another_bob, wow_more_bob, still_bob, just_bob])
+    db.session.commit()
+    
+    a = strung_out(Person.query.filter_by(name='Bob').all()  )
+    b = strung_out(Person.query.filter(Person.name.like("%{}%".format('b'))).all()  )
+    c = strung_out(Person.query.filter(Person.name.like("%{}%".format('b'))).limit(5).all()  )
+    d = strung_out(Person.query.filter(Person.name.ilike("%{}%".format('b'))).limit(5).all()  )
+    e = strung_out(Person.query.filter_by(name='Bob').count()  )
+    returns = '\n'.join([a,b,c,d,e])
+    return returns
+
+def strung_out(this_list):
+    if isinstance(this_list, list):
+        return '\n'.join([ str(item) for item in this_list])
+    else:
+        return '{}'.format(this_list)
+
 
 if __name__ == '__main__':
     app.run()
