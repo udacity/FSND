@@ -26,8 +26,8 @@ def create_app(test_config=None):
     # ROUTES
     @app.route('/')
     @requires_auth('get:drinks-detail')
-    def index():
-        return 'hello'
+    def index(payload):
+        return 'Permission granted'
     return app
 
 
