@@ -176,16 +176,28 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b5cfdd88-e728-4c02-9df2-4600f8d79679",
+								"id": "9100132f-15bf-49a7-9eb1-7929a850a124",
 								"exec": [
-									"tk = pm.globals.get(\"manager_token\");\r",
+									"permissions = \"get:drinks-detail\";// See https://jwt.io/ for decoded payload of JWT\r",
+									"\r",
 									"pm.test(\"Status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Body returns token\", function () {\r",
-									"    pm.response.to.have.body(tk);\r",
+									"pm.test(\"test if permissions in payload\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    let found = false;\r",
+									"    for (const permission in jsonData.permissions) {\r",
+									"        if (permission === permission) {\r",
+									"            found = true;\r",
+									"        }\r",
+									"    }\r",
+									"    if (found === true) {\r",
+									"        return true\r",
+									"    } else { return false}\r",
 									"});\r",
-									""
+									"pm.test(\"Body contains permissions\", function () {\r",
+									"    pm.expect(pm.response.text()).to.include(permissions);\r",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -781,6 +793,151 @@
 							""
 						]
 					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Exchange Code for Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "authorization_code",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{auth0_clientid}}",
+									"description": "auth0's client id (accessible via Application settings)",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{auth0_client_secret}}",
+									"description": "auth0's client secret (accessible via Application settings)",
+									"type": "text"
+								},
+								{
+									"key": "code",
+									"value": "",
+									"description": "Get via `Authroize User`",
+									"type": "text"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "https://127.0.0.1:5000/login-results",
+									"type": "text"
+								},
+								{
+									"key": "audience",
+									"value": "https://127.0.0.1/api",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://p6l-richard.eu.auth0.com/oauth/token",
+							"protocol": "https",
+							"host": [
+								"p6l-richard",
+								"eu",
+								"auth0",
+								"com"
+							],
+							"path": [
+								"oauth",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "authorization_code",
+									"disabled": true
+								},
+								{
+									"key": "client_id",
+									"value": "Yni9bmR5jgN2CHbp1EmrozSmKjiEerOi",
+									"disabled": true
+								},
+								{
+									"key": "client_secret",
+									"value": "1fn0tpkIzIVqKAS3DwKUJcCHuka1Ph4rnvoWQkntd1yuxbgLtSCWm6IWjR7QjMQa",
+									"disabled": true
+								},
+								{
+									"key": "code",
+									"value": "",
+									"description": "Request via: Authorize User",
+									"disabled": true
+								},
+								{
+									"key": "redirect_uri",
+									"value": "https://127.0.0.1:5000/login-results",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize User: Get Authorization Code ",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://p6l-richard.eu.auth0.com/authorize?response_type=code&client_id={{auth0_clientid}}&redirect_uri=https://127.0.0.1:5000/login-results&audience=https://127.0.0.1/api",
+							"protocol": "https",
+							"host": [
+								"p6l-richard",
+								"eu",
+								"auth0",
+								"com"
+							],
+							"path": [
+								"authorize"
+							],
+							"query": [
+								{
+									"key": "response_type",
+									"value": "code"
+								},
+								{
+									"key": "client_id",
+									"value": "{{auth0_clientid}}",
+									"description": "auth0's client id (accessible in Application settings)"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "https://127.0.0.1:5000/login-results"
+								},
+								{
+									"key": "audience",
+									"value": "https://127.0.0.1/api"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}

@@ -5,9 +5,13 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'p6l-richard.auth0.com'
+AUTH0_DOMAIN = 'p6l-richard.eu.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'https://127.0.0.1/api'
+# Authorize User:
+#   POST https://p6l-richard.eu.auth0.com/authorize?response_type=token&client_id=<INSERT_CLIENT_ID>&redirect_uri=https://127.0.0.1:5000/login-results&audience=https://127.0.0.1/api
+# Exchange auth code for token:
+#   POST <see Postman for url>
 
 # AuthError Exception
 '''
@@ -77,7 +81,50 @@ def check_permissions(permission, payload):
 
 
 def verify_decode_jwt(token):
-    raise Exception('Not Implemented')
+    # Get JWKS from auth0
+    jsonurl = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
+    jwks = json.loads(jsonurl.read())
+
+    # Store header from user token for later use
+    unverified_header = jwt.get_unverified_header(token)
+
+    # compare key id from user token to auth0's JWKS
+    rsa_key = {}
+    for key in jwks["keys"]:
+        if key["kid"] == unverified_header["kid"]:
+            rsa_key = {
+                "kty": key["kty"],
+                "kid": key["kid"],
+                "use": key["use"],
+                "n": key["n"],
+                "e": key["e"]
+            }
+    if rsa_key:
+        try:
+            payload = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=ALGORITHMS,
+                audience=API_AUDIENCE,
+                issuer="https://"+AUTH0_DOMAIN+"/"
+            )
+        except Exception as e:
+            if str(e) == 'Signature has expired.':
+                raise AuthError({"code": "token_expired",
+                                 "description": "token is expired"}, 401)
+            elif str(e) == 'Invalid audience':
+                raise AuthError({"code": "token_invalid",
+                                 "description": "Wrong audience"}, 401)
+
+            else:
+                print('SOMETHING WENT WRONG', e)
+                raise Exception('Failed')
+
+        _request_ctx_stack.top.current_user = payload
+        return payload
+
+    raise AuthError({"code": "invalid_header",
+                     "description": "Unable to find appropriate key"}, 401)
 
 
 '''
@@ -94,18 +141,19 @@ def verify_decode_jwt(token):
 
 def requires_auth(permission=''):
     def requires_auth_decorator(f):
-        @wraps(f)
+        @ wraps(f)
         def wrapper(*args, **kwargs):
             try:
                 token = get_token_auth_header()
                 payload = verify_decode_jwt(token)
+                print('got payload successfully')
                 check_permissions(permission, payload)
                 return f(payload, *args, **kwargs)
             except Exception as e:
                 if str(e) == 'Not Implemented':
-                    return token
+                    return payload
 
-                return 'Auth failed. Please login'
+                return str(e)
 
         return wrapper
     return requires_auth_decorator
