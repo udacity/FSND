@@ -226,10 +226,10 @@
 									"pm.test(\"Status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Body returns Auth failed\", function () {\r",
-									"    pm.response.to.have.body('Auth failed. Please login');\r",
-									"});\r",
-									""
+									"\r",
+									"pm.test(\"Body matches 403 error code\", function () {\r",
+									"    pm.expect(pm.response.text()).to.include(\"403\");\r",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -313,6 +313,11 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"value contains drinks array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.drinks).to.be.an('array')",
 									"});"
 								],
 								"type": "text/javascript"
