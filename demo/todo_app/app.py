@@ -35,7 +35,7 @@ def index():
             {'description': 'Todo 3'},
             {'description': 'Todo 4'}
             ]
-    return render_template('index.html', data=data)
+    return render_template('index.html', data=Todo.query.all())
 
 if __name__ == '__main__':
     app.run()
