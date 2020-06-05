@@ -1,7 +1,7 @@
 import json
-from flask import request, _request_ctx_stack
+from flask import request, _request_ctx_stack, abort
 from functools import wraps
-from jose import jwt
+from jose import jwt, exceptions
 from urllib.request import urlopen
 import traceback
 
@@ -42,10 +42,12 @@ class AuthError(Exception):
 def get_token_auth_header():
     auth_header = request.headers.get('Authorization')
     if not auth_header:
-        raise AuthError("Malformed - Authorization header", 403)
+        raise AuthError({"code": "invalid_header",
+                                 "description": "header malformed"}, 401)
     token = auth_header.split(" ")[1]
     if not token:
-        raise AuthError("Malformed - Authorization token", 403)
+        raise AuthError({"code": "invalid_header",
+                                 "description": "token missing"}, 401)
     return token
 
 
@@ -93,8 +95,12 @@ def verify_decode_jwt(token):
     jwks = json.loads(jsonurl.read())
 
     # Store header from user token for later use
-    unverified_header = jwt.get_unverified_header(token)
-
+    try:
+        unverified_header = jwt.get_unverified_header(token)
+    except exceptions.JWTError as e:
+        auth_error = AuthError({"code": "invalid_header",
+                                "description": "Not enough segments"}, 401)
+        abort(401, description=auth_error)
     # compare key id from user token to auth0's JWKS
     rsa_key = {}
     for key in jwks["keys"]:
@@ -116,10 +122,10 @@ def verify_decode_jwt(token):
                 issuer="https://"+AUTH0_DOMAIN+"/"
             )
         except Exception as e:
-            if str(e) == 'Signature has expired.':
+            if e.error == 'Signature has expired.':
                 raise AuthError({"code": "token_expired",
                                  "description": "token is expired"}, 401)
-            elif str(e) == 'Invalid audience':
+            elif e.error == 'Invalid audience':
                 raise AuthError({"code": "token_invalid",
                                  "description": "Wrong audience"}, 401)
 
@@ -156,9 +162,11 @@ def requires_auth(permission=''):
                 check_permissions(permission, payload)
                 return f(payload, *args, **kwargs)
             except Exception as e:
-                print(e)
                 print(traceback.print_exc())
-                return str(e)
+                if hasattr(e, 'status_code'):
+                    abort(e.status_code, description=e.error)
+                else:
+                    raise Exception(e)
 
         return wrapper
     return requires_auth_decorator
