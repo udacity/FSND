@@ -25,9 +25,15 @@ def create_app(test_config=None):
 
     # ROUTES
     @app.route('/')
-    @requires_auth('get:drinks-detail')
+    @requires_auth('get:drinks-detail')  # no public endpoint
     def index(payload):
         return 'Permission granted'
+
+    @app.route('/drinks')
+    def get_drinks():
+        drinks = [drink.short() for drink in db.session.query(Drink).all()]
+
+        return {"success": True, "drinks": drinks}
     return app
 
 
