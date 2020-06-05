@@ -129,17 +129,13 @@ def venues():
         newcity['venues'].append({
           'id' : venue.id,
           'name' : venue.name,
-          "num_upcoming_shows": 2,
+          "num_upcoming_shows": len(venue.shows),
         })
       data.append(newcity)
       newcity = {}
-  except Exception as error:
-    print(error)
-    data=[{
-    "city": "test1",
-    "state": "test2",
-    "venues": []
-    }]
+  except:
+    flash('Could not fetch Venues data!')
+    raise Exception(f'Venues: {venue.name}')
   finally:
     return render_template('pages/venues.html', areas=data)
 
@@ -160,8 +156,7 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
+  """ Renders the detailed page of a given Venue specified by venue_id """
   venue = Venue.query.filter_by(id=venue_id).first()
   
   # Selecting and sorting shows in the Venue
@@ -262,21 +257,27 @@ def show_venue(venue_id):
 
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
+  """ Renders venue insertion form in new_venue.html """
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
+  """ Insert new_venue.html form data into the database
+  
+  Input:
+  -- request.form: transmitted throguh POST methods, fields according to Venue DB Model
+  """
   data = Venue(
-    name=request.form['name'],
-    city=request.form['city'],
-    state=request.form['state'],
-    address=request.form['address'],
-    phone=request.form['phone'],
-    facebook_link=request.form['facebook_link'],
-    genres=';'.join(request.form.getlist('genres'))
-  )  # TODO: modify data to be the data object returned from db insertion
+    name = request.form['name'],
+    city = request.form['city'],
+    state = request.form['state'],
+    address = request.form['address'],
+    phone = request.form['phone'],
+    facebook_link = request.form['facebook_link'],
+    image_link = request.form['image_link'],
+    genres = ';'.join(request.form.getlist('genres'))
+  )
 
   try:
     db.session.add(data)
@@ -290,11 +291,7 @@ def create_venue_submission():
 
   finally:
     return render_template('pages/home.html')
-  
-  # on successful db insert, flash success
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -445,29 +442,54 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
+  """ Renders the edit_venue.html page, populates the FORM with existing data from the db 
+  specified by venue_id """
+  data = Venue.query.filter_by(id=venue_id).first()
+  
+  # Good practice to set Selectfield elements before Form rendering rather than in Jinja 
+  form = VenueForm(state=data.state, genres=data.genres.split(';'))
+
   venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
+    "id": data.id,
+    "name": data.name,
+    "genres": data.genres.split(';'),
+    "address": data.address,
+    "city": data.city,
+    "state": data.state,
+    "phone": data.phone,
+    "website": data.website,
+    "facebook_link": data.facebook_link,
+    "seeking_talent": data.seeking_talent,
+    "seeking_description": data.seeking_description,
+    "image_link": data.image_link
   }
-  # TODO: populate form with values from venue with ID <venue_id>
+
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
-  return redirect(url_for('show_venue', venue_id=venue_id))
+  """ Receives venue data from edit_venue.html, updates selected venue by venue_id with data """
+
+  if Venue.query.filter_by(id=venue_id).first():
+    venue = Venue.query.filter_by(id=venue_id).first()
+    
+    venue.name = request.form['name'],
+    venue.city = request.form['city'],
+    venue.state = request.form['state'],
+    venue.address = request.form['address'],
+    venue.phone = request.form['phone'],
+    venue.facebook_link = request.form['facebook_link'],
+    venue.image_link = request.form['image_link'],
+    venue.genres = ';'.join(request.form.getlist('genres'))
+    
+    try:
+      db.session.commit()
+      flash(f'You succesfully updated the {oldVenue.name} venue.')
+    except:
+      db.session.rollback()
+      flash(f'Your modifications to {oldVenue.name} venue were not saved!')
+    finally:
+      return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
