@@ -52,6 +52,26 @@ def create_app(test_config=None):
         returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
             or appropriate status code indicating reason for failure
     '''
+    @app.route('/drinks-detail')
+    @requires_auth('get:drinks-detail')
+    def get_drinks_detail(payload):
+        drinks = [drink.long() for drink in db.session.query(Drink).all()]
+
+        return {'success': True, 'drinks': drinks}
+
+    '''
+    @TODO implement error handler for AuthError
+        error handler should conform to general task above 
+    '''
+    @app.errorhandler(401)
+    def unauthorized(error):
+        return {
+            "success": False,
+            "error": 401,
+            "message": "unauthorized",
+            "error_type": error.description['code'],
+            "additional_info": error.description['description']
+        }, 401
     return app
 
 
@@ -122,11 +142,5 @@ Example error handling for unprocessable entity
 
 '''
 @TODO implement error handler for 404
-    error handler should conform to general task above 
-'''
-
-
-'''
-@TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
