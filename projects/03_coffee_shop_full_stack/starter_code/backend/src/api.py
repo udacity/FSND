@@ -29,34 +29,33 @@ def create_app(test_config=None):
     def index(payload):
         return 'Permission granted'
 
+    '''
+    @TODO implement endpoint
+        GET /drinks
+            it should be a public endpoint
+            it should contain only the drink.short() data representation
+        returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+            or appropriate status code indicating reason for failure
+    '''
     @app.route('/drinks')
     def get_drinks():
         drinks = [drink.short() for drink in db.session.query(Drink).all()]
 
+        # Newer version of Flask can return dicts with a 200 status code
         return {"success": True, "drinks": drinks}
+
+    '''
+    @TODO implement endpoint
+        GET /drinks-detail
+            it should require the 'get:drinks-detail' permission
+            it should contain the drink.long() data representation
+        returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+            or appropriate status code indicating reason for failure
+    '''
     return app
 
 
 # ROUTES
-
-'''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
-
-
-'''
-@TODO implement endpoint
-    GET /drinks-detail
-        it should require the 'get:drinks-detail' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
 
 
 '''
