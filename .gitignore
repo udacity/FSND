@@ -1,6 +1,7 @@
 .vscode
 __pycache__
 venv
+.idea
 
 # OS generated files #
 ######################
