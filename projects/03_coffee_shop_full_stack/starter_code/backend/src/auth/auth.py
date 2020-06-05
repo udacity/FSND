@@ -122,10 +122,10 @@ def verify_decode_jwt(token):
                 issuer="https://"+AUTH0_DOMAIN+"/"
             )
         except Exception as e:
-            if str(e) == 'Signature has expired.':
+            if e.error == 'Signature has expired.':
                 raise AuthError({"code": "token_expired",
                                  "description": "token is expired"}, 401)
-            elif str(e) == 'Invalid audience':
+            elif e.error == 'Invalid audience':
                 raise AuthError({"code": "token_invalid",
                                  "description": "Wrong audience"}, 401)
 
