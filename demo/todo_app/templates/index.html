@@ -1,24 +1,56 @@
 <html>
 	<head>
 		<title> Todo App </title>
+		<style>
+			.hidden {
+				display: none;
+			}
+		</style>
 	</head>
 	<body>
-		<form action="/create" method="post">
+		<form id="form">
 			<div>
 				<label for="name">Create a Todo Item:</label>
 				<input type="text" id="description" name="description">
 			</div>
 			<div>
-				<input type="submit" id="submit" value="Create"/>
+				<input type="submit" value="Create"/>
 			</div>
 		</form>
+		<div id='error' class="hidden"> Something Went Wrong</div>
 		<h2>Todos:</h2>
-		<ul>
+		<ul id="todos">
 			{% for item in data %}
 				<li>{{ item.description }} </li>
 			{% endfor %}
 		</ul>
-
-
 	</body>
+
+	<script>
+		document.getElementById('form').onsubmit = function(e) {
+		e.preventDefault();
+		fetch('/create', {
+			method: 'POST',
+			body: JSON.stringify({
+				'description': document.getElementById('description').value
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+					}
+				})
+				.then(function(response) {
+					return response.json()
+				})
+				.then(function(jsonResponse) {
+					console.log(jsonResponse);
+					const liItem = document.createElement('LI');
+					liItem.innerHTML = jsonResponse['description'];
+					document.getElementById('todos').appendChild(liItem);
+					document.getElementById('error').className = 'hidden';
+				})
+				.catch(function() {
+					document.getElementById('error').className = '';
+				})
+		}
+	</script>
 </html>
