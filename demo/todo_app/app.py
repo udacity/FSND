@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 
 # Get password from outside of repo  
@@ -57,6 +57,8 @@ def create_todo():
         db.session.close()
     if not error:
         return jsonify(body)
+    else
+        return abort(400)
 
 
 if __name__ == '__main__':
