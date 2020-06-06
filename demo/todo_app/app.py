@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 # Get password from outside of repo  
@@ -16,6 +16,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://frank:{}@localhost:5432/le
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
 # model definition
 class Todo(db.Model):
     __tablename__ = 'todos'
@@ -25,18 +26,25 @@ class Todo(db.Model):
     def __repr__(self):
         return f'<Todo {self.id} {self.description}'
 
+
 db.create_all()
+
 
 # routes
 @app.route('/')
 def index():
-    data = [
-            {'description': 'Todo 1'},
-            {'description': 'Todo 2'},
-            {'description': 'Todo 3'},
-            {'description': 'Todo 4'}
-            ]
     return render_template('index.html', data=Todo.query.all())
+
+
+@app.route('/create', methods=['POST'])
+def create_todo():
+    description = request.form.get('description')
+    if description:
+        new_todo = Todo(description=description)
+        db.session.add(new_todo)
+        db.session.commit()
+    return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     app.run()

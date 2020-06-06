@@ -3,10 +3,22 @@
 		<title> Todo App </title>
 	</head>
 	<body>
+		<form action="/create" method="post">
+			<div>
+				<label for="name">Create a Todo Item:</label>
+				<input type="text" id="description" name="description">
+			</div>
+			<div>
+				<input type="submit" id="submit" value="Create"/>
+			</div>
+		</form>
+		<h2>Todos:</h2>
 		<ul>
 			{% for item in data %}
 				<li>{{ item.description }} </li>
 			{% endfor %}
 		</ul>
+
+
 	</body>
 </html>
