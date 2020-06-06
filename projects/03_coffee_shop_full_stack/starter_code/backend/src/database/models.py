@@ -58,13 +58,12 @@ class Drink(db.Model):
     '''
 
     def short(self):
-        print(json.loads(self.recipe))
-        short_recipe = [{'color': r['color'], 'parts': r['parts']}
-                        for r in json.loads(self.recipe)]
+        # string of json with escaped quotes needs to be loaded twice to obtain dict
+        recipe_json = json.loads(json.loads(self.recipe))
         return {
             'id': self.id,
             'title': self.title,
-            'recipe': short_recipe
+            'recipe': recipe_json
         }
 
     '''
@@ -73,10 +72,12 @@ class Drink(db.Model):
     '''
 
     def long(self):
+        # string of json with escaped quotes needs to be loaded twice to obtain dict
+        recipe_json = json.loads(json.loads(self.recipe))
         return {
             'id': self.id,
             'title': self.title,
-            'recipe': json.loads(self.recipe)
+            'recipe': recipe_json
         }
 
     '''
