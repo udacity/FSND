@@ -1,7 +1,8 @@
 import json
 from flask import request, _request_ctx_stack, abort
 from functools import wraps
-from jose import jwt, exceptions
+from jose import jwt
+from jose.exceptions import ExpiredSignatureError
 from urllib.request import urlopen
 import traceback
 
@@ -9,6 +10,11 @@ import traceback
 AUTH0_DOMAIN = 'p6l-richard.eu.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'https://127.0.0.1/api'
+# Logout:
+#   GET https://p6l-richard.eu.auth0.com/v2/logout?client_id=YOUR_CLIENT_ID&returnTo=https://127.0.0.1:5000/logout
+# Login:
+#     https://p6l-richard.eu.auth0.com/authorize?response_type=token&client_id=YOUR_CLIENT_ID&redirect_uri=https://127.0.0.1:5000/login-results&audience=https://127.0.0.1/api
+
 # Authorize User:
 #   POST https://p6l-richard.eu.auth0.com/authorize?response_type=token&client_id=<INSERT_CLIENT_ID>&redirect_uri=https://127.0.0.1:5000/login-results&audience=https://127.0.0.1/api
 # Exchange auth code for token:
@@ -121,17 +127,13 @@ def verify_decode_jwt(token):
                 audience=API_AUDIENCE,
                 issuer="https://"+AUTH0_DOMAIN+"/"
             )
+        except ExpiredSignatureError as e:
+            raise AuthError({"code": "token_expired",
+                             "description": "token is expired"}, 401)
         except Exception as e:
-            if e.error == 'Signature has expired.':
-                raise AuthError({"code": "token_expired",
-                                 "description": "token is expired"}, 401)
-            elif e.error == 'Invalid audience':
-                raise AuthError({"code": "token_invalid",
-                                 "description": "Wrong audience"}, 401)
-
-            else:
-                print('SOMETHING WENT WRONG', e)
-                raise Exception('Failed')
+            print('SOMETHING WENT WRONG', e)
+            print(traceback.print_exc())
+            raise Exception('Failed')
 
         _request_ctx_stack.top.current_user = payload
         return payload
@@ -166,7 +168,8 @@ def requires_auth(permission=''):
                 if hasattr(e, 'status_code'):
                     abort(e.status_code, description=e.error)
                 else:
-                    raise Exception(e)
+                    print('!!!!!CHECK ME!!!!', type(e), vars(e), e)
+                    raise AuthError(e, status_code=401)
 
         return wrapper
     return requires_auth_decorator
