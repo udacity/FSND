@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from .database.models import db, db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
+import traceback
 
 
 def create_app(test_config=None):
@@ -58,6 +59,71 @@ def create_app(test_config=None):
         drinks = [drink.long() for drink in db.session.query(Drink).all()]
 
         return {'success': True, 'drinks': drinks}
+    '''
+    @TODO implement endpoint
+        POST /drinks
+            it should create a new row in the drinks table
+            it should require the 'post:drinks' permission
+            it should contain the drink.long() data representation
+        returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
+            or appropriate status code indicating reason for failure
+
+        accepts as input:
+            {
+                "title": "Water3",
+                "recipe": {
+                    "name": "Water",
+                    "color": "blue",
+                    "parts": 1
+            }
+}
+    '''
+    @app.route('/drinks', methods=['POST'])
+    @requires_auth('post:drinks')
+    def post_drink(payload):
+        data = request.get_json()
+        if isinstance(data, str):  # ensure data is object of type dict
+            data = json.loads(data)
+        print(type(data), data)
+
+        # Verify format & validity of request body to return helpful error codes to users
+        if len(data.keys()) > 2:
+            abort(400, description={'code': 'malformatted',
+                                    'description': 'Too many keys in JSON body.'})
+        if len(data.keys()) < 2:
+            abort(400, description={'code': 'malformatted',
+                                    'description': 'Too few keys in JSON body.'})
+        if not all(req_attribute in data
+                   for req_attribute in ['title', 'recipe']):
+            abort(400, description={'code': 'missing_required_attribute',
+                                    'description': 'A required key was missing in JSON body.'})
+
+        # Verify if new entry, to protect data hygiene
+        duplicates_result = Drink.query.filter(
+            Drink.title.ilike(data['title'].lower())).all()
+        if len(duplicates_result) > 0:
+            abort(
+                402,
+                description={'code': 'duplicate_insertion',
+                             'description': 'An entry was already present.'})
+
+        try:
+            # wrap dict into list as supported type of recipe col
+            print(data['recipe'])
+            data['recipe'] = json.dumps([data['recipe']])
+            new_drink = Drink(
+                title=data['title'],
+                recipe=json.dumps(data['recipe']))
+            db.session.add(new_drink)
+            drinks = [drink.long() for drink in db.session.query(Drink).all()]
+            print('OKAY; NOW RESPONDIN')
+            return {'success': True, 'new_drink': new_drink.short(), 'drinks': drinks}
+        except Exception as e:
+            db.session.rollback()
+            print('rolled back because of error:', e)
+            print(traceback.print_exc())
+        finally:
+            db.session.close()
 
     '''
     @TODO implement error handler for AuthError
@@ -76,17 +142,6 @@ def create_app(test_config=None):
 
 
 # ROUTES
-
-
-'''
-@TODO implement endpoint
-    POST /drinks
-        it should create a new row in the drinks table
-        it should require the 'post:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-        or appropriate status code indicating reason for failure
-'''
 
 
 '''
