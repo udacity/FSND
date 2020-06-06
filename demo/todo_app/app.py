@@ -39,12 +39,14 @@ def index():
 @app.route('/create', methods=['POST'])
 def create_todo():
     error = False
+    body = {}
     try:
         description = request.get_json().get('description')
         if description:
             new_todo = Todo(description=description)
             db.session.add(new_todo)
             db.session.commit()
+            body['description'] = new_todo.description
         else:
             error = True
     except:
@@ -53,11 +55,8 @@ def create_todo():
         print(sys.exec_info())
     finally:
         db.session.close()
-
     if not error:
-        return jsonify({
-            'description': new_todo.description
-        })
+        return jsonify(body)
 
 
 if __name__ == '__main__':
