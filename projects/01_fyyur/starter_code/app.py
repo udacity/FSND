@@ -353,7 +353,8 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-  # shows the venue page with the given venue_id
+  """ Renders the detailed page of a specific artist with artist_id """
+
   # TODO: replace with real venue data from the venues table, using venue_id
 
   artist = Artist.query.filter_by(id = artist_id).first()
@@ -628,15 +629,27 @@ def create_shows():
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
-  # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
+  """ Creates a show by linking Artist - Venue in an Association Object """
 
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Show could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+  venue = Venue.query.filter_by(id=request.form['venue_id']).first()
+  show = Show(
+    venue_id = request.form['venue_id'],
+    artist_id = request.form['artist_id'],
+    start_time = request.form['start_time']
+  )
+
+  try:
+    venue.shows.append(show)
+    db.session.commit()
+    flash('Show was successfully listed!')
+  except Exception as e:
+    if app.debug:
+      raise(e,' in Create Shows')
+      
+    db.rollback()
+    flash('Could not list show!')
+  finally:
+    return render_template('pages/home.html')
 
 @app.errorhandler(404)
 def not_found_error(error):
