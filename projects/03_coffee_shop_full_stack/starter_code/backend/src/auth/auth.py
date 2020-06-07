@@ -3,6 +3,7 @@ from flask import request, _request_ctx_stack, abort
 from functools import wraps
 from jose import jwt
 from jose.exceptions import ExpiredSignatureError
+from werkzeug.exceptions import NotFound
 from urllib.request import urlopen
 import traceback
 
@@ -13,7 +14,7 @@ API_AUDIENCE = 'https://127.0.0.1/api'
 # Logout:
 #   GET https://p6l-richard.eu.auth0.com/v2/logout?client_id=YOUR_CLIENT_ID&returnTo=https://127.0.0.1:5000/logout
 # Login:
-#     https://p6l-richard.eu.auth0.com/authorize?response_type=token&client_id=YOUR_CLIENT_ID&redirect_uri=https://127.0.0.1:5000/login-results&audience=https://127.0.0.1/api
+#   GET https://p6l-richard.eu.auth0.com/authorize?response_type=token&client_id=YOUR_CLIENT_ID&redirect_uri=https://127.0.0.1:5000/login-results&audience=https://127.0.0.1/api
 
 # Authorize User:
 #   POST https://p6l-richard.eu.auth0.com/authorize?response_type=token&client_id=<INSERT_CLIENT_ID>&redirect_uri=https://127.0.0.1:5000/login-results&audience=https://127.0.0.1/api
@@ -163,12 +164,15 @@ def requires_auth(permission=''):
                 payload = verify_decode_jwt(token)
                 check_permissions(permission, payload)
                 return f(payload, *args, **kwargs)
+            except NotFound as e:
+                print(traceback.print_exc())
+                abort(404)
             except Exception as e:
                 print(traceback.print_exc())
                 if hasattr(e, 'status_code'):
                     abort(e.status_code, description=e.error)
                 else:
-                    print('!!!!!CHECK ME!!!!', type(e), vars(e), e)
+                    print('!!!!!CHECK ME!!!!', type(e), vars(e), e, e.code)
                     raise AuthError(e, status_code=401)
 
         return wrapper
