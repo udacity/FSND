@@ -554,7 +554,10 @@ def create_artist_submission():
     phone = request.form['phone'],
     image_link = request.form['image_link'],
     facebook_link = request.form['facebook_link'],
-    genres = ';'.join(request.form.getlist('genres'))
+    website = request.form['website'],
+    genres = ';'.join(request.form.getlist('genres')),
+    seeking_venue = bool(request.form['seeking_venue']),
+    seeking_description = request.form['seeking_description']
   )
 
   try:
@@ -563,7 +566,8 @@ def create_artist_submission():
     data = db.session.query(Venue).order_by(Venue.id.desc()).first()
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
 
-  except:
+  except Exception as e:
+    print(e)
     db.rollback()
     flash('An error occurred. Artist ' + data.name + ' could not be listed.')
 
