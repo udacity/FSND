@@ -619,7 +619,12 @@
 									"pm.test(\"value contains drinks array\", function () {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData.drinks).to.be.an('array')",
-									"});"
+									"});",
+									"",
+									"pm.test(\"new_drink attribute equals `Water3`\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.new_drink).equals('Water3')",
+									"})"
 								],
 								"type": "text/javascript"
 							}
@@ -676,6 +681,10 @@
 									"pm.test(\"value contains drinks array\", function () {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData.drinks).to.be.an('array')",
+									"});",
+									"pm.test(\"value contains updated array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.updated).to.be.an('array')",
 									"});"
 								],
 								"type": "text/javascript"
