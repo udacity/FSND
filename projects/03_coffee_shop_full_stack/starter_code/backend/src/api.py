@@ -84,7 +84,6 @@ def create_app(test_config=None):
         data = request.get_json()
         if isinstance(data, str):  # ensure data is object of type dict
             data = json.loads(data)
-        print(type(data), data)
 
         # Verify format & validity of request body to return helpful error codes to users
         if len(data.keys()) > 2:
@@ -109,27 +108,69 @@ def create_app(test_config=None):
 
         try:
             # wrap dict into list as supported type of recipe col
-            print(data['recipe'])
             data['recipe'] = json.dumps([data['recipe']])
             new_drink = Drink(
                 title=data['title'],
                 recipe=json.dumps(data['recipe']))
-            db.session.add(new_drink)
+            new_drink.insert()
             drinks = [drink.long() for drink in db.session.query(Drink).all()]
-            print('OKAY; NOW RESPONDIN')
-            return {'success': True, 'new_drink': new_drink.short(), 'drinks': drinks}
+            added = db.session.query(Drink).filter_by(
+                title=data['title']).first()
+            return {'success': True, 'new_drink': added.short(), 'drinks': drinks}
         except Exception as e:
             db.session.rollback()
             print('rolled back because of error:', e)
             print(traceback.print_exc())
         finally:
             db.session.close()
+    '''
+    @TODO implement endpoint
+        PATCH /drinks/<id>
+            where <id> is the existing model id
+            it should respond with a 404 error if <id> is not found
+            it should update the corresponding row for <id>
+            it should require the 'patch:drinks' permission
+            it should contain the drink.long() data representation
+        returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
+            or appropriate status code indicating reason for failure
+    '''
+    @app.route('/drinks/<drink_id>', methods=['PATCH'])
+    @requires_auth('patch:drinks')
+    def update_drink(payload, drink_id):
+        # Parse data from JSON body
+        data = request.get_json()
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        # Verify if request formatted well
+        if not data:
+            abort(400)
+        # Verify if resource's present
+        update_drink = db.session.query(Drink).get(drink_id)
+        if update_drink is None:
+            abort(404)
+        # Update drink dynamically to allow JSON body to have multiple keys
+        for key in data.keys():
+            try:
+                setattr(update_drink, key, data[key])
+                db.session.commit()
+                drinks = [drink.long()
+                          for drink in db.session.query(Drink).all()]
+                return {'success': True, 'updated': update_drink.short(), 'drinks': drinks}
+            except Exception as e:
+                print('Could not update', key)
+                db.session.rollback()
+                print('Rolled back db session')
+                print(traceback.print_exc())
+                abort(400)
+            finally:
+                db.session.close()
 
     '''
     @TODO implement error handler for AuthError
-        error handler should conform to general task above 
+        error handler should conform to general task above
     '''
-    @app.errorhandler(401)
+    @ app.errorhandler(401)
     def unauthorized(error):
         return {
             "success": False,
@@ -142,19 +183,6 @@ def create_app(test_config=None):
 
 
 # ROUTES
-
-
-'''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
-'''
 
 
 '''
@@ -188,7 +216,7 @@ Example error handling for unprocessable entity
 @TODO implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
              jsonify({
-                    "success": False, 
+                    "success": False,
                     "error": 404,
                     "message": "resource not found"
                     }), 404
@@ -197,5 +225,5 @@ Example error handling for unprocessable entity
 
 '''
 @TODO implement error handler for 404
-    error handler should conform to general task above 
+    error handler should conform to general task above
 '''
