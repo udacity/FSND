@@ -42,8 +42,22 @@
       </div>
       <div class="form-group">
         <input type="submit" value="Edit Venue" class="btn btn-primary btn-lg">
-        <a href="/venues/create"><button class="btn btn-default btn-lg">Delete Venue</button></a>
+        <button data-id="{{ venue.id }}" id="btn-delete" class="btn btn-default btn-lg">Delete Venue</button>
       </div>
     </form>
   </div>
+  <script>
+    document.getElementById('btn-delete').onclick = function(e){
+      e.preventDefault()
+      const venueId = e.target.dataset['id'];
+      fetch('/venues/' + venueId, {
+        method: 'DELETE'
+      })
+      .then(function (response) {
+        if (response.status == 200) {
+          window.location.href = response.url;
+        }
+      })
+    };
+  </script>
 {% endblock %}

@@ -6,7 +6,7 @@ import json
 import dateutil.parser
 import babel
 from datetime import datetime
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -157,9 +157,10 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   """ Renders the detailed page of a given Venue specified by venue_id """
+  # Select Venue based on venue_id
   venue = Venue.query.filter_by(id=venue_id).first()
   
-  # Selecting and sorting shows in the Venue
+  # Select and sort shows in the Venue
   now = datetime.now()
   past_shows = []
   upcoming_shows = []
@@ -195,6 +196,9 @@ def show_venue(venue_id):
     "past_shows_count": len(past_shows),
     "upcoming_shows_count": len(upcoming_shows),
   }
+
+  return render_template('pages/show_venue.html', venue=data)
+  
   # data2={
   #   "id": 2,
   #   "name": "The Dueling Pianos Bar",
@@ -250,7 +254,6 @@ def show_venue(venue_id):
   #   "upcoming_shows_count": 1,
   # }
 
-  return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -285,7 +288,7 @@ def create_venue_submission():
     data = db.session.query(Venue).order_by(Venue.id.desc()).first()
     flash('Venue ' + data.name + ' was successfully listed!')
 
-  except Exception as e:
+  except:
     db.rollback()
     flash('An error occurred. Venue ' + data.name + ' could not be listed.')
 
@@ -293,14 +296,24 @@ def create_venue_submission():
     return render_template('pages/home.html')
 
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<int:venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  """ Deletes selected venue by venue_id """
+  flash_message = ''
+  try:
+    name = Venue.query.filter_by(id=venue_id).first().name
+    Venue.query.filter_by(id=venue_id).delete()
+    db.session.commit()
+    flash_message = f'You deleted the { name } venue.'
+  except:
+    db.session.rollback()
+    flash_message = f'Could not delete { name } venue.'
+  finally:
+    # known bug; flashing doesn't show after javascript redirect
+    flash(flash_message)
 
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+    # returns a redirect to venues; javascript would reload the same page after delition
+    return redirect(url_for('venues'), code=303)
 
 #  Artists
 #  ----------------------------------------------------------------
