@@ -623,7 +623,7 @@
 									"",
 									"pm.test(\"new_drink attribute equals `Water3`\", function() {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.new_drink).equals('Water3')",
+									"    pm.expect(jsonData.new_drink.title).equals('Water3')",
 									"})"
 								],
 								"type": "text/javascript"
@@ -682,9 +682,9 @@
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData.drinks).to.be.an('array')",
 									"});",
-									"pm.test(\"value contains updated array\", function () {",
+									"pm.test(\"value contains updated object\", function () {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.updated).to.be.an('array')",
+									"    pm.expect(jsonData.updated).to.be.an('object')",
 									"});"
 								],
 								"type": "text/javascript"
@@ -738,7 +738,12 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
-									"});"
+									"});",
+									"",
+									"pm.test(\"response body to contains a `deleted` object\", function(){",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody.deleted).to.be.an(\"object\")",
+									"})"
 								],
 								"type": "text/javascript"
 							}
