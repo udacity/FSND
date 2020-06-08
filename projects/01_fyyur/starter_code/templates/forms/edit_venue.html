@@ -41,6 +41,17 @@
         {{ form.image_link(class_ = 'form-control', placeholder='http://', autofocus = true, value=venue.image_link) }}
       </div>
       <div class="form-group">
+        <label>Seeking Talent</label>
+        <div class="form-inline">
+            <div class="form-group">
+              {{ form.seeking_talent(class_ = 'form-control', autofocus = true)}}
+            </div>
+            <div class="form-group">
+              {{ form.seeking_description(class_ = 'form-control', autofocus = true, value=venue.seeking_description)}}
+            </div>
+        </div>
+      </div>
+      <div class="form-group">
         <input type="submit" value="Edit Venue" class="btn btn-primary btn-lg">
         <button data-id="{{ venue.id }}" id="btn-delete" class="btn btn-default btn-lg">Delete Venue</button>
       </div>

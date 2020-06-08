@@ -232,7 +232,9 @@ def create_venue_submission():
     phone = request.form['phone'],
     facebook_link = request.form['facebook_link'],
     image_link = request.form['image_link'],
-    genres = ';'.join(request.form.getlist('genres'))
+    genres = ';'.join(request.form.getlist('genres')),
+    seeking_talent = request.form['seeking_talent'],
+    seeking_description = request.form['seeking_description']
   )
 
   try:
@@ -368,8 +370,6 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
@@ -380,7 +380,7 @@ def edit_venue(venue_id):
   data = Venue.query.filter_by(id=venue_id).first()
   
   # Good practice to set Selectfield elements before Form rendering rather than in Jinja 
-  form = VenueForm(state=data.state, genres=data.genres.split(';'))
+  form = VenueForm(state=data.state, genres=data.genres.split(';'), seeking_talent=int(data.seeking_talent))
 
   venue={
     "id": data.id,
@@ -392,7 +392,6 @@ def edit_venue(venue_id):
     "phone": data.phone,
     "website": data.website,
     "facebook_link": data.facebook_link,
-    "seeking_talent": data.seeking_talent,
     "seeking_description": data.seeking_description,
     "image_link": data.image_link
   }
@@ -406,21 +405,24 @@ def edit_venue_submission(venue_id):
   if Venue.query.filter_by(id=venue_id).first():
     venue = Venue.query.filter_by(id=venue_id).first()
     
-    venue.name = request.form['name'],
-    venue.city = request.form['city'],
-    venue.state = request.form['state'],
-    venue.address = request.form['address'],
-    venue.phone = request.form['phone'],
-    venue.facebook_link = request.form['facebook_link'],
-    venue.image_link = request.form['image_link'],
+    venue.name = request.form['name']
+    venue.city = request.form['city']
+    venue.state = request.form['state']
+    venue.address = request.form['address']
+    venue.phone = request.form['phone']
+    venue.facebook_link = request.form['facebook_link']
+    venue.image_link = request.form['image_link']
     venue.genres = ';'.join(request.form.getlist('genres'))
+    venue.seeking_talent = bool(int(request.form['seeking_talent']))
+    venue.seeking_description = request.form['seeking_description']
     
     try:
       db.session.commit()
-      flash(f'You succesfully updated the {oldVenue.name} venue.')
-    except:
+      flash(f'You succesfully updated the {venue.name} venue.')
+    except Exception as e:
+      print(e)
       db.session.rollback()
-      flash(f'Your modifications to {oldVenue.name} venue were not saved!')
+      flash(f'Your modifications to {venue.name} venue were not saved!')
     finally:
       return redirect(url_for('show_venue', venue_id=venue_id))
 
@@ -448,7 +450,7 @@ def create_artist_submission():
     facebook_link = request.form['facebook_link'],
     website = request.form['website'],
     genres = ';'.join(request.form.getlist('genres')),
-    seeking_venue = bool(request.form['seeking_venue']),
+    seeking_venue = bool(int(request.form['seeking_venue'])),
     seeking_description = request.form['seeking_description']
   )
 
