@@ -134,7 +134,7 @@ def create_app(test_config=None):
         returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
             or appropriate status code indicating reason for failure
     '''
-    @app.route('/drinks/<drink_id>', methods=['PATCH'])
+    @app.route('/drinks/<int:drink_id>', methods=['PATCH'])
     @requires_auth('patch:drinks')
     def update_drink(payload, drink_id):
         # Parse data from JSON body
