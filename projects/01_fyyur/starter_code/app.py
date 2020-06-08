@@ -68,8 +68,6 @@ class Venue(db.Model):
     
     shows = db.relationship('Show', back_populates='venue')
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
     def __repr__(self):
       return f'<{self.name} in {self.city}, {self.state}>'
 
@@ -89,8 +87,6 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String(500))
 
     shows = db.relationship('Show', back_populates='artist')
-
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
     def __repr__(self):
       return f'<Artist: {self.name} in {self.city}>'
@@ -152,18 +148,22 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+  search = request.form.get('search_term', '')
+  venues = Venue.query.filter(Venue.name.ilike(f'%{search}%')).all()
+
+  data = []
+  for venue in venues:
+    data.append({
+      "id": venue.id,
+      "name": venue.name,
+      "num_upcoming_shows": len([show for show in venue.shows if show.start_time > datetime.now()]),
+    })
+
   response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+    "count": len(venues),
+    "data": data,
   }
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+  return render_template('pages/search_venues.html', results=response, search_term=search)
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -291,18 +291,22 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-  # search for "band" should return "The Wild Sax Band".
+  search = request.form.get('search_term', '')
+  artists = Artist.query.filter(Artist.name.ilike(f'%{search}%')).all()
+
+  data = []
+  for artist in artists:
+    data.append({
+      "id": artist.id,
+      "name": artist.name,
+      "num_upcoming_shows": len([show for show in artist.shows if show.start_time > datetime.now()]),
+    })
+
   response={
-    "count": 1,
-    "data": [{
-      "id": 4,
-      "name": "Guns N Petals",
-      "num_upcoming_shows": 0,
-    }]
+    "count": len(artists),
+    "data": data,
   }
-  return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+  return render_template('pages/search_artists.html', results=response, search_term=search)
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
@@ -351,27 +355,45 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
+  data = Artist.query.filter_by(id=artist_id).first()
+  form = ArtistForm(state=data.state, genres=data.genres.split(';'), seeking_venue=int(data.seeking_venue))
   artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
+    "id": data.id,
+    "name": data.name,
+    "genres": data.genres.split(';'),
+    "city": data.city,
+    "phone": data.phone,
+    "website": data.website,
+    "facebook_link": data.facebook_link,
+    "image_link": data.image_link,
+    "seeking_description": data.seeking_description,
   }
-  # TODO: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
+  artist = Artist.query.filter_by(id=artist_id).first()
 
-  return redirect(url_for('show_artist', artist_id=artist_id))
+  artist.name = request.form['name']
+  artist.city = request.form['city']
+  artist.state = request.form['state']
+  artist.phone = request.form['phone']
+  artist.facebook_link = request.form['facebook_link']
+  artist.image_link = request.form['image_link']
+  artist.website = request.form['website']
+  artist.genres = ';'.join(request.form.getlist('genres'))
+  artist.seeking_venue = bool(int(request.form['seeking_venue']))
+  artist.seeking_description = request.form['seeking_description']
+  
+  try:
+    db.session.commit()
+    flash(f'You succesfully updated the {artist.name} venue.')
+  except Exception as e:
+    print(e)
+    db.session.rollback()
+    flash(f'Your modifications to {artist.name} venue were not saved!')
+  finally:
+    return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
@@ -388,7 +410,6 @@ def edit_venue(venue_id):
     "genres": data.genres.split(';'),
     "address": data.address,
     "city": data.city,
-    "state": data.state,
     "phone": data.phone,
     "website": data.website,
     "facebook_link": data.facebook_link,
@@ -425,7 +446,6 @@ def edit_venue_submission(venue_id):
       flash(f'Your modifications to {venue.name} venue were not saved!')
     finally:
       return redirect(url_for('show_venue', venue_id=venue_id))
-
 #  Create Artist
 #  ----------------------------------------------------------------
 
