@@ -167,6 +167,34 @@ def create_app(test_config=None):
                 db.session.close()
 
     '''
+    @TODO implement endpoint
+        DELETE /drinks/<id>
+            where <id> is the existing model id
+            it should respond with a 404 error if <id> is not found
+            it should delete the corresponding row for <id>
+            it should require the 'delete:drinks' permission
+        returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
+            or appropriate status code indicating reason for failure
+    '''
+    @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
+    @requires_auth('delete:drinks')
+    def delete_drink(payload, drink_id):
+        drink_to = db.session.query(Drink).get(drink_id)
+        if drink_to is None:
+            abort(404)
+        try:
+            drink_to.delete()
+            drinks = [drink.short() for drink in db.session.query(Drink).all()]
+            return {'success': True, 'deleted': drink_to.short(), 'drinks': drinks}
+        except Exception as e:
+            db.session.rollback()
+            print('rolled back because of exception:', e)
+            print(traceback.print_exc())
+            abort(422)
+        finally:
+            db.session.close()
+
+    '''
     @TODO implement error handler for AuthError
         error handler should conform to general task above
     '''
@@ -183,18 +211,6 @@ def create_app(test_config=None):
 
 
 # ROUTES
-
-
-'''
-@TODO implement endpoint
-    DELETE /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-        or appropriate status code indicating reason for failure
-'''
 
 
 # Error Handling
