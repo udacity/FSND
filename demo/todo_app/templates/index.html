@@ -26,39 +26,40 @@
 		<h2>Todos:</h2>
 		<ul id="todos">
 			{% for item in data %}
-				<li><input class="check-completed" type="checkbox" {% if item.completed %} checked {% endif %} id="{{ item.id }}"/> {{ item.description }} </li>
+				<li><input class="check-completed" type="checkbox" {% if item.completed %} checked {% endif %} data-id="{{ item.id }}"/>{{ item.description }}</li>
 			{% endfor %}
 		</ul>
 	</body>
 
 	<script>
-		const checkboxes = document.querySelectorAll('.check-completed');
+		function sendCompleted(event) {
+			console.log('event', event );
+			newCompleted = event.target.checked;
+			checkboxId = event.target.dataset['id'];
+			fetch('/api/todo/completed', {
+				method: 'POST',
+				body: JSON.stringify(
+					{
+					'completed': newCompleted,
+					'id': checkboxId
+					}
+				),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+			.then(function(response) {
+				return response.json()
+			})
+			.then(function(jsonResponse) {
+				console.log(jsonResponse);
+			})
+		}
+
+		var checkboxes = document.querySelectorAll('.check-completed');
 		for (let i = 0; i < checkboxes.length; i++) {
 			const checkbox = checkboxes[i];
-			checkbox.onchange = function(e) {
-				console.log('event', e );
-				console.log('checkbox', checkbox );
-				newCompleted = e.target.checked;
-				checkboxId = checkbox.id;
-				fetch('/api/todo/completed', {
-					method: 'POST',
-					body: JSON.stringify(
-						{
-						'completed': newCompleted,
-						'id': checkboxId
-						}
-					),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				})
-				.then(function(response) {
-						return response.json()
-					})
-				.then(function(jsonResponse) {
-					console.log(jsonResponse);
-				})
-			}
+			checkbox.addEventListener("change", sendCompleted)
 		}
 		document.getElementById('form').onsubmit = function(e) {
 			e.preventDefault();
@@ -77,11 +78,20 @@
 					.then(function(jsonResponse) {
 						console.log(jsonResponse);
 						const liItem = document.createElement('LI');
-						liItem.innerHTML = jsonResponse['description'];
+						const newDescription = document.createElement('input');
+						newDescription.className = "check-completed";
+						newDescription.setAttribute("type", "checkbox");
+						newDescription.setAttribute("data-id", jsonResponse['id']);
+						newDescription.checked = jsonResponse['completed'];
+						console.log(newDescription);
+						liItem.appendChild(newDescription);
+						liItem.append(jsonResponse['description']);
 						document.getElementById('todos').appendChild(liItem);
 						document.getElementById('error').className = 'hidden';
+						newDescription.addEventListener("change", sendCompleted)
 					})
-					.catch(function() {
+					.catch(function(e) {
+						console.log('event', e);
 						document.getElementById('error').className = '';
 					})
 		}
