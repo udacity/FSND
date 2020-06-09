@@ -21,7 +21,7 @@
 		<h2>Todos:</h2>
 		<ul id="todos">
 			{% for item in data %}
-				<li>{{ item.description }} </li>
+				<li><input type="checkbox" {% if item.completed %} checked {% endif %} /> {{ item.description }} </li>
 			{% endfor %}
 		</ul>
 	</body>
