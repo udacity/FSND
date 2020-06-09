@@ -1,4 +1,5 @@
 import os
+from flask_migrate import Migrate
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 
@@ -14,7 +15,12 @@ print("password: {}".format(password))
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://frank:{}@localhost:5432/lesson5'.format(password) 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# connect db and app
 db = SQLAlchemy(app)
+
+# connect app and db to migration utility
+migrate = Migrate(app, db)
 
 
 # model definition
