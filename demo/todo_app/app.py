@@ -13,7 +13,7 @@ print("password: {}".format(password))
 
 # application initialization
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://frank:{}@localhost:5432/lesson5'.format(password) 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://frank:{}@localhost:5432/todoapp'.format(password)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # connect db and app
@@ -32,8 +32,8 @@ class Todo(db.Model):
     def __repr__(self):
         return f'<Todo {self.id} {self.description}'
 
-
-db.create_all()
+# When using flask db migrate we do not need to do db.create_all()
+#db.create_all()
 
 
 # routes
