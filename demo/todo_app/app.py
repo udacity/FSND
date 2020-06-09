@@ -1,4 +1,5 @@
 import os
+from flask_migrate import Migrate
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 
@@ -12,9 +13,14 @@ print("password: {}".format(password))
 
 # application initialization
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://frank:{}@localhost:5432/lesson5'.format(password) 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://frank:{}@localhost:5432/todoapp'.format(password)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# connect db and app
 db = SQLAlchemy(app)
+
+# connect app and db to migration utility
+migrate = Migrate(app, db)
 
 
 # model definition
@@ -22,12 +28,13 @@ class Todo(db.Model):
     __tablename__ = 'todos'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(), nullable=False)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f'<Todo {self.id} {self.description}'
 
-
-db.create_all()
+# When using flask db migrate we do not need to do db.create_all()
+#db.create_all()
 
 
 # routes
@@ -57,7 +64,7 @@ def create_todo():
         db.session.close()
     if not error:
         return jsonify(body)
-    else
+    else:
         return abort(400)
 
 
