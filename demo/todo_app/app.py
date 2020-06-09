@@ -63,7 +63,7 @@ def create_todo():
         db.session.close()
     if not error:
         return jsonify(body)
-    else
+    else:
         return abort(400)
 
 
