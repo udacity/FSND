@@ -43,7 +43,7 @@ def index():
     return render_template('index.html', data=Todo.query.all())
 
 
-@app.route('/create', methods=['POST'])
+@app.route('/api/todo/create', methods=['POST'])
 def create_todo():
     error = False
     body = {}
@@ -66,6 +66,34 @@ def create_todo():
         return jsonify(body)
     else:
         return abort(400)
+
+
+@app.route('/api/todo/completed', methods=['POST'])
+def set_todo_completed():
+    error = False
+    body = {}
+    try:
+        completed = request.get_json().get('completed')
+        _id = request.get_json().get('id')
+        if _id and isinstance(completed, bool):
+            todo = Todo.query.get(_id)
+            todo.completed = completed
+            db.session.commit()
+            body['completed'] = todo.completed
+            body['id'] = todo.id
+        else:
+            error = True
+    except:
+            error = True
+            db.session.rollback()
+            print(sys.exec_info())
+    finally:
+        db.session.close()
+    if not error:
+        return jsonify(body)
+    else:
+        return abort(400)
+
 
 
 if __name__ == '__main__':
