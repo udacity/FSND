@@ -70,6 +70,32 @@ def create_todo():
         return abort(400)
 
 
+@app.route('/api/todo/delete', methods=['POST'])
+def delete_todo():
+    error = False
+    body = {}
+    try:
+        _id = request.get_json().get('id')
+        if _id:
+            todo = Todo.query.get(_id)
+            db.session.delete(todo)
+            db.session.commit()
+            body['id'] = todo.id
+            body['success'] = True
+        else:
+            error = True
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exec_info())
+    finally:
+        db.session.close()
+    if not error:
+        return jsonify(body)
+    else:
+        return abort(400)
+
+
 @app.route('/api/todo/completed', methods=['POST'])
 def set_todo_completed():
     error = False
