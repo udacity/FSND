@@ -26,12 +26,42 @@
 		<h2>Todos:</h2>
 		<ul id="todos">
 			{% for item in data %}
-				<li><input class="check-completed" type="checkbox" {% if item.completed %} checked {% endif %} data-id="{{ item.id }}"/>{{ item.description }}</li>
+				<li>
+					<input class="check-completed" type="checkbox" {% if item.completed %} checked {% endif %} data-id="{{ item.id }}"/>
+					{{ item.description }}
+					<input type="button" value="Delete" onclick="sendDelete(event)" data-id="{{ item.id }}"/>
+				</li>
 			{% endfor %}
 		</ul>
 	</body>
 
 	<script>
+		function sendDelete(event) {
+			console.log('event', event );
+			todoId = event.target.dataset['id'];
+			fetch('/api/todo/delete', {
+				method: 'POST',
+				body: JSON.stringify(
+					{
+						'id': todoId
+					}
+				),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+			.then(function(response) {
+				return response.json()
+
+			})
+			.then(function(jsonResponse) {
+				liElement = event.target.parentElement
+				console.log(jsonResponse);
+				console.log('parent', liElement);
+				liElement.parentNode.removeChild(liElement)
+			})
+		}
+		
 		function sendCompleted(event) {
 			console.log('event', event );
 			newCompleted = event.target.checked;
@@ -78,17 +108,29 @@
 					.then(function(jsonResponse) {
 						console.log(jsonResponse);
 						const liItem = document.createElement('LI');
-						const newDescription = document.createElement('input');
-						newDescription.className = "check-completed";
-						newDescription.setAttribute("type", "checkbox");
-						newDescription.setAttribute("data-id", jsonResponse['id']);
-						newDescription.checked = jsonResponse['completed'];
-						console.log(newDescription);
-						liItem.appendChild(newDescription);
+						const newCheckbox = document.createElement('input');
+						const newDelete = document.createElement('input');
+
+						newCheckbox.className = "check-completed";
+						newCheckbox.setAttribute("type", "checkbox");
+						newCheckbox.setAttribute("data-id", jsonResponse['id']);
+						newCheckbox.checked = jsonResponse['completed'];
+						console.log(newCheckbox);
+
+						newDelete.setAttribute("type", "button");
+						newDelete.setAttribute("value", "Delete");
+						newDelete.setAttribute("data-id", jsonResponse['id']);
+						console.log(newDelete);
+
+						liItem.appendChild(newCheckbox);
 						liItem.append(jsonResponse['description']);
+						liItem.appendChild(newDelete);
+
 						document.getElementById('todos').appendChild(liItem);
+						newCheckbox.addEventListener("change", sendCompleted)
+						newDelete.addEventListener("click", sendDelete)
+						
 						document.getElementById('error').className = 'hidden';
-						newDescription.addEventListener("change", sendCompleted)
 					})
 					.catch(function(e) {
 						console.log('event', e);
