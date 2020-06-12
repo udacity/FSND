@@ -1,4 +1,5 @@
 import os
+import sys
 from flask_migrate import Migrate
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
@@ -29,12 +30,24 @@ class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(), nullable=False)
     completed = db.Column(db.Boolean, nullable=False, default=False)
+    list_id = db.Column(db.Integer, db.ForeignKey('todo_lists.id'), nullable=False)
 
     def __repr__(self):
-        return f'<Todo {self.id} {self.description}'
+        return f'<Todo {self.id} description: {self.description} completed: {self.completed} list_id: {self.list_id}>'
+
+
+class TodoList(db.Model):
+    __tablename__ = 'todo_lists'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    todos = db.relationship('Todo', backref='list', lazy=True)  # backref is arbitrary?
+
+    def __repr__(self):
+        return f'<TodoList {self.id} name: {self.name}}>'
+
 
 # When using flask db migrate we do not need to do db.create_all()
-#db.create_all()
+# db.create_all()
 
 
 # routes
