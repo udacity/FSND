@@ -43,7 +43,7 @@ class TodoList(db.Model):
     todos = db.relationship('Todo', backref='list', lazy=True)  # backref is arbitrary?
 
     def __repr__(self):
-        return f'<TodoList {self.id} name: {self.name}}>'
+        return f'<TodoList {self.id} name: {self.name}>'
 
 
 # When using flask db migrate we do not need to do db.create_all()
