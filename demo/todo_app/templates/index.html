@@ -13,30 +13,50 @@
 		</style>
 	</head>
 	<body>
-		<form id="form">
+		<h1>Todo App</h1>
+		<div id='error' class="hidden">Something Went Wrong!</div>
+
+		<h2>Todo Lists</h2>
+		<form id="newListForm">
 			<div>
-				<label for="name">Create a Todo Item:</label>
-				<input type="text" id="description" name="description">
-			</div>
-			<div>
+				<input type="text" id="name" name="name">
 				<input type="submit" value="Create"/>
 			</div>
 		</form>
-		<div id='error' class="hidden"> Something Went Wrong</div>
-		<h2>Todos:</h2>
-		<ul id="todos">
-			{% for item in data %}
-				<li>
-					<input class="check-completed" type="checkbox" {% if item.completed %} checked {% endif %} data-id="{{ item.id }}"/>
-					{{ item.description }}
-					<input type="button" value="Delete" onclick="sendDelete(event)" data-id="{{ item.id }}"/>
-				</li>
-			{% endfor %}
-		</ul>
+		{% if data.get('todolists') %}
+			<ul id="todolists">
+				{% for item in data.get('todolists') %}
+					<li>
+						<input type="button" value="{{item.name}}" onclick="sendDeleteTodo(event)" data-id="{{ item.id }}"/>
+						<input type="button" value="Delete" onclick="sendDeleteList(event)" data-id="{{ item.id }}"/>
+					</li>
+				{% endfor %}
+			</ul>
+
+			<h2 id='list_name' data-id="{{ data.get('todolist').id }}">{{ data.get('todolist').name }} </h2>
+			<h3>Todos:</h3>
+			<form id="newTodoForm">
+				<div>
+					<input type="text" id="description" name="description">
+					<input type="submit" value="Create"/>
+				</div>
+			</form>
+			<ul id="todos">
+				{% for item in data.get('todos') %}
+					<li>
+						<input class="check-completed" type="checkbox" {% if item.completed %} checked {% endif %} data-id="{{ item.id }}"/>
+						{{ item.description }}
+						<input type="button" value="Delete" onclick="sendDeleteTodo(event)" data-id="{{ item.id }}"/>
+					</li>
+				{% endfor %}
+			</ul>
+		{% else %}
+			<div id='no-lists'>No lists exist yet, create one to get started.</div>
+		{% endif %}
 	</body>
 
 	<script>
-		function sendDelete(event) {
+		function sendDeleteTodo(event) {
 			console.log('event', event );
 			todoId = event.target.dataset['id'];
 			fetch('/api/todo/delete', {
@@ -62,7 +82,7 @@
 			})
 		}
 		
-		function sendCompleted(event) {
+		function sendCompletedTodo(event) {
 			console.log('event', event );
 			newCompleted = event.target.checked;
 			checkboxId = event.target.dataset['id'];
@@ -89,9 +109,9 @@
 		var checkboxes = document.querySelectorAll('.check-completed');
 		for (let i = 0; i < checkboxes.length; i++) {
 			const checkbox = checkboxes[i];
-			checkbox.addEventListener("change", sendCompleted)
+			checkbox.addEventListener("change", sendCompletedTodo)
 		}
-		document.getElementById('form').onsubmit = function(e) {
+		document.getElementById('newTodoForm').onsubmit = function(e) {
 			e.preventDefault();
 			fetch('/api/todo/create', {
 				method: 'POST',
@@ -127,8 +147,8 @@
 						liItem.appendChild(newDelete);
 
 						document.getElementById('todos').appendChild(liItem);
-						newCheckbox.addEventListener("change", sendCompleted)
-						newDelete.addEventListener("click", sendDelete)
+						newCheckbox.addEventListener("change", sendCompletedTodo)
+						newDelete.addEventListener("click", sendDeleteTodo)
 						
 						document.getElementById('error').className = 'hidden';
 					})

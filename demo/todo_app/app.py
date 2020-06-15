@@ -53,7 +53,14 @@ class TodoList(db.Model):
 # routes
 @app.route('/')
 def index():
-    return render_template('index.html', data=Todo.query.all())
+    data = dict()
+    todolists = TodoList.query.all()
+    if len(todolists) > 0:
+        data['todolists'] = todolists
+        todolist = todolists[0]
+        data['todolist'] = todolist
+        data['todos'] = Todo.query.filter(Todo.list_id == todolist.id)
+    return render_template('index.html', data=data)
 
 
 @app.route('/api/todo/create', methods=['POST'])
