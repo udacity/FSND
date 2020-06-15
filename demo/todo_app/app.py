@@ -13,7 +13,7 @@ print("password: {}".format(password))
 
 
 # application initialization
-app = Flask(__name__)
+app = Flask(__name__, static_url_path="", static_folder="templates")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://frank:{}@localhost:5432/todoapp'.format(password)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -35,6 +35,15 @@ class Todo(db.Model):
     def __repr__(self):
         return f'<Todo {self.id} description: {self.description} completed: {self.completed} list_id: {self.list_id}>'
 
+    @property
+    def dictionary(self):
+        return {
+            'id': self.id,
+            'description': self.description,
+            'completed': self.completed,
+            'list_id': self.list_id
+        }
+
 
 class TodoList(db.Model):
     __tablename__ = 'todo_lists'
@@ -44,6 +53,14 @@ class TodoList(db.Model):
 
     def __repr__(self):
         return f'<TodoList {self.id} name: {self.name}>'
+
+    @property
+    def dictionary(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'todos': [todo.dictionary for todo in Todo.query.filter(Todo.list_id == self.id)]
+        }
 
 
 # When using flask db migrate we do not need to do db.create_all()
@@ -61,6 +78,27 @@ def index():
         data['todolist'] = todolist
         data['todos'] = Todo.query.filter(Todo.list_id == todolist.id)
     return render_template('index.html', data=data)
+
+
+@app.route('/api/todolist', methods=['POST'])
+def get_todolist():
+    error = False
+    body = {}
+    list_id = request.get_json().get('id')
+    todolist = TodoList.query.get(list_id)
+
+    print(f'sending todolist: {todolist}')
+    print(f'todolist.dictionary: {todolist.dictionary}')
+
+    if todolist:
+        body['todolist'] = todolist.dictionary
+    else:
+        error = True
+
+    if not error:
+        return jsonify(body)
+    else:
+        return abort(400)
 
 
 @app.route('/api/todo/create', methods=['POST'])
