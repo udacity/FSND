@@ -33,9 +33,9 @@
 				{% endfor %}
 			</ul>
 
-			<h2 id='list_name' data-id="{{ data.get('todolist').id }}">{{ data.get('todolist').name }} </h2>
+			<h2 id='list_name'>{{ data.get('todolist').name }} </h2>
 			<h3>Todos:</h3>
-			<form id="newTodoForm">
+			<form id="newTodoForm" data-id="{{ data.get('todolist').id }}">
 				<div>
 					<input type="text" id="description" name="description">
 					<input type="submit" value="Create"/>
@@ -113,10 +113,12 @@
 		}
 		document.getElementById('newTodoForm').onsubmit = function(e) {
 			e.preventDefault();
+			console.log("event", e);
 			fetch('/api/todo/create', {
 				method: 'POST',
 				body: JSON.stringify({
-					'description': document.getElementById('description').value
+					'description': document.getElementById('description').value,
+					'list_id': e.target.dataset['id']
 					}),
 					headers: {
 						'Content-Type': 'application/json'

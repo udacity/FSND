@@ -69,8 +69,9 @@ def create_todo():
     body = {}
     try:
         description = request.get_json().get('description')
-        if description:
-            new_todo = Todo(description=description)
+        list_id = request.get_json().get('list_id')
+        if description and list_id:
+            new_todo = Todo(description=description, list_id=list_id)
             db.session.add(new_todo)
             db.session.commit()
             body['description'] = new_todo.description
