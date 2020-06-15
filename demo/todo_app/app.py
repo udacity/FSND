@@ -101,6 +101,31 @@ def get_todolist():
         return abort(400)
 
 
+@app.route('/api/todolist/create', methods=['POST'])
+def create_todolist():
+    error = False
+    body = {}
+    try:
+        name = request.get_json().get('name')
+        if name:
+            new_todolist = TodoList(name=name)
+            db.session.add(new_todolist)
+            db.session.commit()
+            body = new_todolist.dictionary
+        else:
+            error = True
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exec_info())
+    finally:
+        db.session.close()
+    if not error:
+        return jsonify(body)
+    else:
+        return abort(400)
+
+
 @app.route('/api/todo/create', methods=['POST'])
 def create_todo():
     error = False

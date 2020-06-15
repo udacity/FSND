@@ -1,3 +1,80 @@
+
+var checkboxes = document.querySelectorAll('.check-completed');
+for (let i = 0; i < checkboxes.length; i++) {
+  const checkbox = checkboxes[i];
+  checkbox.addEventListener("change", sendCompletedTodo)
+}
+
+
+document.getElementById('newTodoForm').onsubmit = function(event) {
+  event.preventDefault();
+  console.log("event", event);
+  fetch('/api/todo/create', {
+    method: 'POST',
+    body: JSON.stringify(
+    {
+      'description': document.getElementById('description').value,
+      'list_id': event.target.dataset['id']
+    }),
+    headers:
+    {
+      'Content-Type': 'application/json'
+    }
+  }).then( function(response) { return response.json()
+  }).then( function(jsonResponse) { renderTodo(jsonResponse)
+  }).catch( function(e) {
+    console.log(e);
+    document.getElementById('error-message').className = '';
+  })
+}
+
+
+document.getElementById('newListForm').onsubmit = function(event) {
+  event.preventDefault();
+  console.log("event", event);
+  fetch('api/todolist/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        'name': document.getElementById('name').value,
+      }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+  }).then( function(response) { return response.json()
+  }).then( function(jsonResponse) {
+    const liItem = document.createElement('LI');
+    const newTodoList = document.createElement('input');
+    const newTodoListDelete = document.createElement('input');
+    console.log('jsonResponse', jsonResponse);
+
+    newTodoList.setAttribute('type', 'button');
+    newTodoList.setAttribute('value', jsonResponse['name']);
+    newTodoList.setAttribute('data-id', jsonResponse['id']);
+    newTodoList.addEventListener('click', getTodoList);
+
+    newTodoListDelete.setAttribute('type', 'button');
+    newTodoListDelete.setAttribute('value', 'Delete');
+    newTodoListDelete.setAttribute('data-id', jsonResponse['id']);
+    newTodoListDelete.addEventListener('click', deleteTodoList);
+
+    liItem.setAttribute('data-id', jsonResponse['id']);
+    liItem.appendChild(newTodoList);
+    liItem.append(" ");
+    liItem.appendChild(newTodoListDelete);
+
+    document.getElementById('todolists').appendChild(liItem);
+  }).catch( function(e) {
+    console.log(e);
+    document.getElementById('error-message').className = '';
+  })
+}
+
+
+function deleteTodoList(event) {
+  console.log('event', event)
+}
+
+
 function getTodoList(event) {
   console.log('event', event);
   listId = event.target.dataset['id'];
@@ -124,32 +201,3 @@ function renderTodo(jsonResponse) {
   document.getElementById('error-message').className = 'hidden';
 }
 
-
-var checkboxes = document.querySelectorAll('.check-completed');
-for (let i = 0; i < checkboxes.length; i++) {
-  const checkbox = checkboxes[i];
-  checkbox.addEventListener("change", sendCompletedTodo)
-}
-
-
-document.getElementById('newTodoForm').onsubmit = function(event) {
-  e.preventDefault();
-  console.log("event", event);
-  fetch('/api/todo/create', {
-    method: 'POST',
-    body: JSON.stringify(
-    {
-      'description': document.getElementById('description').value,
-      'list_id': event.target.dataset['id']
-    }),
-    headers: 
-    {
-      'Content-Type': 'application/json'
-    }
-  }).then( function(response) { return response.json()
-  }).then( renderTodo(jsonResponse) 
-  ).catch( function(e) {
-    console.log(e);
-    document.getElementById('error-message').className = '';
-  })
-}

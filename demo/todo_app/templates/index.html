@@ -26,7 +26,7 @@
 		{% if data.get('todolists') %}
 			<ul id="todolists">
 				{% for item in data.get('todolists') %}
-					<li>
+					<li data-id="{{ item.id }}">
 						<input type="button" value="{{item.name}}" onclick="getTodoList(event)" data-id="{{ item.id }}"/>
 						<input type="button" value="Delete" onclick="sendDeleteList(event)" data-id="{{ item.id }}"/>
 					</li>
