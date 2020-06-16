@@ -112,20 +112,32 @@ Best of luck in your final project! Fyyur depends on you!
 
 ### Development Setup
 
-First, [install Flask](http://flask.pocoo.org/docs/1.0/installation/#install-flask) if you haven't already.
+First, Install Python 3.7 or higher
+Second, [install Flask](http://flask.pocoo.org/docs/1.0/installation/#install-flask) if you haven't already.
+Third, Install postgresql on the machine
 
   ```
+  Linux:
   $ cd ~
   $ sudo pip3 install Flask
+
+  Windows:
+  $ cd %HOME%
   ```
 
 To start and run the local development server,
 
 1. Initialize and activate a virtualenv:
   ```
+  Linux: 
   $ cd YOUR_PROJECT_DIRECTORY_PATH/
   $ virtualenv --no-site-packages env
   $ source env/bin/activate
+  
+  Windows:
+  $ cd YOUR_PROJECT_DIRECTORY_PATH/
+  $ python -m virtualenv env
+  $ .\env\Scripts\activate.bat
   ```
 
 2. Install the dependencies:
@@ -133,7 +145,17 @@ To start and run the local development server,
   $ pip install -r requirements.txt
   ```
 
-3. Run the development server:
+3. create the fyyur db:
+ ```
+  $ createdb fyyur
+```
+
+4. run Migration script:
+```
+    python -m flask db migrate
+```
+
+5. Run the development server:
   ```
   $ export FLASK_APP=myapp
   $ export FLASK_ENV=development # enables debug mode
