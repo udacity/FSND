@@ -2,7 +2,7 @@
 __pycache__
 venv
 .idea
-
+**/.secrets
 # OS generated files #
 ######################
 .DS_Store
