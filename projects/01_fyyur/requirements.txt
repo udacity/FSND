@@ -1,4 +1,4 @@
-babel
+dateparser
 psycopg2
 python-dateutil==2.6.0
 flask-moment
