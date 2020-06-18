@@ -48,6 +48,7 @@ class Venue(db.Model):
         seeking_description = db.Column(db.String())
         image_link = db.Column(db.String(500))
         shows = db.relationship('Show', backref='venue', lazy=True)
+        city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
         # past_shows
         #   artist_id, artist_name, artist_image_link, start_time
         # upcoming_shows
@@ -71,6 +72,7 @@ class Artist(db.Model):
         seeking_venue = db.Column(db.Boolean(), nullable=False, default=False)
         seeking_description = db.Column(db.String())
         shows = db.relationship('Show', backref='artist', lazy=True)
+        city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
         # past_shows
         #   venue_id, venue_name, venue_image_link, start_time
         # upcoming_shows
@@ -91,6 +93,15 @@ class Show(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), nullable=False)
     artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), nullable=False)
+
+
+class City(db.Model):
+    __tablename__ = 'cities'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    state = db.Column(db.String(2), nullable=False)
+    venues = db.relationship('Venue', backref='city', lazy=True)
+    artists = db.relationship('Artists', backref='city', lazy=True)
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -126,7 +137,11 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #             num_shows should be aggregated based on number of upcoming shows per venue.
-    
+    venues = Venue.query.all()
+    for venue in venues:
+        print(venue.name)
+        print(venue.id)
+        print(venue.num_upcoming_shows)
     data=[{
         "city": "San Francisco",
         "state": "CA",
