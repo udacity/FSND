@@ -46,6 +46,7 @@ class Venue(db.Model):
         seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
         seeking_description = db.Column(db.String())
         image_link = db.Column(db.String(500))
+        shows = db.relationship('Show', backref='venue', lazy=True)
         # past_shows
         #   artist_id, artist_name, artist_image_link, start_time
         # upcoming_shows
@@ -68,12 +69,22 @@ class Artist(db.Model):
         facebook_link = db.Column(db.String(120))
         seeking_venue = db.Column(db.Boolean(), nullable=False, default=False)
         seeking_description = db.Column(db.String())
+        shows = db.relationship('Show', backref='artist', lazy=True)
         # past_shows
         #   venue_id, venue_name, venue_image_link, start_time
         # upcoming_shows
         #   venue_id, venue_name, venue_image_link, start_time
         # past_shows_count
         # upcoming_shows_count
+
+
+class Show(db.Model):
+    __tablename__ = 'shows'
+    id = db.Column(db.Integer, primary_key=True)
+    start_time = db.Column(db.DateTime, nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), nullable=False)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), nullable=False)
+
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
