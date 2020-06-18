@@ -181,8 +181,6 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: replace with real venues data.
-    #             num_shows should be aggregated based on number of upcoming shows per venue.
     cities = order_by_num_upcoming_shows( City.query.all() )
     data = [city.serialized_venues for city in cities]
     prints = json.dumps(data, indent=4)
@@ -191,18 +189,17 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-    response={
-        "count": 1,
-        "data": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
+    search_term = request.form.get('search_term', '')
+    search = "%{}%".format(search_term)
+    venues = Venue.query.filter(Venue.name.like(search))
+    count = venues.count()
+    data = [venue.serialize_summary for venue in venues]
+    response = {
+        "count": venues.count(),
+        "data": [venue.serialize_summary for venue in venues]
     }
-    return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+    print(json.dumps(response, indent=4))
+    return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
