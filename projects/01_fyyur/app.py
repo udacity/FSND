@@ -5,6 +5,7 @@
 import json
 import dateutil.parser
 import babel
+import datetime
 import dateparser
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
@@ -77,6 +78,12 @@ class Artist(db.Model):
         # past_shows_count
         # upcoming_shows_count
 
+        @property
+        def get_past_shows(self):
+            current_time = datetime.datetime.utcnow()
+            return db.session.query(Show).filter(Show.start_date < current_time).filter(self.id == Show.artist_id)
+
+
 
 class Show(db.Model):
     __tablename__ = 'shows'
@@ -119,6 +126,7 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #             num_shows should be aggregated based on number of upcoming shows per venue.
+    
     data=[{
         "city": "San Francisco",
         "state": "CA",
