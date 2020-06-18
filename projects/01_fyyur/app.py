@@ -54,6 +54,18 @@ class Venue(db.Model):
         # past_shows_count
         # upcoming_shows_count
 
+        @property
+        def num_upcoming_shows(self):
+            current_time = datetime.datetime.utcnow()
+            return Show.query.filter(Show.venue_id == self.id, current_time < Show.start_time).count()
+
+        @property
+        def serialize_summary(self):
+            return {
+                'id': self.id,
+                'name': self.name,
+                'num_upcoming_shows': self.num_upcoming_shows
+            }
 
 class Artist(db.Model):
         __tablename__ = 'artists'
@@ -79,7 +91,9 @@ class Artist(db.Model):
         @property
         def get_past_shows(self):
             current_time = datetime.datetime.utcnow()
-            return db.session.query(Show).filter(Show.start_date < current_time).filter(self.id == Show.artist_id)
+            return db.session.query(Show).filter(Show.start_time < current_time).filter(self.id == Show.artist_id)
+
+
 
 
 class Show(db.Model):
@@ -96,7 +110,24 @@ class City(db.Model):
     name = db.Column(db.String(), nullable=False)
     state = db.Column(db.String(2), nullable=False)
     venues = db.relationship('Venue', backref='city', lazy=True)
-    artists = db.relationship('Artists', backref='city', lazy=True)
+    artists = db.relationship('Artist', backref='city', lazy=True)
+
+    @property
+    def num_upcoming_shows(self):
+        upcoming_shows = 0
+        for venue in self.venues:
+            upcoming_shows += venue.num_upcoming_shows
+        return upcoming_shows
+
+    @property
+    def serialized_venues(self):
+        ordered_venues = order_by_num_upcoming_shows(self.venues)
+        return {
+            'city': self.name,
+            'state': self.state,
+            'venues': [venue.serialize_summary for venue in ordered_venues]
+        }
+
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -116,6 +147,26 @@ def format_datetime(value, format='medium'):
 app.jinja_env.filters['datetime'] = format_datetime
 
 
+def order_by_num_upcoming_shows(input_list):
+    ordered_list = []
+    max_num = 0
+    min_num = 0
+    for item in input_list:
+        if item.num_upcoming_shows >= max_num:
+            max_num = item.num_upcoming_shows
+            ordered_list = [item] + ordered_list
+        elif item.num_upcoming_shows <= min_num:
+            min_num = item.num_upcoming_shows
+            ordered_list = ordered_list + [item]
+        else:
+            i = 0
+            for ordered_item in ordered_list:
+                if item.num_upcoming_shows > ordered_item.num_upcoming_shows:
+                    break
+                i += 1
+            ordered_list.insert(i, item)
+    return ordered_list
+
 #    ----------------------------------------------------------------------------#
 # Controllers.
 #    ----------------------------------------------------------------------------#
@@ -132,32 +183,10 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #             num_shows should be aggregated based on number of upcoming shows per venue.
-    venues = Venue.query.all()
-    for venue in venues:
-        print(venue.name)
-        print(venue.id)
-        print(venue.num_upcoming_shows)
-    data=[{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
+    cities = order_by_num_upcoming_shows( City.query.all() )
+    data = [city.serialized_venues for city in cities]
+    prints = json.dumps(data, indent=4)
+    print(prints)
     return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
