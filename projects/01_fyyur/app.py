@@ -34,7 +34,6 @@ migrate = Migrate(app, db)
 
 class Venue(db.Model):
         __tablename__ = 'venues'
-
         id = db.Column(db.Integer(), primary_key=True)
         name = db.Column(db.String())
         genres = db.Column(db.String(120))
@@ -69,7 +68,6 @@ class Venue(db.Model):
 
 class Artist(db.Model):
         __tablename__ = 'artists'
-
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String())
         phone = db.Column(db.String(120))
@@ -92,8 +90,6 @@ class Artist(db.Model):
         def get_past_shows(self):
             current_time = datetime.datetime.utcnow()
             return db.session.query(Show).filter(Show.start_time < current_time).filter(self.id == Show.artist_id)
-
-
 
 
 class Show(db.Model):
@@ -129,20 +125,19 @@ class City(db.Model):
         }
 
 
-
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
-
 #    ----------------------------------------------------------------------------#
 # Filters.
 #    ----------------------------------------------------------------------------#
 
+
 def format_datetime(value, format='medium'):
     date = dateparser.parse(value)
     if format == 'full':
-            format="EEEE MMMM, d, y 'at' h:mma"
+        format = "EEEE MMMM, d, y 'at' h:mma"
     elif format == 'medium':
-            format="EE MM, dd, y h:mma"
+        format = "EE MM, dd, y h:mma"
     return babel.dates.format_datetime(date, format, locale='en_US')
+
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -171,6 +166,7 @@ def order_by_num_upcoming_shows(input_list):
 # Controllers.
 #    ----------------------------------------------------------------------------#
 
+
 @app.route('/')
 def index():
     return render_template('pages/home.html')
@@ -187,6 +183,7 @@ def venues():
     print(prints)
     return render_template('pages/venues.html', areas=data);
 
+
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
     search_term = request.form.get('search_term', '')
@@ -200,6 +197,7 @@ def search_venues():
     }
     print(json.dumps(response, indent=4))
     return render_template('pages/search_venues.html', results=response, search_term=search_term)
+
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
