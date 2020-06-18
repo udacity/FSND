@@ -28,6 +28,77 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
+    op.execute(
+        """   
+        INSERT INTO shows 
+        (artist_id, venue_id, start_time)
+        VALUES (
+        1, 
+        2, 
+        '2035-04-15T20:00:00.000Z'
+        );
+        """
+    )
+
+    op.execute(
+        """   
+        INSERT INTO shows 
+        (artist_id, venue_id, start_time)
+        VALUES (
+        2, 
+        1, 
+        '2035-04-08T20:00:00.000Z'
+        );
+        """
+    )
+
+    op.execute(
+        """
+        INSERT INTO shows 
+        (artist_id, venue_id, start_time)
+        VALUES (
+        2, 
+        3, 
+        '2035-04-01T20:00:00.000Z'
+        );
+        """
+    )
+
+    op.execute(
+        """
+        INSERT INTO shows 
+        (artist_id, venue_id, start_time)
+        VALUES (
+        3, 
+        1, 
+        '2019-05-15T10:00:00.000Z'
+        );
+        """
+    )
+
+    op.execute(
+        """
+        INSERT INTO shows 
+        (artist_id, venue_id, start_time)
+        VALUES (
+        3, 
+        2, 
+        '2019-04-30T16:00:00.000Z'
+        );
+        """
+    )
+
+    op.execute(
+        """
+        INSERT INTO shows 
+        (artist_id, venue_id, start_time)
+        VALUES (
+        1, 
+        3, 
+        '2019-06-15T23:00:00.000Z'
+        );
+        """
+    )
 
 
 def downgrade():
