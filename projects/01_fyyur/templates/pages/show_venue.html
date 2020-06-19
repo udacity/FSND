@@ -7,14 +7,17 @@
 			{{ venue.name }}
 		</h1>
 		<p class="subtitle">
-			ID: {{ venue.id }}
 			<button class="btn btn-danger btn-sm" data-id="{{venue.id}}" onclick="DeleteVenue(event);">Delete Venue</button>
+			<a href="/venues/{{venue.id}}/edit"><button class="btn btn-success btn-sm">Edit Venue</button></a>
+			ID: {{ venue.id }}
 		</p>
 		<div class="genres">
+			<h2 class="monospace">Genres</h2>
 			{% for genre in venue.genres %}
 			<span class="genre">{{ genre }}</span>
 			{% endfor %}
 		</div>
+		<h2 class="monospace">Info</h2>
 		<p>
 			<i class="fas fa-globe-americas"></i> {{ venue.city }}, {{ venue.state }}
 		</p>

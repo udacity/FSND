@@ -7,13 +7,17 @@
 			{{ artist.name }}
 		</h1>
 		<p class="subtitle">
+			<button class="btn btn-danger btn-sm" data-id="{{artist.id}}" onclick="DeleteArtist(event);">Delete Artist</button>
+			<a href="/artists/{{artist.id}}/edit"><button class="btn btn-success btn-sm">Edit Artist</button></a>
 			ID: {{ artist.id }}
 		</p>
 		<div class="genres">
+			<h2 class="monospace">Genres</h2>
 			{% for genre in artist.genres %}
 			<span class="genre">{{ genre }}</span>
 			{% endfor %}
 		</div>
+		<h2 class="monospace">Info</h2>
 		<p>
 			<i class="fas fa-globe-americas"></i> {{ artist.city }}, {{ artist.state }}
 		</p>
