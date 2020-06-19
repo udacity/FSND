@@ -112,7 +112,6 @@ class Venue(db.Model):
             return self.upcoming_shows.count()
 
 
-
 class Artist(db.Model):
         __tablename__ = 'artists'
         id = db.Column(db.Integer, primary_key=True)
@@ -137,6 +136,13 @@ class Artist(db.Model):
         def get_past_shows(self):
             current_time = datetime.datetime.utcnow()
             return db.session.query(Show).filter(Show.start_time < current_time).filter(self.id == Show.artist_id)
+
+        @property
+        def serialize_minimal(self):
+            return {
+                "id": self.id,
+                "name": self.name
+            }
 
 
 class Show(db.Model):
@@ -330,12 +336,9 @@ def create_venue_submission():
         return redirect(url_for('show_venue', venue_id=venue_id))
 
 
-
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
     success = True
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
     try:
         venue = Venue.query.get(venue_id)
         name = venue.name
@@ -366,17 +369,9 @@ def delete_venue(venue_id):
 
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
-    data=[{
-        "id": 4,
-        "name": "Guns N Petals",
-    }, {
-        "id": 5,
-        "name": "Matt Quevedo",
-    }, {
-        "id": 6,
-        "name": "The Wild Sax Band",
-    }]
+    all_artists = Artist.query.all()
+    data = [artist.serialize_minimal for artist in all_artists]
+    print(json.dumps(response, indent=4))
     return render_template('pages/artists.html', artists=data)
 
 
