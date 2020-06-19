@@ -8,6 +8,7 @@
 		</h1>
 		<p class="subtitle">
 			ID: {{ venue.id }}
+			<button class="btn btn-danger btn-sm" data-id="{{venue.id}}" onclick="DeleteVenue(event);">Delete Venue</button>
 		</p>
 		<div class="genres">
 			{% for genre in venue.genres %}

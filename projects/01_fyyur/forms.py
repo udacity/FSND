@@ -192,6 +192,7 @@ class ArtistForm(Form):
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
+        # enum fix pattern: https://stackoverflow.com/questions/13558345/flask-app-using-wtforms-with-selectmultiplefield
         'genres', validators=[DataRequired()],
         choices=[
             ('Alternative', 'Alternative'),

@@ -8,7 +8,7 @@ import dateutil.parser
 import babel
 import datetime
 import dateparser
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -268,7 +268,6 @@ def search_venues():
 def show_venue(venue_id):
     venue = Venue.query.get(venue_id)
     if venue:
-        past_shows = venue.past_shows_serialized
         data = venue.serialized
         print(json.dumps(data, indent=4))
         return render_template('pages/show_venue.html', venue=data)
@@ -287,8 +286,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
+    error = False
     # on successful db insert, flash success
     form = VenueForm(request.form)
     # enum fix pattern: https://stackoverflow.com/questions/13558345/flask-app-using-wtforms-with-selectmultiplefield
@@ -314,28 +312,53 @@ def create_venue_submission():
         new_venue = Venue(name=name, city_id=city_id, genres=genres, address=address, phone=phone,
                           facebook_link=facebook_link, image_link=image_link)
         db.session.add(new_venue)
+        db.session.flush()
+        venue_id = new_venue.id
         db.session.commit()
         flash('Venue ' + name + ' was successfully listed!')
     except:
         db.session.rollback()
-        print(sys.exec_info())
-        flash(flash('An error occurred. Venue ' + name + ' could not be listed.'))
-        return abort(400)
+        print(sys.exc_info())
+        flash('An error occurred. Venue ' + name + ' could not be listed.')
+        error = True
     finally:
         db.session.close()
 
-    return redirect(url_for('venues'))
+    if error:
+        return abort(400)
+    else:
+        return redirect(url_for('show_venue', venue_id=venue_id))
+
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
+    success = True
     # TODO: Complete this endpoint for taking a venue_id, and using
     # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+    try:
+        venue = Venue.query.get(venue_id)
+        name = venue.name
+        if venue:
+            db.session.delete(venue)
+            db.session.commit()
+            success = True
+    except:
+        db.session.rollback()
+        success = False
+    finally:
+        db.session.close()
 
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
-    return None
-
+    if success:
+        flash('Venue ' + name + ' successfully deleted.')
+        url = url_for('venues')
+    else:
+        flash('An error occurred. Venue ' + name + ' could not be deleted.')
+        url = url_for('show_venue', venue_id=venue_id)
+    return jsonify({
+        'success': success,
+        'url': url
+    })
 
 #    Artists
 #    ----------------------------------------------------------------
