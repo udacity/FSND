@@ -3,6 +3,7 @@
 #    ----------------------------------------------------------------------------#
 
 import json
+import sys
 import dateutil.parser
 import babel
 import datetime
@@ -46,12 +47,6 @@ class Venue(db.Model):
         image_link = db.Column(db.String(500))
         shows = db.relationship('Show', backref='venue', lazy=True)
         city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
-        # past_shows
-        #   artist_id, artist_name, artist_image_link, start_time
-        # upcoming_shows
-        #   artist_id, artist_name, artist_image_link, start_time
-        # past_shows_count
-        # upcoming_shows_count
 
         @property
         def serialize_summary(self):
@@ -294,13 +289,42 @@ def create_venue_form():
 def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
-
     # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+    form = VenueForm(request.form)
+    # enum fix pattern: https://stackoverflow.com/questions/13558345/flask-app-using-wtforms-with-selectmultiplefield
+    data = request.form
+    city_name = data.get('city')
+    city_state = data.get('state')
+    name = data.get('name')
+    genres = ','.join(form.genres.data)
+    address = data.get('address')
+    phone = data.get('phone')
+    facebook_link = data.get('facebook_link')
+    image_link = data.get('image_link')
+
+    try:
+        city_is_known = City.query.filter(City.name == city_name, City.state == city_state).one_or_none()
+        if city_is_known:
+            city_id = city_is_known.id
+        else:
+            new_city = City(name=city_name, state=city_state)
+            db.session.add(new_city)
+            db.session.flush()
+            city_id = new_city.id
+        new_venue = Venue(name=name, city_id=city_id, genres=genres, address=address, phone=phone,
+                          facebook_link=facebook_link, image_link=image_link)
+        db.session.add(new_venue)
+        db.session.commit()
+        flash('Venue ' + name + ' was successfully listed!')
+    except:
+        db.session.rollback()
+        print(sys.exec_info())
+        flash(flash('An error occurred. Venue ' + name + ' could not be listed.'))
+        return abort(400)
+    finally:
+        db.session.close()
+
+    return redirect(url_for('venues'))
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
