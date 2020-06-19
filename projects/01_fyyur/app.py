@@ -138,6 +138,48 @@ class Artist(db.Model):
             return db.session.query(Show).filter(Show.start_time < current_time).filter(self.id == Show.artist_id)
 
         @property
+        def past_shows(self):
+            current_time = datetime.datetime.utcnow()
+            return Show.query.filter(Show.venue_id == self.id, current_time > Show.start_time) \
+                .order_by(Show.start_time.desc())
+
+        @property
+        def past_shows_serialized(self):
+            serialized_shows = []
+            for show in self.past_shows.all():
+                serialized_shows.append(show.serialized_venue)
+            return serialized_shows
+
+        @property
+        def num_past_shows(self):
+            return self.past_shows.count()
+
+        @property
+        def upcoming_shows(self):
+            current_time = datetime.datetime.utcnow()
+            return Show.query.filter(Show.venue_id == self.id, current_time < Show.start_time) \
+                .order_by(Show.start_time.asc())
+
+        @property
+        def upcoming_shows_serialized(self):
+            serialized_shows = []
+            for show in self.upcoming_shows.all():
+                serialized_shows.append(show.serialized_venue)
+            return serialized_shows
+
+        @property
+        def num_upcoming_shows(self):
+            return self.upcoming_shows.count()
+
+        @property
+        def serialize_summary(self):
+            return {
+                'id': self.id,
+                'name': self.name,
+                'num_upcoming_shows': self.num_upcoming_shows
+            }
+
+        @property
         def serialize_minimal(self):
             return {
                 "id": self.id,
@@ -233,6 +275,15 @@ def order_by_num_upcoming_shows(input_list):
             ordered_list.insert(i, item)
     return ordered_list
 
+
+def search_model_for_names_insensitive(model, search_term):
+    search = "%{}%".format(search_term)
+    matches = model.query.filter(model.name.ilike(search))
+    return {
+        "count": matches.count(),
+        "data": [match.serialize_summary for match in matches]
+    }
+
 #    ----------------------------------------------------------------------------#
 # Controllers.
 #    ----------------------------------------------------------------------------#
@@ -258,14 +309,7 @@ def venues():
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
     search_term = request.form.get('search_term', '')
-    search = "%{}%".format(search_term)
-    venues = Venue.query.filter(Venue.name.like(search))
-    count = venues.count()
-    data = [venue.serialize_summary for venue in venues]
-    response = {
-        "count": venues.count(),
-        "data": [venue.serialize_summary for venue in venues]
-    }
+    response = search_model_for_names_insensitive(model=Venue, search_term=search_term)
     print(json.dumps(response, indent=4))
     return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
@@ -371,24 +415,16 @@ def delete_venue(venue_id):
 def artists():
     all_artists = Artist.query.all()
     data = [artist.serialize_minimal for artist in all_artists]
-    print(json.dumps(response, indent=4))
+    print(json.dumps(data, indent=4))
     return render_template('pages/artists.html', artists=data)
 
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-    # search for "band" should return "The Wild Sax Band".
-    response={
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
-    }
-    return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+    search_term = request.form.get('search_term', '')
+    response = search_model_for_names_insensitive(model=Artist, search_term=search_term)
+    print(json.dumps(response, indent=4))
+    return render_template('pages/search_artists.html', results=response, search_term=search_term)
 
 
 @app.route('/artists/<int:artist_id>')
