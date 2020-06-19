@@ -13,8 +13,9 @@ class ShowForm(Form):
     start_time = DateTimeField(
         'start_time',
         validators=[DataRequired()],
-        default= datetime.today()
+        default=datetime.today()
     )
+
 
 class VenueForm(Form):
     name = StringField(
@@ -117,6 +118,7 @@ class VenueForm(Form):
         'facebook_link', validators=[URL()]
     )
 
+
 class ArtistForm(Form):
     name = StringField(
         'name', validators=[DataRequired()]
@@ -180,6 +182,7 @@ class ArtistForm(Form):
             ('WY', 'WY'),
         ]
     )
+
     phone = StringField(
         # TODO implement validation logic for state
         'phone'
