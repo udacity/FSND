@@ -403,17 +403,19 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-    success = True
+    success = False
     try:
         venue = Venue.query.get(venue_id)
         name = venue.name
         if venue:
+            for show in venue.shows:
+                db.session.delete(show)
             db.session.delete(venue)
             db.session.commit()
             success = True
     except:
         db.session.rollback()
-        success = False
+        print(sys.exc_info())
     finally:
         db.session.close()
 
@@ -423,6 +425,11 @@ def delete_venue(venue_id):
     else:
         flash('An error occurred. Venue ' + name + ' could not be deleted.')
         url = url_for('show_venue', venue_id=venue_id)
+    data = {
+        'success': success,
+        'url': url
+    }
+    print(json.dumps(data, indent=4))
     return jsonify({
         'success': success,
         'url': url

@@ -56,7 +56,7 @@ def downgrade():
             UPDATE artists
             SET city = (
             SELECT cities.name FROM cities 
-            WHERE cities.id = artists.city_id
+            WHERE cities.id = artists.city_id   
             );
         """
     )
