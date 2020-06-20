@@ -8,7 +8,7 @@ import dateutil.parser
 import babel
 import datetime
 import dateparser
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -112,7 +112,6 @@ class Venue(db.Model):
             return self.upcoming_shows.count()
 
 
-
 class Artist(db.Model):
         __tablename__ = 'artists'
         id = db.Column(db.Integer, primary_key=True)
@@ -134,9 +133,79 @@ class Artist(db.Model):
         # upcoming_shows_count
 
         @property
+        def serialize(self):
+            return {
+                'id': self.id,
+                'name': self.name,
+                'phone': self.phone,
+                'genres': self.genres.split(','),
+                'image_link': self.image_link,
+                'website': self.website,
+                'facebook_link': self.facebook_link,
+                'seeking_venue': self.seeking_venue,
+                'seeking_description': self.seeking_description,
+                'city': self.city.name,
+                'state': self.city.state,
+                'past_shows': self.past_shows_serialized,
+                'upcoming_shows': self.upcoming_shows_serialized,
+                "past_shows_count": self.num_past_shows,
+                "upcoming_shows_count": self.num_upcoming_shows
+            }
+
+
+        @property
         def get_past_shows(self):
             current_time = datetime.datetime.utcnow()
             return db.session.query(Show).filter(Show.start_time < current_time).filter(self.id == Show.artist_id)
+
+        @property
+        def past_shows(self):
+            current_time = datetime.datetime.utcnow()
+            return Show.query.filter(Show.venue_id == self.id, current_time > Show.start_time) \
+                .order_by(Show.start_time.desc())
+
+        @property
+        def past_shows_serialized(self):
+            serialized_shows = []
+            for show in self.past_shows.all():
+                serialized_shows.append(show.serialized_venue)
+            return serialized_shows
+
+        @property
+        def num_past_shows(self):
+            return self.past_shows.count()
+
+        @property
+        def upcoming_shows(self):
+            current_time = datetime.datetime.utcnow()
+            return Show.query.filter(Show.venue_id == self.id, current_time < Show.start_time) \
+                .order_by(Show.start_time.asc())
+
+        @property
+        def upcoming_shows_serialized(self):
+            serialized_shows = []
+            for show in self.upcoming_shows.all():
+                serialized_shows.append(show.serialized_venue)
+            return serialized_shows
+
+        @property
+        def num_upcoming_shows(self):
+            return self.upcoming_shows.count()
+
+        @property
+        def serialize_summary(self):
+            return {
+                'id': self.id,
+                'name': self.name,
+                'num_upcoming_shows': self.num_upcoming_shows
+            }
+
+        @property
+        def serialize_minimal(self):
+            return {
+                "id": self.id,
+                "name": self.name
+            }
 
 
 class Show(db.Model):
@@ -158,10 +227,10 @@ class Show(db.Model):
     @property
     def serialized_venue(self):
         return {
-            'artist_id': self.venue.id,
-            'artist_name': self.venue.name,
-            'artist_image_link': self.venue.image_link,
-            'start_time': self.start_time
+            'venue_id': self.venue.id,
+            'venue_name': self.venue.name,
+            'venue_image_link': self.venue.image_link,
+            'start_time': self.start_time.isoformat()
         }
 
 
@@ -227,6 +296,15 @@ def order_by_num_upcoming_shows(input_list):
             ordered_list.insert(i, item)
     return ordered_list
 
+
+def search_model_for_names_insensitive(model, search_term):
+    search = "%{}%".format(search_term)
+    matches = model.query.filter(model.name.ilike(search))
+    return {
+        "count": matches.count(),
+        "data": [match.serialize_summary for match in matches]
+    }
+
 #    ----------------------------------------------------------------------------#
 # Controllers.
 #    ----------------------------------------------------------------------------#
@@ -252,14 +330,7 @@ def venues():
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
     search_term = request.form.get('search_term', '')
-    search = "%{}%".format(search_term)
-    venues = Venue.query.filter(Venue.name.like(search))
-    count = venues.count()
-    data = [venue.serialize_summary for venue in venues]
-    response = {
-        "count": venues.count(),
-        "data": [venue.serialize_summary for venue in venues]
-    }
+    response = search_model_for_names_insensitive(model=Venue, search_term=search_term)
     print(json.dumps(response, indent=4))
     return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
@@ -268,7 +339,6 @@ def search_venues():
 def show_venue(venue_id):
     venue = Venue.query.get(venue_id)
     if venue:
-        past_shows = venue.past_shows_serialized
         data = venue.serialized
         print(json.dumps(data, indent=4))
         return render_template('pages/show_venue.html', venue=data)
@@ -287,8 +357,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
+    error = False
     # on successful db insert, flash success
     form = VenueForm(request.form)
     # enum fix pattern: https://stackoverflow.com/questions/13558345/flask-app-using-wtforms-with-selectmultiplefield
@@ -314,28 +383,57 @@ def create_venue_submission():
         new_venue = Venue(name=name, city_id=city_id, genres=genres, address=address, phone=phone,
                           facebook_link=facebook_link, image_link=image_link)
         db.session.add(new_venue)
+        db.session.flush()
+        venue_id = new_venue.id
         db.session.commit()
         flash('Venue ' + name + ' was successfully listed!')
     except:
         db.session.rollback()
-        print(sys.exec_info())
-        flash(flash('An error occurred. Venue ' + name + ' could not be listed.'))
-        return abort(400)
+        print(sys.exc_info())
+        flash('An error occurred. Venue ' + name + ' could not be listed.')
+        error = True
     finally:
         db.session.close()
 
-    return redirect(url_for('venues'))
+    if error:
+        return abort(400)
+    else:
+        return redirect(url_for('show_venue', venue_id=venue_id))
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+    success = False
+    try:
+        venue = Venue.query.get(venue_id)
+        name = venue.name
+        if venue:
+            for show in venue.shows:
+                db.session.delete(show)
+            db.session.delete(venue)
+            db.session.commit()
+            success = True
+    except:
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
 
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
-    return None
-
+    if success:
+        flash('Venue ' + name + ' successfully deleted.')
+        url = url_for('venues')
+    else:
+        flash('An error occurred. Venue ' + name + ' could not be deleted.')
+        url = url_for('show_venue', venue_id=venue_id)
+    data = {
+        'success': success,
+        'url': url
+    }
+    print(json.dumps(data, indent=4))
+    return jsonify({
+        'success': success,
+        'url': url
+    })
 
 #    Artists
 #    ----------------------------------------------------------------
@@ -343,134 +441,46 @@ def delete_venue(venue_id):
 
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
-    data=[{
-        "id": 4,
-        "name": "Guns N Petals",
-    }, {
-        "id": 5,
-        "name": "Matt Quevedo",
-    }, {
-        "id": 6,
-        "name": "The Wild Sax Band",
-    }]
+    all_artists = Artist.query.all()
+    data = [artist.serialize_minimal for artist in all_artists]
+    print(json.dumps(data, indent=4))
     return render_template('pages/artists.html', artists=data)
 
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-    # search for "band" should return "The Wild Sax Band".
-    response={
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
-    }
-    return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+    search_term = request.form.get('search_term', '')
+    response = search_model_for_names_insensitive(model=Artist, search_term=search_term)
+    print(json.dumps(response, indent=4))
+    return render_template('pages/search_artists.html', results=response, search_term=search_term)
 
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-    # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
-    data1={
-        "id": 4,
-        "name": "Guns N Petals",
-        "genres": ["Rock n Roll"],
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "326-123-5000",
-        "website": "https://www.gunsnpetalsband.com",
-        "facebook_link": "https://www.facebook.com/GunsNPetals",
-        "seeking_venue": True,
-        "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-        "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-        "past_shows": [{
-            "venue_id": 1,
-            "venue_name": "The Musical Hop",
-            "venue_image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-            "start_time": "2019-05-21T21:30:00.000Z"
-        }],
-        "upcoming_shows": [],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 0,
-    }
-    data2={
-        "id": 5,
-        "name": "Matt Quevedo",
-        "genres": ["Jazz"],
-        "city": "New York",
-        "state": "NY",
-        "phone": "300-400-5000",
-        "facebook_link": "https://www.facebook.com/mattquevedo923251523",
-        "seeking_venue": False,
-        "image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-        "past_shows": [{
-            "venue_id": 3,
-            "venue_name": "Park Square Live Music & Coffee",
-            "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-            "start_time": "2019-06-15T23:00:00.000Z"
-        }],
-        "upcoming_shows": [],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 0,
-    }
-    data3={
-        "id": 6,
-        "name": "The Wild Sax Band",
-        "genres": ["Jazz", "Classical"],
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "432-325-5432",
-        "seeking_venue": False,
-        "image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-        "past_shows": [],
-        "upcoming_shows": [{
-            "venue_id": 3,
-            "venue_name": "Park Square Live Music & Coffee",
-            "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-            "start_time": "2035-04-01T20:00:00.000Z"
-        }, {
-            "venue_id": 3,
-            "venue_name": "Park Square Live Music & Coffee",
-            "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-            "start_time": "2035-04-08T20:00:00.000Z"
-        }, {
-            "venue_id": 3,
-            "venue_name": "Park Square Live Music & Coffee",
-            "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-            "start_time": "2035-04-15T20:00:00.000Z"
-        }],
-        "past_shows_count": 0,
-        "upcoming_shows_count": 3,
-    }
-    data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
-    return render_template('pages/show_artist.html', artist=data)
+    artist = Artist.query.get(artist_id)
+    if isinstance(artist, Artist):
+        data = artist.serialize
+        print(json.dumps(data, indent=4))
+        return render_template('pages/show_artist.html', artist=data)
+    else:
+        return abort(404)
+
 
 #    Update
 #    ----------------------------------------------------------------
+
+
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
+    artist = Artist.query.get(artist_id)
     form = ArtistForm()
-    artist={
-        "id": 4,
-        "name": "Guns N Petals",
-        "genres": ["Rock n Roll"],
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "326-123-5000",
-        "website": "https://www.gunsnpetalsband.com",
-        "facebook_link": "https://www.facebook.com/GunsNPetals",
-        "seeking_venue": True,
-        "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-        "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-    }
-    # TODO: populate form with fields from artist with ID <artist_id>
-    return render_template('forms/edit_artist.html', form=form, artist=artist)
+    if isinstance(artist, Artist):
+        data = artist.serialize
+        print(json.dumps(data, indent=4))
+        return render_template('forms/edit_artist.html', form=form, artist=data)
+    else:
+        return abort(404)
+
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
