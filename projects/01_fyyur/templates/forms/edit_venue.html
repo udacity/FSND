@@ -3,6 +3,7 @@
 {% block content %}
   <div class="form-wrapper">
     <form class="form" method="post" action="/venues/{{venue.id}}/edit">
+      {{ form.hidden_tag() }}
       <h3 class="form-heading">Edit venue <em>{{ venue.name }}</em> <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
       <div class="form-group">
         <label for="name">Name</label>

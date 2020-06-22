@@ -260,6 +260,24 @@ class City(db.Model):
             'venues': [venue.serialize_summary for venue in ordered_venues]
         }
 
+    @classmethod
+    def get_id(cls, city_name, city_state):
+        city_is_known = cls.query.filter(cls.name == city_name, cls.state == city_state).one_or_none()
+        if city_is_known:
+            city_id = city_is_known.id
+        else:
+            try:
+                new_city = cls(name=city_name, state=city_state)
+                city_id = new_city.id
+                db.session.add(new_city)
+                db.session.commit()
+            except:
+                print(sys.exc_info())
+                city_id = None
+            finally:
+                db.session.close()
+        return city_id
+
 
 #    ----------------------------------------------------------------------------#
 # Filters.
@@ -306,6 +324,9 @@ def search_model_for_names_insensitive(model, search_term):
         "count": matches.count(),
         "data": [match.serialize_summary for match in matches]
     }
+
+
+
 
 #    ----------------------------------------------------------------------------#
 # Controllers.
@@ -374,14 +395,9 @@ def create_venue_submission():
     image_link = data.get('image_link')
 
     try:
-        city_is_known = City.query.filter(City.name == city_name, City.state == city_state).one_or_none()
-        if city_is_known:
-            city_id = city_is_known.id
-        else:
-            new_city = City(name=city_name, state=city_state)
-            db.session.add(new_city)
-            db.session.flush()
-            city_id = new_city.id
+        city_id = City.get_id(city_state=city_state, city_name=city_name)
+        if city_id is None:
+            error = True
         new_venue = Venue(name=name, city_id=city_id, genres=genres, address=address, phone=phone,
                           facebook_link=facebook_link, image_link=image_link)
         db.session.add(new_venue)
@@ -534,13 +550,21 @@ def edit_venue_submission(venue_id):
     error = False
     print(json.dumps(data, indent=4))
     if form.validate_on_submit():
+        # Get City info
+        city_name = data.get('city')
+        city_state = data.get('state', 'AL')
+        city_id = City.get_id(city_state=city_state, city_name=city_name)
+        if city_id is None:
+            error = True
+
+        # Get other fields
         name = data.get('name')
-        city = data.get('city')
-        state = data.get('state', 'AL')
         address = data.get('address')
         phone = data.get('phone')
         image_link = data.get('image_link')
-        genres = ','.join(data.get('genres', []))
+        genres = data.get('genres', [])
+        if isinstance(genres, list):
+            genres = ','.join(genres)
         facebook_link = data.get('facebook_link')
         website = data.get('website')
         seeking_talent = True if data.get('seeking_talent') else False
@@ -549,8 +573,7 @@ def edit_venue_submission(venue_id):
         try:
             venue = Venue.query.get(venue_id)
             venue.name = name
-            venue.city = city
-            venue.state = state
+            venue.city_id = city_id
             venue.address = address
             venue.phone = phone
             venue.image_link = image_link
