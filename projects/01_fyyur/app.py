@@ -384,37 +384,40 @@ def create_venue_submission():
     # on successful db insert, flash success
     form = VenueForm(request.form)
     # enum fix pattern: https://stackoverflow.com/questions/13558345/flask-app-using-wtforms-with-selectmultiplefield
-    data = request.form
-    city_name = data.get('city')
-    city_state = data.get('state')
-    name = data.get('name')
-    genres = ','.join(form.genres.data)
-    address = data.get('address')
-    phone = data.get('phone')
-    facebook_link = data.get('facebook_link')
-    image_link = data.get('image_link')
+    if form.validate_on_submit():
+        data = request.form
+        city_name = data.get('city')
+        city_state = data.get('state')
+        name = data.get('name')
+        genres = ','.join(form.genres.data)
+        address = data.get('address')
+        phone = data.get('phone')
+        facebook_link = data.get('facebook_link')
+        image_link = data.get('image_link')
 
-    try:
-        city_id = City.get_id(city_state=city_state, city_name=city_name)
-        if city_id is None:
+        try:
+            city_id = City.get_id(city_state=city_state, city_name=city_name)
+            if city_id is None:
+                error = True
+            new_venue = Venue(name=name, city_id=city_id, genres=genres, address=address, phone=phone,
+                              facebook_link=facebook_link, image_link=image_link)
+            db.session.add(new_venue)
+            db.session.flush()
+            venue_id = new_venue.id
+            db.session.commit()
+            flash('Venue ' + name + ' was successfully listed!')
+        except:
+            db.session.rollback()
+            print(sys.exc_info())
+            flash('An error occurred. Venue ' + name + ' could not be listed.')
             error = True
-        new_venue = Venue(name=name, city_id=city_id, genres=genres, address=address, phone=phone,
-                          facebook_link=facebook_link, image_link=image_link)
-        db.session.add(new_venue)
-        db.session.flush()
-        venue_id = new_venue.id
-        db.session.commit()
-        flash('Venue ' + name + ' was successfully listed!')
-    except:
-        db.session.rollback()
-        print(sys.exc_info())
-        flash('An error occurred. Venue ' + name + ' could not be listed.')
+        finally:
+            db.session.close()
+    else:
         error = True
-    finally:
-        db.session.close()
 
     if error:
-        return abort(400)
+        return abort(500)
     else:
         return redirect(url_for('show_venue', venue_id=venue_id))
 
