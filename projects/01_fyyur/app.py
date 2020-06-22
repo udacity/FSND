@@ -14,7 +14,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
-from flask_wtf import Form
+
+from extensions import csrf
 from forms import ShowForm, VenueForm, ArtistForm
 
 #    ----------------------------------------------------------------------------#
@@ -24,9 +25,11 @@ from forms import ShowForm, VenueForm, ArtistForm
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
+csrf.init_app(app)
 db = SQLAlchemy(app)
 # connect app and db to migration utility
 migrate = Migrate(app, db)
+
 
 #    ----------------------------------------------------------------------------#
 # Models.
@@ -34,178 +37,177 @@ migrate = Migrate(app, db)
 
 
 class Venue(db.Model):
-        __tablename__ = 'venues'
-        id = db.Column(db.Integer(), primary_key=True)
-        name = db.Column(db.String())
-        genres = db.Column(db.String(120))
-        address = db.Column(db.String(120))
-        phone = db.Column(db.String(120))
-        website = db.Column(db.String())
-        facebook_link = db.Column(db.String(120))
-        seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
-        seeking_description = db.Column(db.String())
-        image_link = db.Column(db.String(500))
-        shows = db.relationship('Show', backref='venue', lazy=True)
-        city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
+    __tablename__ = 'venues'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String())
+    genres = db.Column(db.String(120))
+    address = db.Column(db.String(120))
+    phone = db.Column(db.String(120))
+    website = db.Column(db.String())
+    facebook_link = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
+    seeking_description = db.Column(db.String())
+    image_link = db.Column(db.String(500))
+    shows = db.relationship('Show', backref='venue', lazy=True)
+    city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
 
-        @property
-        def serialize_summary(self):
-            return {
-                'id': self.id,
-                'name': self.name,
-                'num_upcoming_shows': self.num_upcoming_shows
-            }
+    @property
+    def serialize_summary(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'num_upcoming_shows': self.num_upcoming_shows
+        }
 
-        @property
-        def serialized(self):
-            return {
-                'id' : self.id,
-                'name' : self.name,
-                'genres' : self.genres.split(','),
-                'city' : self.city.name,
-                'state' : self.city.state,
-                'address' : self.address,
-                'phone' : self.phone,
-                'website' : self.website,
-                "facebook_link": self.facebook_link,
-                "seeking_talent" : self.seeking_talent,
-                "seeking_description": self.seeking_description,
-                'image_link' : self.image_link,
-                'past_shows' : self.past_shows_serialized,
-                'upcoming_shows' : self.upcoming_shows_serialized,
-                "past_shows_count": self.num_past_shows,
-                "upcoming_shows_count": self.num_upcoming_shows
-            }
+    @property
+    def dictionary(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'genres': self.genres.split(','),
+            'city': self.city.name,
+            'state': self.city.state,
+            'address': self.address,
+            'phone': self.phone,
+            'website': self.website,
+            "facebook_link": self.facebook_link,
+            "seeking_talent": self.seeking_talent,
+            "seeking_description": self.seeking_description,
+            'image_link': self.image_link,
+            'past_shows': self.past_shows_serialized,
+            'upcoming_shows': self.upcoming_shows_serialized,
+            "past_shows_count": self.num_past_shows,
+            "upcoming_shows_count": self.num_upcoming_shows
+        }
 
-        @property
-        def past_shows(self):
-            current_time = datetime.datetime.utcnow()
-            return Show.query.filter(Show.venue_id == self.id, current_time > Show.start_time)\
-                .order_by(Show.start_time.desc())
+    @property
+    def past_shows(self):
+        current_time = datetime.datetime.utcnow()
+        return Show.query.filter(Show.venue_id == self.id, current_time > Show.start_time)\
+            .order_by(Show.start_time.desc())
 
-        @property
-        def past_shows_serialized(self):
-            serialized_shows = []
-            for show in self.past_shows.all():
-                serialized_shows.append(show.serialized_artist)
-            return serialized_shows
+    @property
+    def past_shows_serialized(self):
+        serialized_shows = []
+        for show in self.past_shows.all():
+            serialized_shows.append(show.serialized_artist)
+        return serialized_shows
 
-        @property
-        def num_past_shows(self):
-            return self.past_shows.count()
+    @property
+    def num_past_shows(self):
+        return self.past_shows.count()
 
-        @property
-        def upcoming_shows(self):
-            current_time = datetime.datetime.utcnow()
-            return Show.query.filter(Show.venue_id == self.id, current_time < Show.start_time)\
-                .order_by(Show.start_time.asc())
+    @property
+    def upcoming_shows(self):
+        current_time = datetime.datetime.utcnow()
+        return Show.query.filter(Show.venue_id == self.id, current_time < Show.start_time)\
+            .order_by(Show.start_time.asc())
 
-        @property
-        def upcoming_shows_serialized(self):
-            serialized_shows = []
-            for show in self.upcoming_shows.all():
-                serialized_shows.append(show.serialized_artist)
-            return serialized_shows
+    @property
+    def upcoming_shows_serialized(self):
+        serialized_shows = []
+        for show in self.upcoming_shows.all():
+            serialized_shows.append(show.serialized_artist)
+        return serialized_shows
 
-        @property
-        def num_upcoming_shows(self):
-            return self.upcoming_shows.count()
+    @property
+    def num_upcoming_shows(self):
+        return self.upcoming_shows.count()
 
 
 class Artist(db.Model):
-        __tablename__ = 'artists'
-        id = db.Column(db.Integer, primary_key=True)
-        name = db.Column(db.String())
-        phone = db.Column(db.String(120))
-        genres = db.Column(db.String(120))
-        image_link = db.Column(db.String(500))
-        website = db.Column(db.String())
-        facebook_link = db.Column(db.String(120))
-        seeking_venue = db.Column(db.Boolean(), nullable=False, default=False)
-        seeking_description = db.Column(db.String())
-        shows = db.relationship('Show', backref='artist', lazy=True)
-        city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
-        # past_shows
-        #   venue_id, venue_name, venue_image_link, start_time
-        # upcoming_shows
-        #   venue_id, venue_name, venue_image_link, start_time
-        # past_shows_count
-        # upcoming_shows_count
+    __tablename__ = 'artists'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String())
+    phone = db.Column(db.String(120))
+    genres = db.Column(db.String(120))
+    image_link = db.Column(db.String(500))
+    website = db.Column(db.String())
+    facebook_link = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean(), nullable=False, default=False)
+    seeking_description = db.Column(db.String())
+    shows = db.relationship('Show', backref='artist', lazy=True)
+    city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
+    # past_shows
+    #   venue_id, venue_name, venue_image_link, start_time
+    # upcoming_shows
+    #   venue_id, venue_name, venue_image_link, start_time
+    # past_shows_count
+    # upcoming_shows_count
 
-        @property
-        def serialize(self):
-            return {
-                'id': self.id,
-                'name': self.name,
-                'phone': self.phone,
-                'genres': self.genres.split(','),
-                'image_link': self.image_link,
-                'website': self.website,
-                'facebook_link': self.facebook_link,
-                'seeking_venue': self.seeking_venue,
-                'seeking_description': self.seeking_description,
-                'city': self.city.name,
-                'state': self.city.state,
-                'past_shows': self.past_shows_serialized,
-                'upcoming_shows': self.upcoming_shows_serialized,
-                "past_shows_count": self.num_past_shows,
-                "upcoming_shows_count": self.num_upcoming_shows
-            }
+    @property
+    def dictionary(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'phone': self.phone,
+            'genres': self.genres.split(','),
+            'image_link': self.image_link,
+            'website': self.website,
+            'facebook_link': self.facebook_link,
+            'seeking_venue': self.seeking_venue,
+            'seeking_description': self.seeking_description,
+            'city': self.city.name,
+            'state': self.city.state,
+            'past_shows': self.past_shows_serialized,
+            'upcoming_shows': self.upcoming_shows_serialized,
+            "past_shows_count": self.num_past_shows,
+            "upcoming_shows_count": self.num_upcoming_shows
+        }
 
+    @property
+    def get_past_shows(self):
+        current_time = datetime.datetime.utcnow()
+        return db.session.query(Show).filter(Show.start_time < current_time).filter(self.id == Show.artist_id)
 
-        @property
-        def get_past_shows(self):
-            current_time = datetime.datetime.utcnow()
-            return db.session.query(Show).filter(Show.start_time < current_time).filter(self.id == Show.artist_id)
+    @property
+    def past_shows(self):
+        current_time = datetime.datetime.utcnow()
+        return Show.query.filter(Show.venue_id == self.id, current_time > Show.start_time) \
+            .order_by(Show.start_time.desc())
 
-        @property
-        def past_shows(self):
-            current_time = datetime.datetime.utcnow()
-            return Show.query.filter(Show.venue_id == self.id, current_time > Show.start_time) \
-                .order_by(Show.start_time.desc())
+    @property
+    def past_shows_serialized(self):
+        serialized_shows = []
+        for show in self.past_shows.all():
+            serialized_shows.append(show.serialized_venue)
+        return serialized_shows
 
-        @property
-        def past_shows_serialized(self):
-            serialized_shows = []
-            for show in self.past_shows.all():
-                serialized_shows.append(show.serialized_venue)
-            return serialized_shows
+    @property
+    def num_past_shows(self):
+        return self.past_shows.count()
 
-        @property
-        def num_past_shows(self):
-            return self.past_shows.count()
+    @property
+    def upcoming_shows(self):
+        current_time = datetime.datetime.utcnow()
+        return Show.query.filter(Show.venue_id == self.id, current_time < Show.start_time) \
+            .order_by(Show.start_time.asc())
 
-        @property
-        def upcoming_shows(self):
-            current_time = datetime.datetime.utcnow()
-            return Show.query.filter(Show.venue_id == self.id, current_time < Show.start_time) \
-                .order_by(Show.start_time.asc())
+    @property
+    def upcoming_shows_serialized(self):
+        serialized_shows = []
+        for show in self.upcoming_shows.all():
+            serialized_shows.append(show.serialized_venue)
+        return serialized_shows
 
-        @property
-        def upcoming_shows_serialized(self):
-            serialized_shows = []
-            for show in self.upcoming_shows.all():
-                serialized_shows.append(show.serialized_venue)
-            return serialized_shows
+    @property
+    def num_upcoming_shows(self):
+        return self.upcoming_shows.count()
 
-        @property
-        def num_upcoming_shows(self):
-            return self.upcoming_shows.count()
+    @property
+    def serialize_summary(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'num_upcoming_shows': self.num_upcoming_shows
+        }
 
-        @property
-        def serialize_summary(self):
-            return {
-                'id': self.id,
-                'name': self.name,
-                'num_upcoming_shows': self.num_upcoming_shows
-            }
-
-        @property
-        def serialize_minimal(self):
-            return {
-                "id": self.id,
-                "name": self.name
-            }
+    @property
+    def serialize_minimal(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
 
 
 class Show(db.Model):
@@ -339,7 +341,7 @@ def search_venues():
 def show_venue(venue_id):
     venue = Venue.query.get(venue_id)
     if venue:
-        data = venue.serialized
+        data = venue.dictionary
         print(json.dumps(data, indent=4))
         return render_template('pages/show_venue.html', venue=data)
     else:
@@ -459,7 +461,7 @@ def search_artists():
 def show_artist(artist_id):
     artist = Artist.query.get(artist_id)
     if isinstance(artist, Artist):
-        data = artist.serialize
+        data = artist.dictionary
         print(json.dumps(data, indent=4))
         return render_template('pages/show_artist.html', artist=data)
     else:
@@ -475,7 +477,7 @@ def edit_artist(artist_id):
     artist = Artist.query.get(artist_id)
     form = ArtistForm()
     if isinstance(artist, Artist):
-        data = artist.serialize
+        data = artist.dictionary
         print(json.dumps(data, indent=4))
         return render_template('forms/edit_artist.html', form=form, artist=data)
     else:
@@ -486,34 +488,93 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
     # TODO: take values from the form submitted, and update existing
     # artist record with ID <artist_id> using the new attributes
+    form = ArtistForm(request.form)  # fix to get all selected values from form.
+    data = request.form
+    print(json.dumps(data, indent=4))
+    city_name = data.get('city')
+    city_state = data.get('state')
+    name = data.get('name')
+    genres = ','.join(form.genres.data)
+    address = data.get('address')
+    phone = data.get('phone')
+    facebook_link = data.get('facebook_link')
+    image_link = data.get('image_link')
 
     return redirect(url_for('show_artist', artist_id=artist_id))
+
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
     form = VenueForm()
-    venue={
-        "id": 1,
-        "name": "The Musical Hop",
-        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-        "address": "1015 Folsom Street",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
-        "facebook_link": "https://www.facebook.com/TheMusicalHop",
-        "seeking_talent": True,
-        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-    }
-    # TODO: populate form with values from venue with ID <venue_id>
-    return render_template('forms/edit_venue.html', form=form, venue=venue)
+    venue = Venue.query.get(venue_id)
+    if isinstance(venue, Venue):
+        data = venue.dictionary
+        form.name.default = data.get('name')
+        form.city.default = data.get('city')
+        form.state.default = data.get('state', 'AL')
+        form.address.default = data.get('address')
+        form.phone.default = data.get('phone')
+        form.image_link.default = data.get('image_link')
+        form.genres.default = data.get('genres', [])
+        form.facebook_link.default = data.get('facebook_link')
+        form.website.default = data.get('website')
+        form.seeking_talent.default = data.get('seeking_talent')
+        form.seeking_description.default = data.get('seeking_description')
+        form.process()
+        print(json.dumps(data, indent=4))
+        return render_template('forms/edit_venue.html', form=form, venue=data)
+    else:
+        return abort(500)
+
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    # TODO: take values from the form submitted, and update existing
-    # venue record with ID <venue_id> using the new attributes
-    return redirect(url_for('show_venue', venue_id=venue_id))
+    form = VenueForm(request.form)  # fix to get all selected values from form.
+    data = request.form
+    error = False
+    print(json.dumps(data, indent=4))
+    if form.validate_on_submit():
+        name = data.get('name')
+        city = data.get('city')
+        state = data.get('state', 'AL')
+        address = data.get('address')
+        phone = data.get('phone')
+        image_link = data.get('image_link')
+        genres = ','.join(data.get('genres', []))
+        facebook_link = data.get('facebook_link')
+        website = data.get('website')
+        seeking_talent = True if data.get('seeking_talent') else False
+        seeking_description = data.get('seeking_description')
+
+        try:
+            venue = Venue.query.get(venue_id)
+            venue.name = name
+            venue.city = city
+            venue.state = state
+            venue.address = address
+            venue.phone = phone
+            venue.image_link = image_link
+            venue.genres = genres
+            venue.facebook_link = facebook_link
+            venue.website = website
+            venue.seeking_talent = seeking_talent
+            venue.seeking_description = seeking_description
+            db.session.commit()
+            flash('Venue ' + name + ' was successfully updated!')
+        except:
+            db.session.rollback()
+            print(sys.exc_info())
+            flash('An error occurred. Venue ' + name + ' could not be updated.')
+            error = True
+        finally:
+            db.session.close()
+    else:
+        error = True
+
+    if error:
+        return abort(500)
+    else:
+        return redirect(url_for('show_venue', venue_id=venue_id))
 
 #    Create Artist
 #    ----------------------------------------------------------------
@@ -522,6 +583,7 @@ def edit_venue_submission(venue_id):
 def create_artist_form():
     form = ArtistForm()
     return render_template('forms/new_artist.html', form=form)
+
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
@@ -582,11 +644,13 @@ def shows():
     }]
     return render_template('pages/shows.html', shows=data)
 
+
 @app.route('/shows/create')
 def create_shows():
     # renders form. do not touch.
     form = ShowForm()
     return render_template('forms/new_show.html', form=form)
+
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
@@ -600,24 +664,26 @@ def create_show_submission():
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
+
 @app.errorhandler(404)
 def not_found_error(error):
-        return render_template('errors/404.html'), 404
+    return render_template('errors/404.html'), 404
+
 
 @app.errorhandler(500)
 def server_error(error):
-        return render_template('errors/500.html'), 500
+    return render_template('errors/500.html'), 500
 
 
 if not app.debug:
-        file_handler = FileHandler('error.log')
-        file_handler.setFormatter(
-                Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
-        )
-        app.logger.setLevel(logging.INFO)
-        file_handler.setLevel(logging.INFO)
-        app.logger.addHandler(file_handler)
-        app.logger.info('errors')
+    file_handler = FileHandler('error.log')
+    file_handler.setFormatter(
+            Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
+    )
+    app.logger.setLevel(logging.INFO)
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.info('errors')
 
 #    ----------------------------------------------------------------------------#
 # Launch.

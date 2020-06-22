@@ -12,20 +12,20 @@
           <label>City & State</label>
           <div class="form-inline">
             <div class="form-group">
-              {{ form.city(class_ = 'form-control', placeholder='City', autofocus = true) }}
+              {{ form.city(class_ = 'form-control', placeholder=venue.city, autofocus = true) }}
             </div>
             <div class="form-group">
-              {{ form.state(class_ = 'form-control', placeholder='State', autofocus = true) }}
+              {{ form.state(class_ = 'form-control', placeholder=venue.state, autofocus = true) }}
             </div>
           </div>
       </div>
       <div class="form-group">
         <label for="address">Address</label>
-        {{ form.address(class_ = 'form-control', autofocus = true) }}
+        {{ form.address(class_ = 'form-control', placeholder=venue.address, autofocus = true) }}
       </div>
       <div class="form-group">
           <label for="phone">Phone</label>
-          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
+          {{ form.phone(class_ = 'form-control', placeholder=venue.phone, autofocus = true) }}
         </div>
       <div class="form-group">
         <label for="genres">Genres</label>
@@ -33,10 +33,26 @@
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
-          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+          <label for="facebook_link">Facebook Link</label>
+          {{ form.facebook_link(class_ = 'form-control', placeholder=venue.facebook_link, autofocus = true) }}
+      </div>
+      <div class="form-group">
+          <label for="image_link">Image Link</label>
+          {{ form.image_link(class_ = 'form-control', placeholder=venue.image_link, autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="website">Website</label>
+        {{ form.website(class_ = 'form-control', placeholder=venue.website, autofocus = true) }}
+      </div>
+      <div class="form-group">
+          <label for="seeking_talent">Are you seeking talent?</label>
+          {{ form.seeking_talent(class_ = 'form-control', placeholder=venue.seeking_talent, autofocus = true) }}
+      </div>
+      <div class="form-group">
+          <label for="seeking_description">Advertisement Text</label>
+          {{ form.seeking_description(class_ = 'form-control', placeholder=venue.seeking_description, autofocus = true) }}
         </div>
-      <input type="submit" value="Edit Venue" class="btn btn-primary btn-lg btn-block">
+      <input type="submit" value="Submit Changes" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
 {% endblock %}
