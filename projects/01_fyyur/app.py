@@ -331,6 +331,13 @@ def format_phone_number(phone_number):
     number = ''.join(re.split('\.|-', phone_number))
     return f'{number[:3]}-{number[3:6]}-{number[6:]}'
 
+
+def format_genres(data):
+    genres = data.get('genres')
+    if isinstance(genres, list):
+        genres = ','.join(genres)
+    return genres
+
 #    ----------------------------------------------------------------------------#
 # Controllers.
 #    ----------------------------------------------------------------------------#
@@ -392,7 +399,7 @@ def create_venue_submission():
         city_name = data.get('city')
         city_state = data.get('state')
         name = data.get('name')
-        genres = ','.join(form.genres.data)
+        genres = format_genres(data)
         address = data.get('address')
         phone = format_phone_number(data.get('phone'))
         facebook_link = data.get('facebook_link')
@@ -412,7 +419,6 @@ def create_venue_submission():
         except:
             db.session.rollback()
             print(sys.exc_info())
-            flash('An error occurred. Venue ' + name + ' could not be listed.')
             error = True
         finally:
             db.session.close()
@@ -420,6 +426,7 @@ def create_venue_submission():
         error = True
 
     if error:
+        flash('An error occurred. Venue ' + name + ' could not be listed.')
         return abort(500)
     else:
         return redirect(url_for('show_venue', venue_id=venue_id))
@@ -508,21 +515,52 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-    # TODO: take values from the form submitted, and update existing
-    # artist record with ID <artist_id> using the new attributes
     form = ArtistForm(request.form)  # fix to get all selected values from form.
+    error = False
     data = request.form
     print(json.dumps(data, indent=4))
-    city_name = data.get('city')
-    city_state = data.get('state')
-    name = data.get('name')
-    genres = ','.join(form.genres.data)
-    address = data.get('address')
-    phone = data.get('phone')
-    facebook_link = data.get('facebook_link')
-    image_link = data.get('image_link')
+    if form.validate_on_submit():
+        city_name = data.get('city')
+        city_state = data.get('state')
+        city_id = City.get_id(city_state=city_state, city_name=city_name)
+        if city_id is None:
+            error = True
 
-    return redirect(url_for('show_artist', artist_id=artist_id))
+        name = data.get('name')
+        genres = format_genres(data)
+        phone = data.get('phone')
+        facebook_link = data.get('facebook_link')
+        image_link = data.get('image_link')
+        website = data.get('website')
+        seeking_venue = True if data.get('seeking_venue') else False
+        seeking_description = data.get('seeking_description')
+        try:
+            artist = Artists.query.get(artist_id)
+            artist.name = name
+            artist.city_id = city_id
+            artist.genres = genres
+            artist.phone = phone
+            artist.image_link = image_link
+            artist.website = website
+            artist.facebook_link = facebook_link
+            artist.seeking_venue = seeking_venue
+            artist.seeking_description = seeking_description
+            db.session.commit()
+            flash('Artist ' + name + ' was successfully updated!')
+        except:
+            db.session.rollback()
+            print(sys.exc_info())
+            flash('An error occurred. Artist ' + name + ' could not be updated.')
+            error = True
+        finally:
+            db.session.close()
+    else:
+        error = True
+
+    if error:
+        return abort(500)
+    else:
+        return redirect(url_for('show_artist', artist_id=artist_id))
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
@@ -568,9 +606,7 @@ def edit_venue_submission(venue_id):
         address = data.get('address')
         phone = format_phone_number(data.get('phone'))
         image_link = data.get('image_link')
-        genres = data.get('genres', [])
-        if isinstance(genres, list):
-            genres = ','.join(genres)
+        genres = format_genres(data)
         facebook_link = data.get('facebook_link')
         website = data.get('website')
         seeking_talent = True if data.get('seeking_talent') else False
@@ -605,8 +641,10 @@ def edit_venue_submission(venue_id):
     else:
         return redirect(url_for('show_venue', venue_id=venue_id))
 
+
 #    Create Artist
 #    ----------------------------------------------------------------
+
 
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
@@ -616,15 +654,55 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    # called upon submitting the new artist listing form
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
+    error = False
+    form = ArtistForm(request.form)
 
-    # on successful db insert, flash success
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-    return render_template('pages/home.html')
+    if form.validate_on_submit():
+        data = request.form
+        city_name = data.get('city')
+        city_state = data.get('state')
+
+        name = data.get('name')
+        genres = format_genres(data)
+        phone = format_phone_number(data.get('phone'))
+        image_link = data.get('image_link')
+        facebook_link = data.get('facebook_link')
+        website = data.get('website')
+        seeking_venue = True if data.get('seeking_venue') else False
+        seeking_description = data.get('seeking_description')
+
+        try:
+            city_id = City.get_id(city_state=city_state, city_name=city_name)
+            if city_id is None:
+                error = True
+            new_artist = Artist(name=name,
+                                city_id=city_id,
+                                genres=genres,
+                                phone=phone,
+                                image_link=image_link,
+                                facebook_link=facebook_link,
+                                website=website,
+                                seeking_venue=seeking_venue,
+                                seeking_description=seeking_description)
+            db.session.add(new_artist)
+            db.session.flush()
+            artist_id = new_artist.id
+            db.session.commit()
+            flash('Artist ' + new_artist.name + ' was successfully listed!')
+        except:
+            db.session.rollback()
+            print(sys.exc_info())
+            error = True
+        finally:
+            db.session.close()
+    else:
+        error = True
+
+    if error:
+        flash('An error occurred. Artist ' + name + ' could not be listed.')
+        return abort(500)
+    else:
+        return redirect(url_for('show_artist', artist_id=artist_id))
 
 
 #    Shows

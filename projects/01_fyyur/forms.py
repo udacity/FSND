@@ -214,7 +214,7 @@ class ArtistForm(Form):
         'image_link', validators=[URL(), Optional()]
     )
     seeking_venue = BooleanField(
-        'seeking_venue', validators=[DataRequired(), ]
+        'seeking_venue',
     )
     seeking_description = StringField(
         'seeking_description'
