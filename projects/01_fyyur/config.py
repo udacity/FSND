@@ -9,8 +9,6 @@ DEBUG = True
 
 # Connect to the database
 
-
-# TODO IMPLEMENT DATABASE URL
 password_path = basedir + '/.secrets'
 print('password_path: {}'.format(password_path))
 data = dict()
