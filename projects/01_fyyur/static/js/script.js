@@ -34,3 +34,35 @@ async function DeleteVenue(event) {
      return false;
     });
 }
+
+async function DeleteArtist(event) {
+    log('inside DeleteArtist', this, event);
+    VenueId = event.target.dataset['id']
+    const route = '/artists/' + String(VenueId);
+    log('DeleteArtist', this, route);
+    log('DeleteArtist csrf_token', this, csrf_token);
+    const response = await fetch(String(route), {
+        method: 'DELETE',
+        body: JSON.stringify(
+        {
+          'artist_id': VenueId
+        }),
+        headers:
+        {
+          'X-CSRFToken': csrf_token,
+          'Content-Type': 'application/json'
+        }
+    }).then( function(response) {
+        log('DeleteArtist response', this, response);
+        return response.json();
+    }).then( function(jsonResponse) {
+        const destination = window.origin + jsonResponse['url']
+        log('DeleteArtist jsonResponse', this, jsonResponse);
+        log('DeleteArtist dest', this, destination);
+        window.location = destination;
+        return jsonResponse['success'];
+    }).catch( function(e) {
+     console.log(e);
+     return false;
+    });
+}

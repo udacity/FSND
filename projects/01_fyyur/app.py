@@ -219,6 +219,18 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), nullable=False)
 
     @property
+    def dictionary(self):
+        return {
+            "venue_id": self.venue.id,
+            "venue_name": self.venue.name,
+            "artist_id": self.artist.id,
+            "artist_name": self.artist.name,
+            "artist_image_link": self.artist.image_link,
+            "start_time": self.start_time.isoformat()
+        }
+
+
+    @property
     def serialized_artist(self):
         return {
             'artist_id': self.artist.id,
@@ -497,6 +509,41 @@ def show_artist(artist_id):
         return abort(404)
 
 
+@app.route('/artists/<artist_id>', methods=['DELETE'])
+def delete_artist(artist_id):
+    success = False
+    try:
+        artist = Artist.query.get(artist_id)
+        name = artist.name
+        if artist:
+            for show in artist.shows:
+                db.session.delete(show)
+            db.session.delete(artist)
+            db.session.commit()
+            success = True
+    except:
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+
+    if success:
+        flash('Artist ' + name + ' successfully deleted.')
+        url = url_for('artists')
+    else:
+        flash('An error occurred. Artist ' + name + ' could not be deleted.')
+        url = url_for('show_artist', artist_id=artist_id)
+    data = {
+        'success': success,
+        'url': url
+    }
+    print(json.dumps(data, indent=4))
+    return jsonify({
+        'success': success,
+        'url': url
+    })
+
+
 #    Update
 #    ----------------------------------------------------------------
 
@@ -710,45 +757,8 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
-    # displays list of shows at /shows
-    # TODO: replace with real venues data.
-    #             num_shows should be aggregated based on number of upcoming shows per venue.
-    data=[{
-        "venue_id": 1,
-        "venue_name": "The Musical Hop",
-        "artist_id": 4,
-        "artist_name": "Guns N Petals",
-        "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-        "start_time": "2019-05-21T21:30:00.000Z"
-    }, {
-        "venue_id": 3,
-        "venue_name": "Park Square Live Music & Coffee",
-        "artist_id": 5,
-        "artist_name": "Matt Quevedo",
-        "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-        "start_time": "2019-06-15T23:00:00.000Z"
-    }, {
-        "venue_id": 3,
-        "venue_name": "Park Square Live Music & Coffee",
-        "artist_id": 6,
-        "artist_name": "The Wild Sax Band",
-        "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-        "start_time": "2035-04-01T20:00:00.000Z"
-    }, {
-        "venue_id": 3,
-        "venue_name": "Park Square Live Music & Coffee",
-        "artist_id": 6,
-        "artist_name": "The Wild Sax Band",
-        "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-        "start_time": "2035-04-08T20:00:00.000Z"
-    }, {
-        "venue_id": 3,
-        "venue_name": "Park Square Live Music & Coffee",
-        "artist_id": 6,
-        "artist_name": "The Wild Sax Band",
-        "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-        "start_time": "2035-04-15T20:00:00.000Z"
-    }]
+    shows = Show.query.all()
+    data = [show.dictionary for show in shows]
     return render_template('pages/shows.html', shows=data)
 
 
@@ -761,15 +771,31 @@ def create_shows():
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
-    # called to create new shows in the db, upon submitting new show listing form
-    # TODO: insert form data as a new Show record in the db, instead
+    error = False
+    data = request.form
+    print(json.dumps(data, indent=4))
+    start_time = dateparser.parse(data.get('start_time'))
+    venue_id = data.get('venue_id')
+    artist_id = data.get('artist_id')
+    try:
+        new_show = Show(venue_id=venue_id,
+                        artist_id=artist_id,
+                        start_time=start_time)
+        db.session.add(new_show)
+        db.session.commit()
+    except:
+        error = True
+        print(sys.exc_info())
+        db.session.rollback()
+    finally:
+        db.session.close()
 
-    # on successful db insert, flash success
-    flash('Show was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Show could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+    if error:
+        flash('An error occurred. Show could not be listed.')
+        abort(500)
+    else:
+        flash('Show was successfully listed!')
+        return redirect(url_for('shows'))
 
 
 @app.errorhandler(404)
