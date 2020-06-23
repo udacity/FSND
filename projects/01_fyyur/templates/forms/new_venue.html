@@ -5,7 +5,9 @@
     <form method="post" class="form">
       {{ form.hidden_tag() }}
       <h3 class="form-heading">List a new venue <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
-      <div class="form-group">
+
+        <h4>Required Fields:</h4>
+        <div class="form-group">
         <label for="name">Name</label>
         {{ form.name(class_ = 'form-control', autofocus = true) }}
       </div>
@@ -24,6 +26,8 @@
         <label for="address">Address</label>
         {{ form.address(class_ = 'form-control', autofocus = true) }}
       </div>
+
+      <h4>Optional Fields:</h4>
       <div class="form-group">
           <label for="phone">Phone</label>
           {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}

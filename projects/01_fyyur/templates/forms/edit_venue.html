@@ -5,6 +5,8 @@
     <form class="form" method="post" action="/venues/{{venue.id}}/edit">
       {{ form.hidden_tag() }}
       <h3 class="form-heading">Edit venue <em>{{ venue.name }}</em> <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+
+        <h4>Required Fields:</h4>
       <div class="form-group">
         <label for="name">Name</label>
         {{ form.name(class_ = 'form-control', autofocus = true) }}
@@ -25,14 +27,17 @@
         {{ form.address(class_ = 'form-control', placeholder=venue.address, autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="phone">Phone</label>
-          {{ form.phone(class_ = 'form-control', placeholder=venue.phone, autofocus = true) }}
-        </div>
-      <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
+
+        <h4>Optional Fields:</h4>
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          {{ form.phone(class_ = 'form-control', placeholder=venue.phone, autofocus = true) }}
+        </div>
+
       <div class="form-group">
           <label for="facebook_link">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder=venue.facebook_link, autofocus = true) }}

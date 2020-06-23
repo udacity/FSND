@@ -5,6 +5,8 @@
     <form class="form" method="post" action="/artists/{{artist.id}}/edit">
       {{ form.hidden_tag() }}
       <h3 class="form-heading">Edit artist <em>{{ artist.name }}</em></h3>
+
+        <h4>Required Fields:</h4>
       <div class="form-group">
         <label for="name">Name</label>
         {{ form.name(class_ = 'form-control', autofocus = true) }}
@@ -21,16 +23,18 @@
           </div>
       </div>
       <div class="form-group">
-          <label for="phone">Phone</label>
-          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
-        </div>
-      <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id=form.state, autofocus = true) }}
       </div>
+
+        <h4>Optional Fields:</h4>
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
+        </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
+          <label for="facebook">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
         </div>
       <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block">

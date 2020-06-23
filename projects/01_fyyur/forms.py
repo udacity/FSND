@@ -10,7 +10,6 @@ def phone_number(form, field):
         number = ''.join(re.split('\.|-', field.data))
         if len(number) == 10:  # format xxxxxxxxxx
             [int(c) for c in number]
-            field.data = number[:3] + '-' + number[3:6] + '-' + number[6:]
         else:
             raise ValueError('Bad input: {}'.format(field))
     except Exception as e:

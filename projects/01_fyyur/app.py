@@ -4,6 +4,7 @@
 
 import json
 import sys
+import re
 import dateutil.parser
 import babel
 import datetime
@@ -326,7 +327,9 @@ def search_model_for_names_insensitive(model, search_term):
     }
 
 
-
+def format_phone_number(phone_number):
+    number = ''.join(re.split('\.|-', phone_number))
+    return f'{number[:3]}-{number[3:6]}-{number[6:]}'
 
 #    ----------------------------------------------------------------------------#
 # Controllers.
@@ -391,7 +394,7 @@ def create_venue_submission():
         name = data.get('name')
         genres = ','.join(form.genres.data)
         address = data.get('address')
-        phone = data.get('phone')
+        phone = format_phone_number(data.get('phone'))
         facebook_link = data.get('facebook_link')
         image_link = data.get('image_link')
 
@@ -563,7 +566,7 @@ def edit_venue_submission(venue_id):
         # Get other fields
         name = data.get('name')
         address = data.get('address')
-        phone = data.get('phone')
+        phone = format_phone_number(data.get('phone'))
         image_link = data.get('image_link')
         genres = data.get('genres', [])
         if isinstance(genres, list):
