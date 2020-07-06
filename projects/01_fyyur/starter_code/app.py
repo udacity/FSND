@@ -22,6 +22,14 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 
 # TODO: connect to a local postgresql database
+# DONE: added in the config file 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+from flask_migrate import Migrate
+migrate = Migrate(app, db) # this is specifically for falsk app and SQlAlchemy database 
+
+
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -40,7 +48,17 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
+    genres = db.Column(db.ARRAY(db.String))
+    web_link = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.String(500), default = "Not currently seeking talent")
+    shows = db.relationship('Show', backref='Venue', lazy=True)
+    
+    # custom output/print 
+    # def __repr__(self):
+        # return 
+        
+        
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
@@ -54,9 +72,28 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    web_link = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.String(500), default=' ')
+    shows = db.relationship('Show', backref='Artist', lazy=True)
+
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
+class Show(db.Model):
+    # child table, has foreign keys 
+    __tablename__ = 'Show'
+    
+    id = db.Column(db.Integer, primary_key = True )
+    artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable = False)
+    venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable = False)
+    w = db.Column(db.DateTime, nullable = False)
+    # artist image_link
+    # artist name 
+    # venue name 
+    
+    def __repr__(self):
+        return '<Show: {} at {}>'.format(self.artist_id, self.venue_id)
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -108,6 +145,9 @@ def venues():
       "num_upcoming_shows": 0,
     }]
   }]
+  
+  data = Venue.query.order_by('id').all()
+  
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
@@ -214,6 +254,8 @@ def show_venue(venue_id):
 
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
+
+  # this form is not quite right 
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
@@ -221,6 +263,37 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+
+  error = False 
+  res = {}
+  try:
+    data = request.form   
+    
+    venue = Venue(
+                name=data['name'],     
+                city=data['city'],
+                state=data['state'],
+                address=data['address'],
+                phone=data['phone'],
+                genres=data['genres'],
+                facebook_link=data['facebook_link'],
+                image_link=data['image_link'],
+                website=data['website'], 
+                seeking_talent=data['seeking_talent'],
+                seeking_description=data['seeking_description'],
+                )
+  except:
+    print(sys.exc_info)
+    error = True
+    db.session.rollback()
+  finally:
+    db.session.close()
+  
+  if error: 
+    abort(400)
+            
+    
+
 
   # on successful db insert, flash success
   flash('Venue ' + request.form['name'] + ' was successfully listed!')
