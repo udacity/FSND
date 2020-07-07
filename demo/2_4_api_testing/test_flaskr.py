@@ -113,10 +113,6 @@ class BookTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'method not allowed')
 
 
-
-
-
-
 # @TODO: Write at least two tests for each endpoint - one each for success and error behavior.
 #        You can feel free to write additional tests for nuanced functionality,
 #        Such as adding a book without a rating, etc.
