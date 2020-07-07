@@ -65,6 +65,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_api_questions_404_get_page_past_max(self):
         response = self.client().get('/api/questions?page=1000000')
+        print(f'\nresponse.data:\n{response.data}\n')
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 404)

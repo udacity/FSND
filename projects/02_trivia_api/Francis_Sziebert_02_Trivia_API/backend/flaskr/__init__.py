@@ -70,13 +70,20 @@ def create_app(test_config=None):
     def api_get_questions():
         selection = Question.query.order_by(Question.id).all()
         current_questions = paginate_questions(request, selection)
-
-        if len(current_questions == 0):
+        print(f'\ncurrent_questions:\n{current_questions}\n')
+        if len(current_questions) == 0:
             abort(404, 'requested page beyond maximum')
+        else:
+            total_questions = len(selection)
+            page = request.args.get('page', 1, type=int)
 
         body = {
             'success': True,
-            'categories': quest
+            'categories': Category.format_all(),
+            'total_questions': total_questions,
+            'current_category': "ALL",
+            'questions': current_questions,
+            'page': page
         }
         return jsonify(body)
 
@@ -193,6 +200,8 @@ def create_app(test_config=None):
             'error': 405,
             'message': message
         }), 405
+
+    
 
     return app
 
