@@ -60,9 +60,9 @@ def setup_db(app, database_path=None, database_name=DEFAULT_DATABASE_NAME):
     db.create_all()
 
 
-'''
+''' --------------------------------------------------------------------
 Question
-'''
+-------------------------------------------------------------------- '''
 
 
 class Question(db.Model):
@@ -101,10 +101,12 @@ class Question(db.Model):
         }
 
 
-'''
+''' --------------------------------------------------------------------
 Category
 
-'''
+-------------------------------------------------------------------- '''
+
+
 class Category(db.Model):
     __tablename__ = 'categories'
 

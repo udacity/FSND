@@ -28,23 +28,23 @@ class TriviaTestCase(unittest.TestCase):
         """Executed after reach test"""
         pass
 
-
-    def test_get_all_categories(self):
-        response = self.client().get('/categories')
-        data = json.loads(response.data)
-
-        self
-
-
-
-
-
     """
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
 
+    def test_get_all_categories(self):
+        response = self.client().get('/categories')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(len(data['categories']))
+        self.assertTrue(data['total_categories'])
+
 
 # Make the tests conveniently executable
+
+
 if __name__ == "__main__":
     unittest.main()
