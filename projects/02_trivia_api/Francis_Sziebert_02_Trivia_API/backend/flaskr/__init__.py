@@ -32,7 +32,7 @@ def create_app(test_config=None):
 
     @app.route('/api/categories')
     def api_get_categories():
-        if request.method == 'GET':
+        try:
             all_categories = Category.query.all()
             categories = [category.format() for category in all_categories]
             total_categories = len(categories)
@@ -42,8 +42,9 @@ def create_app(test_config=None):
                 'total_categories': total_categories
             }
             return jsonify(body)
-        else:
-            abort(422)
+        except Exception as e:
+            message = str(e)
+            abort(500, message)
 
     '''
     @TODO: 
@@ -122,6 +123,48 @@ def create_app(test_config=None):
     Create error handlers for all expected errors 
     including 404 and 422. 
     '''
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        base_message = 'internal server error'
+        if hasattr(error, 'message'):
+            print(error.message)
+            message = f'{base_message}: {str(error.message)}'
+        else:
+            message = base_message
+        return jsonify({
+            'success': False,
+            'error': 500,
+            'message': message
+        }), 500
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        base_message = 'unprocessable'
+        if hasattr(error, 'message'):
+            print(error.message)
+            message = f'{base_message}: {str(error.message)}'
+        else:
+            message = base_message
+        return jsonify({
+            'success': False,
+            'error': 422,
+            'message': message
+        }), 422
+
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        base_message = 'method not allowed'
+        if hasattr(error, 'message'):
+            print(error.message)
+            message = f'{base_message}: {str(error.message)}'
+        else:
+            message = base_message
+        return jsonify({
+            'success': False,
+            'error': 405,
+            'message': message
+        }), 405
 
     return app
 

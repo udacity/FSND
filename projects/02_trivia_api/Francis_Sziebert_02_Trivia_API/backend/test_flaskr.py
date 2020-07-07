@@ -42,6 +42,17 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['categories']))
         self.assertTrue(data['total_categories'])
 
+    def test_405_client_tries_posting_new_category(self):
+        response = self.client().post('/api/categories', data={"type": "Mystery"})
+        print(response.data)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'method not allowed')
+        self.assertEqual(data['error'], 405)
+
+
 
 # Make the tests conveniently executable
 
