@@ -126,34 +126,16 @@ curl -X GET --url http://localhost:5000/api/categories
 * Response:
 ```json
 {
-    "success": true,
-    "categories": [
-        {
-            "id": 1,
-            "type": "Science"
-        },
-        {
-            "id": 2,
-            "type": "Art"
-        },
-        {
-            "id": 3,
-            "type": "Geography"
-        },
-        {
-            "id": 4,
-            "type": "History"
-        },
-        {
-            "id": 5,
-            "type": "Entertainment"
-        },
-        {
-            "id": 6,
-            "type": "Sports"
-        }
-    ],
-    "total_categories": 6
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "success": true,
+  "total_categories": 6
 }
 ```
 
