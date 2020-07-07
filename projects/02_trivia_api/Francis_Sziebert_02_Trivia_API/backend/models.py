@@ -40,7 +40,9 @@ def make_db_uri(database_name=DEFAULT_DATABASE_NAME):
     else:
         userpass = ''
 
-    return f'postgresql://{userpass}{host}:{port}/{database_name}'
+    database_path =  f'postgresql://{userpass}{host}:{port}/{database_name}'
+    print(f'database_path: {database_path}')
+    return database_path
 
 
 '''

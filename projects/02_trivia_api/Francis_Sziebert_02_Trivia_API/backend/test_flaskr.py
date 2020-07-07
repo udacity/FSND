@@ -15,7 +15,7 @@ class TriviaTestCase(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = "trivia_test"
-        setup_db(self.app, self.database_name)
+        setup_db(self.app, database_name=self.database_name)
 
         # binds the app to the current context
         with self.app.app_context():
