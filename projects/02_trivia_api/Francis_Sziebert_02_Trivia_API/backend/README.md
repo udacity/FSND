@@ -35,7 +35,6 @@ With Postgres running, create the trivia and trivia_test databases.
 
 ```bash
 createdb trivia
-createdb trivia_test
 ``` 
 
 Next, Populate the two databases with the trivia.psql file provided. 
@@ -43,7 +42,6 @@ Next, Populate the two databases with the trivia.psql file provided.
 From the backend folder in terminal run:
 ```bash
 psql trivia < trivia.psql
-psql trivia_test < trivia.psql
 ```
 
 ## Running the server
@@ -52,9 +50,17 @@ From within the `backend` directory first ensure you are working using your crea
 
 To run the server, execute:
 
+In Linux:
 ```bash
 export FLASK_APP=flaskr
 export FLASK_ENV=development
+flask run
+```
+
+In Windows: 
+```bash
+set FLASK_APP=flaskr
+set FLASK_ENV=development
 flask run
 ```
 
