@@ -63,6 +63,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['questions']))
         self.assertTrue(isinstance(data['questions'], list))
 
+    def test_api_questions_404_get_page_past_max(self):
+        response = self.client().get('/api/questions?page=1000000')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'resource not found: requested page beyond maximum')
+        self.assertEqual(data['error'], 404)
+
 
 
 

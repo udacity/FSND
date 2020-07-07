@@ -49,13 +49,7 @@ def create_app(test_config=None):
     @app.route('/api/categories')
     def api_get_categories():
         try:
-            all_categories = Category.query.all()
-            categories = dict()
-            for category in all_categories:
-                category_dictionary = category.format()
-                _id = category_dictionary['id']
-                _type = category_dictionary['type']
-                categories[_id] = _type
+            categories = Category.format_all()
             total_categories = len(categories)
             body = {
                 'success': True,
@@ -69,9 +63,22 @@ def create_app(test_config=None):
 
     '''
     api_get_questions()
-        returns a json response with the first page of 10 questions. 
+        Returns a json response with the requested page of up to 10 questions.
+        If no page is provided, the first page of questions will be returned.  
     '''
+    @app.route('/api/questions')
+    def api_get_questions():
+        selection = Question.query.order_by(Question.id).all()
+        current_questions = paginate_questions(request, selection)
 
+        if len(current_questions == 0):
+            abort(404, 'requested page beyond maximum')
+
+        body = {
+            'success': True,
+            'categories': quest
+        }
+        return jsonify(body)
 
 
     '''

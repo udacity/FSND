@@ -123,3 +123,14 @@ class Category(db.Model):
             'id': self.id,
             'type': self.type
         }
+
+    @classmethod
+    def format_all(cls):
+        all_categories = cls.query.all()
+        categories = dict()
+        for category in all_categories:
+            category_dictionary = category.format()
+            _id = category_dictionary['id']
+            _type = category_dictionary['type']
+            categories[_id] = _type
+        return categories
