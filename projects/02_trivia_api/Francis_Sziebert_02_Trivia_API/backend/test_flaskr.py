@@ -55,6 +55,14 @@ class TriviaTestCase(unittest.TestCase):
         response = self.client().get('/api/questions')
         data = json.loads(response.data)
 
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(isinstance(data['categories'], dict))
+        self.assertTrue(data['current_category'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['page'])
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(isinstance(data['questions'], list))
+
 
 
 
