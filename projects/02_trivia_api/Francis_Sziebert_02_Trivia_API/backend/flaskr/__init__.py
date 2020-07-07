@@ -9,6 +9,9 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+def
+
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -19,8 +22,8 @@ def create_app(test_config=None):
 
     '''
     after_request()
-      returns a response to a pre-flight OPTIONS request from a cross-domain and describes what
-      headers and methods can be used to access resources. 
+        returns a response to a pre-flight OPTIONS request from a cross-domain and describes what
+        headers and methods can be used to access resources. 
     '''
     @app.after_request
     def after_request(response):
@@ -30,6 +33,10 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         return response
 
+    '''
+    api_get_categories()
+        returns a json response with all the available categories
+    '''
     @app.route('/api/categories')
     def api_get_categories():
         try:
@@ -47,10 +54,10 @@ def create_app(test_config=None):
             abort(500, message)
 
     '''
-    @TODO: 
-    Create an endpoint to handle GET requests 
-    for all available categories.
+    api_get_questions()
+        returns a json response with the first page of 10 questions. 
     '''
+
 
 
     '''

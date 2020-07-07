@@ -33,7 +33,7 @@ class TriviaTestCase(unittest.TestCase):
     Write at least one test for each test for successful operation and for expected errors.
     """
 
-    def test_get_all_categories(self):
+    def test_api_categories_get(self):
         response = self.client().get('/api/categories')
         data = json.loads(response.data)
 
@@ -42,15 +42,22 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['categories']))
         self.assertTrue(data['total_categories'])
 
-    def test_405_client_tries_posting_new_category(self):
+    def test_api_categories_405_client_tries_posting(self):
         response = self.client().post('/api/categories', data={"type": "Mystery"})
-        print(response.data)
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 405)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'method not allowed')
         self.assertEqual(data['error'], 405)
+
+    def test_api_questions_get(self):
+        response = self.client().get('/api/questions')
+        data = json.loads(response.data)
+
+
+
+
 
 
 

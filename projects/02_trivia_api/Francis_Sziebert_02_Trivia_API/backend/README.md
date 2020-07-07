@@ -104,6 +104,15 @@ GET '/categories'
 '6' : "Sports"}
 
 ```
+## API Errors
+#### 404 Resource Not Found
+Server could not find requested resource.
+#### 422 Unprocessable
+Method used incorrectly on the target resource.
+#### 405 Method Not Allowed
+Request Method cannot be used on the target resource.
+#### 500 Internal Server Error
+Server encountered an issue while processing the request.  
 
 ## API Reference
 ### GET /api/categories
