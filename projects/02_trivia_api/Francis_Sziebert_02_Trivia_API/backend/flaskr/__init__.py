@@ -161,10 +161,9 @@ def create_app(test_config=None):
 
     @app.errorhandler(500)
     def internal_server_error(error):
-        base_message = 'internal server error'
-        if hasattr(error, 'message'):
-            print(error.message)
-            message = f'{base_message}: {str(error.message)}'
+        base_message = 'InternalServerError'
+        if hasattr(error, 'description'):
+            message = f'{base_message}: {str(error.description)}'
         else:
             message = base_message
         return jsonify({
@@ -175,10 +174,9 @@ def create_app(test_config=None):
 
     @app.errorhandler(422)
     def unprocessable(error):
-        base_message = 'unprocessable'
-        if hasattr(error, 'message'):
-            print(error.message)
-            message = f'{base_message}: {str(error.message)}'
+        base_message = 'Unprocessable'
+        if hasattr(error, 'description'):
+            message = f'{base_message}: {str(error.description)}'
         else:
             message = base_message
         return jsonify({
@@ -189,10 +187,9 @@ def create_app(test_config=None):
 
     @app.errorhandler(405)
     def method_not_allowed(error):
-        base_message = 'method not allowed'
-        if hasattr(error, 'message'):
-            print(error.message)
-            message = f'{base_message}: {str(error.message)}'
+        base_message = 'MethodNotAllowed'
+        if hasattr(error, 'description'):
+            message = f'{base_message}: {str(error.description)}'
         else:
             message = base_message
         return jsonify({
@@ -201,7 +198,18 @@ def create_app(test_config=None):
             'message': message
         }), 405
 
-    
+    @app.errorhandler(404)
+    def not_found(error):
+        base_message = 'NotFound'
+        if hasattr(error, 'description'):
+            message = f'{base_message}: {str(error.description)}'
+        else:
+            message = base_message
+        return jsonify({
+            'success': False,
+            'error': 404,
+            'message': message
+        }), 404
 
     return app
 

@@ -48,7 +48,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 405)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'method not allowed')
+        self.assertEqual(data['message'], 'MethodNotAllowed: The method is not allowed for the requested URL.')
         self.assertEqual(data['error'], 405)
 
     def test_api_questions_get(self):
@@ -70,7 +70,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'resource not found: requested page beyond maximum')
+        self.assertEqual(data['message'], 'NotFound: requested page beyond maximum')
         self.assertEqual(data['error'], 404)
 
 
