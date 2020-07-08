@@ -70,7 +70,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'NotFound: requested page beyond maximum')
+        self.assertEqual(data['message'], 'NotFound: Requested page beyond page maximum.')
         self.assertEqual(data['error'], 404)
 
 

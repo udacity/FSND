@@ -72,7 +72,7 @@ def create_app(test_config=None):
         current_questions = paginate_questions(request, selection)
         print(f'\ncurrent_questions:\n{current_questions}\n')
         if len(current_questions) == 0:
-            abort(404, 'requested page beyond maximum')
+            abort(404, 'Requested page beyond page maximum.')
         else:
             total_questions = len(selection)
             page = request.args.get('page', 1, type=int)
