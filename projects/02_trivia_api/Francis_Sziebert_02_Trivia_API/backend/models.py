@@ -102,6 +102,10 @@ class Question(db.Model):
             'difficulty': self.difficulty
         }
 
+    @classmethod
+    def required_keys(cls):
+        return ['question', 'answer', 'category', 'difficulty']
+
 
 ''' --------------------------------------------------------------------
 Category
@@ -134,3 +138,5 @@ class Category(db.Model):
             _type = category_dictionary['type']
             categories[_id] = _type
         return categories
+
+

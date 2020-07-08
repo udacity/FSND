@@ -3,6 +3,9 @@ import json
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+import psycopg2.errors
+from psycopg2.errors import UniqueViolation
+from sqlalchemy.exc import IntegrityError
 import random
 
 from models import setup_db, Question, Category
@@ -83,6 +86,57 @@ def create_app(test_config=None):
             'current_category': "ALL",
             'questions': current_questions,
             'page': page
+        }
+        return jsonify(body)
+
+    @app.route('/api/questions/<int:question_id>', methods=['GET'])
+    def api_get_a_question(question_id):
+        question = Question.query.get(question_id)
+        if question is None:
+            abort(404, 'Requested question not found.')
+        body = {
+            'success': True,
+            'question': question.format()
+        }
+        return jsonify(body)
+
+    @app.route('/api/questions/<int:question_id>', methods=['DELETE'])
+    def api_delete_a_question(question_id):
+        question = Question.query.get(question_id)
+        if question is None:
+            abort(404, 'Requested question not found.')
+        question.delete()
+        body = {
+            'success': True,
+            'deleted': question_id
+        }
+        return jsonify(body)
+
+    @app.route('/api/questions', methods=['POST'])
+    def api_post_a_question():
+        data = json.loads(request.data)
+        if not all([data.get(key) for key in Question.required_keys()]):
+            abort(422, f'Requires Fields: {",".join(Question.required_keys())}')
+
+        question = Question(question=data.get('question'),
+                            answer = data.get('answer'),
+                            category = data.get('category'),
+                            difficulty = data.get('difficulty')
+                            )
+        if data.get('id'):
+            question.id = data.get('id')
+
+        try:
+            question.insert()
+        except Exception as e:
+            if '(psycopg2.errors.UniqueViolation)' in str(e):
+                abort(422, f"id={data.get('id')} already exists.")
+            else:
+                abort(500)
+
+        body = {
+            'success': True,
+            'question': question.format()
         }
         return jsonify(body)
 

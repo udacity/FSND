@@ -56,6 +56,7 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
         self.assertTrue(isinstance(data['categories'], dict))
         self.assertTrue(data['current_category'])
         self.assertTrue(data['total_questions'])
@@ -63,15 +64,107 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['questions']))
         self.assertTrue(isinstance(data['questions'], list))
 
-    def test_api_questions_404_get_page_past_max(self):
+    def test_api_questions_get_404_page_past_max(self):
         response = self.client().get('/api/questions?page=1000000')
-        print(f'\nresponse.data:\n{response.data}\n')
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'NotFound: Requested page beyond page maximum.')
         self.assertEqual(data['error'], 404)
+
+    def test_api_get_a_question(self):
+        response = self.client().get('/api/questions/5')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(isinstance(data['question'], dict))
+        self.assertTrue(isinstance(data['question']['id'], int))
+        self.assertTrue(isinstance(data['question']['category'], str))
+        self.assertTrue(isinstance(data['question']['difficulty'], int))
+        self.assertTrue(isinstance(data['question']['answer'], str))
+        self.assertTrue(isinstance(data['question']['question'], str))
+
+    def test_api_get_a_question_404_not_found(self):
+        response = self.client().get('/api/questions/10000000000')
+        print(f'\nresponse.data:\n{response.data}\n')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'NotFound: Requested question not found.')
+        self.assertEqual(data['error'], 404)
+
+    def test_api_delete_a_question(self):
+        response = self.client().delete('/api/questions/1')
+        print(f'\nresponse.data:\n{response.data}\n')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['deleted'], 1)
+
+    def test_api_delete_a_question_404_not_found(self):
+        response = self.client().delete('/api/questions/10000000000')
+        print(f'\nresponse.data:\n{response.data}\n')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'NotFound: Requested question not found.')
+        self.assertEqual(data['error'], 404)
+
+    def test_api_post_a_question(self):
+        in_data = {
+            'id': 1,
+            'category': "5",
+            'answer': 'Nowhere',
+            'question': 'There is a Korean Film titled "The Man From _________"',
+            'difficulty': 3
+        }
+        response = self.client().post('/api/questions', data=json.dumps(in_data))
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(isinstance(data['question'], dict))
+        self.assertEqual(data['question']['id'], in_data['id'])
+        self.assertEqual(data['question']['category'], in_data['category'])
+        self.assertEqual(data['question']['difficulty'], in_data['difficulty'])
+        self.assertEqual(data['question']['answer'], in_data['answer'])
+        self.assertEqual(data['question']['question'], in_data['question'])
+
+    def test_api_post_a_question_422_id_already_exists(self):
+        in_data = {
+            'id': 1,
+            'category': "5",
+            'answer': 'Nowhere',
+            'question': 'There is a Korean Film titled "The Man From _________"',
+            'difficulty': 3
+        }
+        response = self.client().post('/api/questions', data=json.dumps(in_data))
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Unprocessable: id=1 already exists.')
+        self.assertEqual(data['error'], 422)
+
+    def test_api_post_a_question_422_missing_required(self):
+        in_data = {
+            'answer': 'Nowhere',
+            'question': 'There is a Korean Film titled "The Man From _________"',
+            'difficulty': 3
+        }
+        response = self.client().post('/api/questions', data=json.dumps(in_data))
+        print(f'\nresponse.data:\n{response.data}\n')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Unprocessable: Requires Fields: question,answer,category,difficulty')
+        self.assertEqual(data['error'], 422)
+
 
 
 
