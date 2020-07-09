@@ -71,7 +71,7 @@ def check_permissions(permission, payload):
 
 
     if permission not in payload['permissions']:
-        abort(403)
+        abort(401)
 
     return True
 
@@ -172,7 +172,7 @@ def requires_auth(permission=''):
             try:
                 payload = verify_decode_jwt(token)
             except:
-                abort(403)
+                abort(401)
             #app.logger.info('payload: ' + payload)
             result = check_permissions(permission, payload)
             return f(payload, *args, **kwargs)

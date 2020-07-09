@@ -60,6 +60,7 @@ def get_drinks():
 @app.route('/drinks-detail', methods=['GET'])
 @requires_auth('get:drinks-detail')
 def get_drinks_detail(jwt):
+    #print(jwt)
     setup_auth(app)
     app.logger.info('reached drinks detail function')
     drinks = Drink.query.all()
@@ -91,16 +92,28 @@ def create_drink(jwt):
 
     recipe = body['recipe']
     drink_recipe = []
+    app.logger.info("recipe")
+    app.logger.info(recipe)
 
-    for ingredient in recipe:
-        ingredient_name = ingredient['name']
-        ingredient_color = ingredient['color']
-        ingredient_parts = ingredient['parts']
+    if type(recipe) is dict:
+        ingredient_name = recipe['name']
+        ingredient_color = recipe['color']
+        ingredient_parts = recipe['parts']
         drink_recipe.append({
-            'name': ingredient_name,
-            'color': ingredient_color,
-            'parts': ingredient_parts
-        })
+                'name': ingredient_name,
+                'color': ingredient_color,
+                'parts': ingredient_parts
+            })
+    else:
+        for ingredient in recipe:
+            ingredient_name = ingredient['name']
+            ingredient_color = ingredient['color']
+            ingredient_parts = ingredient['parts']
+            drink_recipe.append({
+                'name': ingredient_name,
+                'color': ingredient_color,
+                'parts': ingredient_parts
+            })
 
     json_drink_recipe = json.dumps(drink_recipe)
 
@@ -222,13 +235,38 @@ def unprocessable(error):
 
 '''
 
+
+@app.errorhandler(401)
+def unauthorized(err):
+    return jsonify({
+        'success': False,
+        'error': 401,
+        'message': err.description
+    }), 401
+
 '''
 @TODO implement error handler for 404
     error handler should conform to general task above 
 '''
+@app.errorhandler(404)
+def not_found(err):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": err.description
+    }), 404
+
+
 
 
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
+@app.errorhandler(AuthError)
+def authentication_error(err):
+    return jsonify({
+        'success': False,
+        'error': err.status_code,
+        'message': err.error
+    }), err.status_code
