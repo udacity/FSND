@@ -72,9 +72,11 @@ This README is missing documentation of your endpoints. Below is an example for 
 
 Endpoints
 GET '/categories'
-GET ...
-POST ...
-DELETE ...
+GET '/questions'
+GET '/categories/<int:category_id>/questions>
+POST /questions'
+DELETE '/questions/<int:question_id>'
+POST /quizzes'
 
 GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
@@ -87,6 +89,164 @@ GET '/categories'
 '5' : "Entertainment",
 '6' : "Sports"}
 
+
+GET '/questions'
+- Fetches a array of a set of paginated questions in which the questions are formatted and display all its information as a dictionary
+- Request Arguments: None
+- Returns: An object with a key, questions, that contains an array of formatted question dictonaries. and also a list of categories
+ {
+      "categories": {
+          "1": "Science", 
+          "2": "Art", 
+          "3": "Geography", 
+          "4": "History", 
+          "5": "Entertainment", 
+          "6": "Sports"
+      }, 
+      "questions": [
+          {
+              "answer": "Colorado, New Mexico, Arizona, Utah", 
+              "category": 3, 
+              "difficulty": 3, 
+              "id": 164, 
+              "question": "Which four states make up the 4 Corners region of the US?"
+          }, 
+          {
+              "answer": "Muhammad Ali", 
+              "category": 4, 
+              "difficulty": 1, 
+              "id": 9, 
+              "question": "What boxer's original name is Cassius Clay?"
+          }
+      ]
+ }
+
+ DELETE '/questions/<int:question_id>'
+- Deletes a question by id using url parameters.
+- Returns id of deleted question upon success.
+{
+      "deleted": 6, 
+      "success": true
+}
+
+
+
+GET '/categories/<int:category_id>/questions'
+- Gets questions by category id using url parameters.
+- Returns JSON object with paginated questions related to that category.
+{
+    "current_category": "Science", 
+    "questions": [
+         {
+              "answer": "Alexander Fleming", 
+              "category": 1, 
+              "difficulty": 3, 
+              "id": 21, 
+              "question": "Who discovered penicillin?"
+          }, 
+          {
+              "answer": "Blood", 
+              "category": 1, 
+              "difficulty": 4, 
+              "id": 22, 
+              "question": "Hematology is a branch of medicine involving the study of what?"
+          }
+    ]
+}
+
+POST '/questions'
+- This route creates questions and also searches for them, if search_term is None then it will attempt to create the question
+and if the search_term is provided, it will search through existing questions
+- Request Arguments: None
+- Returns: Result varies on if its search or create.
+
+Search: returns questions related to search
+{
+      "questions": [
+          {
+              "answer": "Brazil", 
+              "category": 6, 
+              "difficulty": 3, 
+              "id": 10, 
+              "question": "Which is the only team to play in every soccer World Cup tournament?"
+          }, 
+          {
+              "answer": "Uruguay", 
+              "category": 6, 
+              "difficulty": 4, 
+              "id": 11, 
+              "question": "Which country won the first ever soccer World Cup in 1930?"
+          }
+      ]
+}
+Create: returns new question as well as existing questions
+{
+    "question_created": {
+        "id": 23,
+        "question": "What is 1 + 1",
+        "difficulty": 1,
+        "category": Math,
+        "answer": 2
+    }, 
+    "questions": [
+              {
+                  "answer": "Apollo 13", 
+                  "category": 5, 
+                  "difficulty": 4, 
+                  "id": 2, 
+                  "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+              }, 
+              {
+                  "answer": "Tom Cruise", 
+                  "category": 5, 
+                  "difficulty": 4, 
+                  "id": 4, 
+                  "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+              }, 
+              {
+                  "answer": "Muhammad Ali", 
+                  "category": 4, 
+                  "difficulty": 1, 
+                  "id": 9, 
+                  "question": "What boxer's original name is Cassius Clay?"
+              }
+          ]
+} 
+
+POST '/quizzes'
+
+- Allows users to play the quiz game.
+- Uses JSON request parameters of category and previous questions.
+- Returns JSON object with random question not among previous questions and also an array of previous questions so we can give a new
+question to the user everytime.
+{   
+    "question": {
+                      "answer": "Apollo 13", 
+                      "category": 5, 
+                      "difficulty": 4, 
+                      "id": 2, 
+                      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+                  }
+    "previous_questions": [
+                  {
+                      "answer": "Tom Cruise", 
+                      "category": 5, 
+                      "difficulty": 4, 
+                      "id": 4, 
+                      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+                  }, 
+                  {
+                      "answer": "Muhammad Ali", 
+                      "category": 4, 
+                      "difficulty": 1, 
+                      "id": 9, 
+                      "question": "What boxer's original name is Cassius Clay?"
+                  }
+              ]
+}
+
+
+ 
 ```
 
 

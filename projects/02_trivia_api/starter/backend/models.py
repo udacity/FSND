@@ -49,6 +49,9 @@ class Question(db.Model):
     db.session.delete(self)
     db.session.commit()
 
+  def undo(self):
+    db.session.rollback()
+
   def format(self):
     return {
       'id': self.id,

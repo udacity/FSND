@@ -110,6 +110,7 @@ def create_app(test_config=None):
       formatted_questions = paginate_questions(request, Question.query.all())
 
     except:
+      question.undo()
       abort(422)
 
     return jsonify({
