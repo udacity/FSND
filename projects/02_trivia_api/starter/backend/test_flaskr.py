@@ -47,6 +47,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertTrue(len(data['categories']))
+    
+    def test_get_categories_not_exist(self):
+        res = self.client().get('/categories/235')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 404)
+        self.assertEqual(data['message'], 'resource not found')
 
     def test_get_paginated_questions(self):
         res = self.client().get('/questions')
@@ -76,6 +85,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['total_questions'], len(Question.query.all()))
         self.assertEqual(question, None)
 
+    def test_delete_question_not_exist(self):
+        res = self.client().delete('/questions/235')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 422)
+        self.assertEqual(data['message'], 'unprocessable')
+
     def test_add_question(self):
 
 
@@ -86,6 +104,22 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['created_id'])
         self.assertTrue(data['total_questions'])
         self.assertTrue(len(data['questions']))
+
+    def test_add_question_invalid_question_field(self):
+        res = self.client().post('/questions', json={
+            'question': '',
+            'answer': 'but question is emtpy!',
+            'category': 1,
+            'difficulty': 5
+        })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 400)
+        self.assertEqual(data['message'], 'The browser (or proxy) sent a '
+                                          'request that this server could not '
+                                          'understand.')
 
     def test_search_question(self):
 
@@ -99,6 +133,24 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['questions'])
         self.assertTrue(len(data['questions']))
+
+    def test_get_category_questions(self):
+        res = self.client().get('/categories/2/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(data['total_in_category'])
+
+    def test_get_category_questions_invalid_id(self):
+        res = self.client().get('/categories/250/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 404)
+        self.assertEqual(data['message'], 'resource not found')
 
     def test_get_trivia_questions_all_categories(self):
         res = self.client().post('/quizzes', json={

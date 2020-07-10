@@ -104,13 +104,12 @@ def create_app(test_config=None):
 
       if question is None:
         app.logger.info('aborted 404')
-        abort(404)
+        abort(422)
 
       question.delete()
       formatted_questions = paginate_questions(request, Question.query.all())
 
     except:
-      question.undo()
       abort(422)
 
     return jsonify({
@@ -155,6 +154,9 @@ def create_app(test_config=None):
         category = body.get('category', None)
         difficulty = body.get('difficulty', None)
 
+        if len(question) == 0 or len(answer) == 0:
+          abort(400)
+
         new_question = Question(question=question, answer=answer, category=category, difficulty=difficulty)
         new_question.insert()
         page= request.args.get('page', 1, type=int)
@@ -165,7 +167,7 @@ def create_app(test_config=None):
   
 
       except:
-        abort(422)
+        abort(400)
 
       return jsonify({
         'success': True,
@@ -187,9 +189,12 @@ def create_app(test_config=None):
   @app.route('/categories/<int:category_id>/questions', methods=['GET'])
   def get_category_questions(category_id):
     
-
-    questions = Question.query.filter(category_id == Question.category).all()
     category = Category.query.get(category_id)
+
+    if category is None:
+      abort(404)
+
+    questions = Question.query.filter(str(category_id) == Question.category).all()
     app.logger.info(questions)
     
     formatted_questions = [question.format() for question in questions]
@@ -253,6 +258,14 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+  @app.errorhandler(400)
+  def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": error.description
+    }), 400
+
   @app.errorhandler(404)
   def not_found(error):
     return jsonify({
@@ -268,6 +281,8 @@ def create_app(test_config=None):
       'error': 422,
       'message': 'unprocessable'
     }), 422
+
+
   
   return app
 
