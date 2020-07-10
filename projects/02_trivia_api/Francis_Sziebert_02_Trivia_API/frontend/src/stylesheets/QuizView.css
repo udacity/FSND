@@ -1,0 +1,47 @@
+.quiz-play-holder {
+    width: 80%;
+    margin-left: 10%;
+    text-align: center;
+    margin-top: 40px;
+}
+
+.category-holder {
+    margin-top: 16px;
+    font-size: 24px;
+}
+
+.choose-header {
+    font-size: 34px;
+    font-weight: bold;
+}
+
+.play-category:hover {
+    color: dodgerblue;
+}
+
+.button {
+    width: 100px;
+    margin-top: 5px;
+    background-color: dodgerblue;
+    color: white;
+    padding: 3px 5px;
+    align-self: center;
+}
+
+div.button {
+    margin-top: 20px;
+    margin-left: calc(50% - 50px);
+}
+
+.quiz-question {
+    margin: 12px;
+    font-size: 24px;
+}
+
+.correct {
+    color: green;
+}
+
+.wrong {
+    color: red;
+}
