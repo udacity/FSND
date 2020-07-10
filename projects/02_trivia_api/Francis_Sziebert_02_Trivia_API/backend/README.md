@@ -239,17 +239,100 @@ curl -X GET --url http://localhost:5000/api/questions?page=1
 }
 ```
 
-### TEMPLATE /api/
+### POST /api/questions (add new question)
 #### General
-* 
+* Adds a question to the list of available questions.
+* Requires fields 'answer', 'category', 'difficulty', 'question'.
+* (optional) 'id' field may be specified and will be used if it does not already exist. 
 #### Sample Request
 ```bash
-
+curl --url http://localhost:5000/api/questions --data "{\"category\": \"5\", \"answer\": \"Nowhere\", \"question\": \"There is a Korean Film titled \\\"The Man From _________\\\"\", \"difficulty\": 3}" -H "Content-Type: application/json"
 ```
 #### Sample Response
 ```json
+{
+  "question": {
+    "answer": "Nowhere",
+    "category": 5,
+    "difficulty": 3,
+    "id": 26,
+    "question": "There is a Korean Film titled \"The Man From _________\""
+  },
+  "success": true
+}
+```
 
+### POST /api/questions (search)
+#### General
+* Search for questions containing the provided 'searchTerm' 
+#### Sample Request
+```bash
+ curl --url http://localhost:5000/api/questions --data "{\"searchTerm\": \"Lestat\"}" -H "Content-Type: application/json"
+```
+#### Sample Response
+```json
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": "ALL",
+  "page": 1,
+  "questions": [
+    {
+      "answer": "Tom Cruise",
+      "category": 5,
+      "difficulty": 4,
+      "id": 4,
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
+```  
+
+### DELETE /api/questions/#
+#### General
+* Deletes the question with an id=#
+#### Sample Request
+```bash
+curl --url http://localhost:5000/api/questions/25 -X DELETE
+```
+#### Sample Response
+```json
+{
+  "deleted": 25,
+  "success": true
+}
 ``` 
+
+### GET /api/questions/#
+#### General
+* Retrieves data on the question with id=#
+#### Sample Request
+```bash
+curl --url http://localhost:5000/api/questions/5
+```
+#### Sample Response
+```json
+{
+  "question": {
+    "answer": "Maya Angelou",
+    "category": 4,
+    "difficulty": 2,
+    "id": 5,
+    "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+  },
+  "success": true
+}
+``` 
+
+
 
 ### TEMPLATE /api/
 #### General

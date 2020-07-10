@@ -17,15 +17,16 @@ make_db_uri()
 def make_db_uri(database_name=DEFAULT_DATABASE_NAME):
     basedir = os.path.abspath(os.path.dirname(__file__))
     password_path = basedir + '/.secrets'
-    print('password_path: {}'.format(password_path))
+    # print('password_path: {}'.format(password_path))
 
     data = dict()
     if os.path.isfile(password_path):
         with open(password_path, 'r') as json_file:
             data = json.load(json_file)
-            print(f'data: {data}')
+            # print(f'data: {data}')
     else:
-        print('No .secrets file detected.')
+        # print('No .secrets file detected.')
+        pass
 
     username = data.get('username', 'postgres')
     password = data.get('password')
@@ -41,7 +42,7 @@ def make_db_uri(database_name=DEFAULT_DATABASE_NAME):
         userpass = ''
 
     database_path =  f'postgresql://{userpass}{host}:{port}/{database_name}'
-    print(f'database_path: {database_path}')
+    # print(f'database_path: {database_path}')
     return database_path
 
 

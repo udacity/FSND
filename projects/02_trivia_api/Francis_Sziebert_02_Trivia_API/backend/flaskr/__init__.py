@@ -2,6 +2,7 @@ import os
 import json
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.expression import func
 from flask_cors import CORS
 import psycopg2.errors
 from psycopg2.errors import UniqueViolation
@@ -114,72 +115,117 @@ def create_app(test_config=None):
 
     @app.route('/api/questions', methods=['POST'])
     def api_post_a_question():
-        data = json.loads(request.data)
-        if not all([data.get(key) for key in Question.required_keys()]):
-            abort(422, f'Requires Fields: {",".join(Question.required_keys())}')
-
-        question = Question(question=data.get('question'),
-                            answer = data.get('answer'),
-                            category = data.get('category'),
-                            difficulty = data.get('difficulty')
-                            )
-        if data.get('id'):
-            question.id = data.get('id')
-
         try:
-            question.insert()
-        except Exception as e:
-            if '(psycopg2.errors.UniqueViolation)' in str(e):
-                abort(422, f"id={data.get('id')} already exists.")
-            else:
-                abort(500)
+            data = json.loads(request.data)
+        except json.decoder.JSONDecodeError as e:
+            raise e
+            abort(400, f'json required, got: {request.data}')
+
+        search = data.get('searchTerm')
+        if search:
+            found_questions = Question.query.filter(Question.question.ilike(f'%{search}%'))
+            questions = [question.format() for question in found_questions]
+            total_questions = len(questions)
+            body = {
+                'success': True,
+                'categories': Category.format_all(),
+                'total_questions': total_questions,
+                'current_category': "ALL",
+                'questions': questions,
+                'page': 1
+            }
+        else:
+            if not all([data.get(key) for key in Question.required_keys()]):
+                abort(422, f'Requires Fields: {",".join(Question.required_keys())}')
+
+            question = Question(question=data.get('question'),
+                                answer=data.get('answer'),
+                                category=data.get('category'),
+                                difficulty=data.get('difficulty')
+                                )
+            if data.get('id'):
+                question.id = data.get('id')
+
+            try:
+                question.insert()
+            except Exception as e:
+                if '(psycopg2.errors.UniqueViolation)' in str(e):
+                    abort(422, f"id={data.get('id')} already exists.")
+                else:
+                    abort(500)
+
+            body = {
+                'success': True,
+                'question': question.format()
+            }
+        return jsonify(body)
+
+    @app.route('/api/categories/<string:category_id>/questions')
+    def get_category_questions(category_id):
+        selection = Question.query.order_by(Question.id).filter(Question.category == category_id).all()
+        current_questions = paginate_questions(request, selection)
+        if len(current_questions) == 0:
+            abort(404, "No Questions Available")
+        else:
+            total_questions = len(selection)
+            page = request.args.get('page', 1, type=int)
 
         body = {
             'success': True,
-            'question': question.format()
+            'categories': Category.format_all(),
+            'total_questions': total_questions,
+            'current_category': category_id,
+            'questions': current_questions,
+            'page': page
         }
         return jsonify(body)
 
+    @app.route('/api/quizzes', methods=['POST'])
+    def api_post_quizzes():
+        try:
+            data = json.loads(request.data)
+        except json.decoder.JSONDecodeError as e:
+            raise e
+            abort(400, f'json required, got: {request.data}')
+        previous_questions = data.get('previous_questions', [])
+        previous_question_valid = isinstance(previous_questions, list) and\
+                                        all([isinstance(seen, int) for seen in previous_questions])
 
-    '''
-    @TODO: 
-    Create an endpoint to DELETE question using a question ID. 
-  
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page. 
-    '''
+        quiz_category = data.get('quiz_category', {})
+        quiz_category_valid = False
+        if isinstance(quiz_category, dict):
+            _id = quiz_category.get('id')
+            _type = quiz_category.get('type')
+            quiz_category_valid = True
 
-    '''
-    @TODO: 
-    Create an endpoint to POST a new question, 
-    which will require the question and answer text, 
-    category, and difficulty score.
-  
-    TEST: When you submit a question on the "Add" tab, 
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.  
-    '''
+        if previous_question_valid and quiz_category_valid:
+            if quiz_category.get('type') != 'click':  # "click" is the "ALL" category
+                if isinstance(_id, str) and isinstance(_type, str):
+                    category_questions = Question.query.filter(Question.category == quiz_category['id']).order_by(func.random())
+                else:
+                    abort(422, 'quiz_category requires fields: id(int) and type(str)')
+            else:
+                category_questions = Question.query.order_by(func.random())
+        else:
+            abort(422, "api/quizzes requires previous_questions(list) and quiz_category(dict)")
 
-    '''
-    @TODO: 
-    Create a POST endpoint to get questions based on a search term. 
-    It should return any questions for whom the search term 
-    is a substring of the question. 
-  
-    TEST: Search by any phrase. The questions list will update to include 
-    only question that include that string within their question. 
-    Try using the word "title" to start. 
-    '''
+        questions = [question.format() for question in category_questions]
+        if len(questions) == 0:
+            abort(404, f"Category: {quiz_category} is Empty")
 
-    '''
-    @TODO: 
-    Create a GET endpoint to get questions based on category. 
-  
-    TEST: In the "List" tab / main screen, clicking on one of the 
-    categories in the left column will cause only questions of that 
-    category to be shown. 
-    '''
+        next_question = None
+        for question in questions:
+            if any(question['id'] == seen for seen in previous_questions):
+                continue
+            else:
+                next_question = question
 
+        body = {
+            "success": True,
+            "previous_questions": previous_questions,
+            "question": next_question
+        }
+        return jsonify(body)
 
     '''
     @TODO: 
@@ -191,12 +237,6 @@ def create_app(test_config=None):
     TEST: In the "Play" tab, after a user selects "All" or a category,
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not. 
-    '''
-
-    '''
-    @TODO: 
-    Create error handlers for all expected errors 
-    including 404 and 422. 
     '''
 
     @app.errorhandler(500)
@@ -211,6 +251,19 @@ def create_app(test_config=None):
             'error': 500,
             'message': message
         }), 500
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        base_message = 'BadRequest'
+        if hasattr(error, 'description'):
+            message = f'{base_message}: {str(error.description)}'
+        else:
+            message = base_message
+        return jsonify({
+            'success': False,
+            'error': 422,
+            'message': message
+        }), 422
 
     @app.errorhandler(422)
     def unprocessable(error):

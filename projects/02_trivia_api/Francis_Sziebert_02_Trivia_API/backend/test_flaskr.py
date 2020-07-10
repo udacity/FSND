@@ -88,7 +88,6 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_api_get_a_question_404_not_found(self):
         response = self.client().get('/api/questions/10000000000')
-        print(f'\nresponse.data:\n{response.data}\n')
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 404)
@@ -98,7 +97,6 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_api_delete_a_question(self):
         response = self.client().delete('/api/questions/1')
-        print(f'\nresponse.data:\n{response.data}\n')
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 200)
@@ -107,7 +105,6 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_api_delete_a_question_404_not_found(self):
         response = self.client().delete('/api/questions/10000000000')
-        print(f'\nresponse.data:\n{response.data}\n')
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 404)
@@ -157,13 +154,80 @@ class TriviaTestCase(unittest.TestCase):
             'difficulty': 3
         }
         response = self.client().post('/api/questions', data=json.dumps(in_data))
-        print(f'\nresponse.data:\n{response.data}\n')
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Unprocessable: Requires Fields: question,answer,category,difficulty')
         self.assertEqual(data['error'], 422)
+
+    def test_api_get_category_questions(self):
+        response = self.client().get('/api/categories/1/questions')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(isinstance(data['categories'], dict))
+        self.assertEqual(data['current_category'], '1')
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['page'])
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(isinstance(data['questions'], list))
+
+    def test_api_get_category_questions_404_NotFound(self):
+        response = self.client().get('/api/categories/7/questions')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'NotFound: No Questions Available')
+        self.assertEqual(data['error'], 404)
+
+    def test_api_post_quizzes_All(self):
+        in_data = {
+            "previous_questions": [],
+            "quiz_category": {
+                "type": "click",
+                "id": 0
+            }
+        }
+        response = self.client().post('/api/quizzes', data=json.dumps(in_data))
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(isinstance(data['previous_questions'], list))
+        self.assertTrue(isinstance(data['question'], dict))
+
+    def test_api_post_quizzes_Geography(self):
+        in_data = {
+            "previous_questions": [],
+            "quiz_category": {
+                "type": "Geography",
+                "id": "3"
+            }
+        }
+        response = self.client().post('/api/quizzes', data=json.dumps(in_data))
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(isinstance(data['previous_questions'], list))
+        self.assertTrue(isinstance(data['question'], dict))
+
+    def test_api_post_quizzes_422_bad_inputs(self):
+        in_data = {
+            "previous_questions": [],
+            "quiz_category": ["Geography", "3"]
+        }
+        response = self.client().post('/api/quizzes', data=json.dumps(in_data))
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 422)
+        self.assertEqual(data['message'], "Unprocessable: api/quizzes requires previous_questions(list) and quiz_category(dict)")
 
 
 
