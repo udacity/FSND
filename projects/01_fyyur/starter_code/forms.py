@@ -232,5 +232,17 @@ class ArtistForm(FlaskForm):
         # TODO implement enum restriction
         'facebook_link', validators=[URL()]
     )
+    # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
+    seeking_venue = BooleanField(
+        'seeking_venue'
+    )
+    seeking_description = StringField(
+        'seeking_description', validators=[Length(max=500)]
+        # 'seeking_description', validators=[DataRequired()]
+    )
+    
+    website = StringField(
+        'website', validators=[DataRequired(), URL(), Length(max=120)]
+    )
+    
 
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

@@ -49,13 +49,11 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
     genres = db.Column(db.ARRAY(db.String))
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500), default = "Not currently seeking talent")
-    
-    
+
     shows = db.relationship('Show', backref='Venue', lazy=True) # no shows needed on creation 
     
     # custom output/print 
@@ -71,12 +69,12 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String)) # this is a string, not array like in Venue 
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
-    web_link = db.Column(db.String(120))
+    website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500), default=' ')
     shows = db.relationship('Show', backref='Artist', lazy=True)
@@ -215,6 +213,13 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
+    """a venue detail page, use venue_id 
+    
+    construct a list of venue info, then parse it in the html 
+    this one needs Show class, wait till then 
+    """
+
+
     # shows the venue page with the given venue_id
     # TODO: replace with real venue data from the venues table, using venue_id
     data1={
@@ -295,13 +300,13 @@ def show_venue(venue_id):
     "past_shows_count": 1,
     "upcoming_shows_count": 1,
     }
+    
     data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
     
+    return jsonify(data)
     
     return render_template('pages/show_venue.html', venue=data)
 
-#  Create Venue
-#  ----------------------------------------------------------------
 
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
@@ -310,22 +315,13 @@ def create_venue_form():
     form = VenueForm()
     return render_template('forms/new_venue.html', form=form)
 
+
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-    
-
+    """create a venue using form, and save in database """
     try:
         data = request.form   
-        # logging.info(data)
-        # logging.info(type(data))
-        # for e in data:
-            # logging.info( f"{e}:  {data[e]}" )
-        # logging.info(data['name'])
-        # logging.info( 'seeking_talent' in data )
-        # logging.info(data.getlist('genres'))
-        
+
         # check seeking_talent
         if not 'seeking_talent' in data:
             seeking_talent = False
@@ -362,26 +358,38 @@ def create_venue_submission():
         
     finally:
         db.session.close()
-    
-    
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  
-    
+
     return render_template('pages/home.html')
+
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
     # TODO: Complete this endpoint for taking a venue_id, and using
     # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
     
+    try: 
+        # venue = Venue.query.get(venue_id)
+        venue = Venue.query.filter_by(id = venue_id).first()
+        db.session.delete(venue)
+        db.session.commit()
+
+        logging.info(f"venue {venue_id} is successfully deleted")
+        flash('An error occurred. Venue ' + data['name'] + ' could not be deleted.')
+    except: 
+    
+        db.session.rollback()
+        flash('An error occurred. Venue ' + data['name'] + ' could not be deleted.')
+    finally: 
+        db.session.close()
+    
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
     return None
 
+
+#----------------------------------------------------------------------------#
 #  Artists
-#  ----------------------------------------------------------------
+#----------------------------------------------------------------------------#
 @app.route('/artists')
 def artists():
     # TODO: replace with real data returned from querying the database
@@ -395,7 +403,16 @@ def artists():
     "id": 6,
     "name": "The Wild Sax Band",
     }]
-    return render_template('pages/artists.html', artists=data)
+    
+    data = Artist.query.all()
+    result = [] 
+    for a in data:
+        result.append({
+            'id': a.id,
+            'name': a.name
+            })
+    
+    return render_template('pages/artists.html', artists=result)
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
@@ -546,25 +563,52 @@ def edit_venue_submission(venue_id):
     return redirect(url_for('show_venue', venue_id=venue_id))
 
 
-#  ----------------------------------------------------------------
-#  Create Artist
-#  ----------------------------------------------------------------
-
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
     form = ArtistForm()
     return render_template('forms/new_artist.html', form=form)
 
+
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    # called upon submitting the new artist listing form
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
     
-    # on successful db insert, flash success
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+    try:
+        data = request.form   
+        # check seeking_venue
+        if not 'seeking_venue' in data:
+            seeking_venue = False
+        elif data['seeking_venue'] == 'y':
+            seeking_venue = True 
+        
+        for d in data:
+            logging.info(d)
+            
+        artist = Artist(
+                    name = data['name'],     
+                    city = data['city'],
+                    state = data['state'],
+                    phone = data['phone'],
+                    genres = data['genres'],
+                    facebook_link = data['facebook_link'],
+                    image_link = data['image_link'],
+                    website = data['website'], 
+                    seeking_venue = seeking_venue, 
+                    seeking_description = data['seeking_description'],
+                    )
+        
+        db.session.add(artist)
+        db.session.commit()
+        
+        logging.info('Artist ' + data['name'] + ' was successfully listed!')
+        flash('Artist ' + data['name']+ ' was successfully listed!')
+          
+    except Exception as e:
+        logging.error(e)
+        db.session.rollback()
+        flash('An error occurred. Artist ' + data['name'] + ' could not be listed.')
+    finally:
+        db.session.close()
+
     return render_template('pages/home.html')
 
 
