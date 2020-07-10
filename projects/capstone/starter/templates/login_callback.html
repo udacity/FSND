@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+</head>
+<body>
+
+<h1>My First Heading</h1>
+<button onclick="sendToken()">Go back</button>
+<p>My first paragraph.</p>
+
+</body>
+</html>
+
+<script>
+    var token;
+    const fragment = window.location.hash.substr(1).split('&')[0].split('=')
+    if ( fragment[0] === 'access_token' ) {
+      // add the access token to the jwt
+      token = fragment[1];
+    }
+
+    function sendToken($this){
+    console.log("button clicked");
+    $.ajax({
+        type: "POST",
+        url: "get_access_token",
+        data: {'access_token': token},
+        complete: function(data) {
+            window.location = '/'
+        }
+        })
+    }
+
+</script>
