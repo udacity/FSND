@@ -46,6 +46,19 @@
 		<img src="{{ venue.image_link }}" alt="Venue Image" />
 	</div>
 </div>
+
+<br />
+
+<div class="row">
+  <div class="col-sm-3">
+    <a href="{{ url_for('edit_venue', venue_id=venue.id) }}"
+       class="btn btn-primary btn-lg btn-block">Edit Venue</a>
+  </div>
+  <div class="col-sm-3">
+    <input type="submit" value="Deletar Venue" class="btn btn-primary btn-lg btn-block" formaction="{{ url_for('delete_venue', venue_id=venue.id) }}">
+  </div>
+</div>
+
 <section>
 	<h2 class="monospace">{{ venue.upcoming_shows_count }} Upcoming {% if venue.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
