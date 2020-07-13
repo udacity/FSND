@@ -43,6 +43,16 @@
 		<img src="{{ artist.image_link }}" alt="Venue Image" />
 	</div>
 </div>
+
+<br />
+
+<div class="row">
+  <div class="col-sm-6">
+    <a href="{{ url_for('edit_artist', artist_id=artist.id) }}"
+       class="btn btn-primary btn-lg btn-block">Edit Artist</a>
+  </div>
+</div>
+
 <section>
 	<h2 class="monospace">{{ artist.upcoming_shows_count }} Upcoming {% if artist.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
@@ -73,4 +83,3 @@
 </section>
 
 {% endblock %}
-
