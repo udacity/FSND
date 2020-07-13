@@ -44,12 +44,10 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
     genres = db.Column(db.ARRAY(db.String))
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500), default = "Not currently seeking talent")
-
     shows = db.relationship('Show', backref='Venue', lazy=True) # no shows needed on creation 
     
         
@@ -61,12 +59,9 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    
-    genres = db.Column(db.ARRAY(db.String)) # this should be an array of string 
-    
+    genres = db.Column(db.ARRAY(db.String))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500), default=' ')
@@ -76,7 +71,6 @@ class Artist(db.Model):
 class Show(db.Model):
     # child table, has foreign keys 
     __tablename__ = 'Show'
-    
     id = db.Column(db.Integer, primary_key = True )
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable = False)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable = False)
@@ -109,44 +103,18 @@ def index():
 #  Venues
 #----------------------------------------------------------------------------#
 @app.route('/venues')
-def venues(): # missing the #shows calculation, 
+def venues(): 
     """
-    
-    return:
-        result: a list of dictionary, city, state, venues(a list of dictionary, id, name, num of upcoming shows )
+    No need to calculate #shows since it's not shown on front end
+    It's shown on venue detail page
+
     """
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
-    
-    # data=[{
-    # "city": "San Francisco",
-    # "state": "CA",
-    # "venues": [{
-        # "id": 1,
-        # "name": "The Musical Hop",
-        # "num_upcoming_shows": 0,
-    # }, {
-        # "id": 3,
-        # "name": "Park Square Live Music & Coffee",
-        # "num_upcoming_shows": 1,
-    # }]
-    # }, {
-    # "city": "New York",
-    # "state": "NY",
-    # "venues": [{
-        # "id": 2,
-        # "name": "The Dueling Pianos Bar",
-        # "num_upcoming_shows": 0,
-    # }]
-    # }]
-    
     # get data from database 
     data = Venue.query.all()
     result = {} # use city+state as keys, to construct the venues list 
     
     for v in data: 
         logging.info(v)
-        # print(type(v))
         
         location = v.city.strip() + ' ' +v.state.strip()
         if not location in result:
@@ -155,11 +123,10 @@ def venues(): # missing the #shows calculation,
                 'state': v.state,
                 'venues': [],
                 }
-                
+
         result[location]['venues'].append({
                 'id': v.id,
                 'name': v.name,
-                'num_upcoming_shows': 'not implemented',
                 },)
 
     return render_template('pages/venues.html', areas=list(result.values()))
@@ -201,7 +168,7 @@ def show_venue(venue_id):
         logging.info(f"Venue {venue_id} found.")
         data = venue.__dict__
         
-        # calculate the upcoming and past 
+        # calculate the upcoming and past shows
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         shows = Show.query.options(db.joinedload(Show.Venue)).filter(Show.venue_id == venue_id)
         
@@ -283,7 +250,6 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-
     try: 
         venue = Venue.query.get(venue_id)
         db.session.delete(venue)
@@ -603,7 +569,6 @@ def shows():
         
         result.append(cur)
         # logging.info(cur)
-    # return jsonify(result)
     return render_template('pages/shows.html', shows=result)
 
 
