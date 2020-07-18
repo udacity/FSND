@@ -3,6 +3,9 @@ __pycache__
 venv
 .idea
 **/.secrets
+**/*.submission
+**/*.zip
+
 # OS generated files #
 ######################
 .DS_Store

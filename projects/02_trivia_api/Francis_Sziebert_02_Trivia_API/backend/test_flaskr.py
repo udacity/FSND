@@ -81,30 +81,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(isinstance(data['question'], dict))
         self.assertTrue(isinstance(data['question']['id'], int))
-        self.assertTrue(isinstance(data['question']['category'], str))
+        self.assertTrue(data['question']['category'])
         self.assertTrue(isinstance(data['question']['difficulty'], int))
         self.assertTrue(isinstance(data['question']['answer'], str))
         self.assertTrue(isinstance(data['question']['question'], str))
 
     def test_api_get_a_question_404_not_found(self):
         response = self.client().get('/api/questions/10000000000')
-        data = json.loads(response.data)
-
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'NotFound: Requested question not found.')
-        self.assertEqual(data['error'], 404)
-
-    def test_api_delete_a_question(self):
-        response = self.client().delete('/api/questions/1')
-        data = json.loads(response.data)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(data['success'], True)
-        self.assertEqual(data['deleted'], 1)
-
-    def test_api_delete_a_question_404_not_found(self):
-        response = self.client().delete('/api/questions/10000000000')
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 404)
@@ -127,7 +110,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(isinstance(data['question'], dict))
         self.assertEqual(data['question']['id'], in_data['id'])
-        self.assertEqual(data['question']['category'], in_data['category'])
+        self.assertEqual(str(data['question']['category']), in_data['category'])
         self.assertEqual(data['question']['difficulty'], in_data['difficulty'])
         self.assertEqual(data['question']['answer'], in_data['answer'])
         self.assertEqual(data['question']['question'], in_data['question'])
@@ -160,6 +143,23 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Unprocessable: Requires Fields: question,answer,category,difficulty')
         self.assertEqual(data['error'], 422)
+
+    def test_api_delete_a_question(self):
+        response = self.client().delete('/api/questions/1')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['deleted'], 1)
+
+    def test_api_delete_a_question_404_not_found(self):
+        response = self.client().delete('/api/questions/10000000000')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'NotFound: Requested question not found.')
+        self.assertEqual(data['error'], 404)
 
     def test_api_get_category_questions(self):
         response = self.client().get('/api/categories/1/questions')

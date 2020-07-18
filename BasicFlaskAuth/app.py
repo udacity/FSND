@@ -2,14 +2,15 @@ from flask import Flask, request, abort
 import json
 from functools import wraps
 from jose import jwt
+from jose.exceptions import JWTError
 from urllib.request import urlopen
 
 
 app = Flask(__name__)
 
-AUTH0_DOMAIN = @TODO_REPLACE_WITH_YOUR_DOMAIN
+AUTH0_DOMAIN = 'flis.us.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = @TODO_REPLACE_WITH_YOUR_API_AUDIENCE
+API_AUDIENCE = 'image'
 
 
 class AuthError(Exception):
@@ -54,7 +55,14 @@ def get_token_auth_header():
 def verify_decode_jwt(token):
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
-    unverified_header = jwt.get_unverified_header(token)
+    try:
+        unverified_header = jwt.get_unverified_header(token)
+    except JWTError as e:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed, Error decoding token headers.'
+        }, 401)
+
     rsa_key = {}
     if 'kid' not in unverified_header:
         raise AuthError({
@@ -108,17 +116,22 @@ def verify_decode_jwt(token):
 def requires_auth(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        token = get_token_auth_header()
         try:
+            token = get_token_auth_header()
             payload = verify_decode_jwt(token)
-        except:
-            abort(401)
+        except AuthError as e:
+            abort(401, e.error.get('description'))
         return f(payload, *args, **kwargs)
 
     return wrapper
+
 
 @app.route('/headers')
 @requires_auth
 def headers(payload):
     print(payload)
     return 'Access Granted'
+
+
+if __name__ == '__main__':
+    app.run()
