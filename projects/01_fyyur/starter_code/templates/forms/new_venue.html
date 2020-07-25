@@ -24,18 +24,34 @@
         {{ form.address(class_ = 'form-control', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="phone">Phone</label>
-          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
-        </div>
+        <label for="phone">Phone</label>
+        {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
+      </div>
       <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
-        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id=form.state, autofocus = true) }}
+        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
-          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
-        </div>
+        <label for="facebook_link">Facebook Link</label>
+        {{ form.facebook_link(class_ = 'form-control', placeholder='http://',  autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="website">Website</label>
+        {{ form.facebook_link(class_ = 'form-control', placeholder='http://',  autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="image_link">Image Link</label>
+        {{ form.facebook_link(class_ = 'form-control', placeholder='http://',  autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="seeking_talent">Seeking Talent</label>
+        {{ form.facebook_link(class_ = 'form-control', placeholder='Seeking Talent',  autofocus = true) }}
+      </div>
+      <div class="form-group">
+        <label for="seeking_description">Seeking Talent Description</label>
+        {{ form.facebook_link(class_ = 'form-control', placeholder='Seeking Talent Description',  autofocus = true) }}
+      </div>
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>

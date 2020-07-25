@@ -46,6 +46,27 @@
 		<img src="{{ venue.image_link }}" alt="Venue Image" />
 	</div>
 </div>
+
+<div>
+	<button
+        id="delete-venue"
+        data-id="{{ venue.id }}"
+        class="btn btn-default btn-sm"
+	>
+        Delete
+	</button>
+</div>
+
+<script>
+	const deleteButton=document.getElementById('delete-venue')
+	deleteButton.onclick =function(e) {
+		const venue_id = e.target.dataset['id']
+		fetch('/venues/' + venue_id, {
+			method: 'DELETE'
+		})
+	}
+</script>
+
 <section>
 	<h2 class="monospace">{{ venue.upcoming_shows_count }} Upcoming {% if venue.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
@@ -74,6 +95,7 @@
 		{% endfor %}
 	</div>
 </section>
+
 
 {% endblock %}
 
