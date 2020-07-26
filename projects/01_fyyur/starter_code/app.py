@@ -15,15 +15,14 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from sqlalchemy import func
+from models import *
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
 moment = Moment(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/fyur'
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
+app.config.from_object('config')
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
@@ -33,50 +32,6 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
-
-class Venue(db.Model):
-    __tablename__ = 'Venue'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    genres =db.Column(db.ARRAY(db.String()))
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    website = db.Column(db.String())
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    seeking_talent = db.Column(db.Boolean())
-    seeking_description = db.Column(db.String(400))
-    shows = db.relationship('Shows', backref='venue', lazy=True)
-
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-class Artist(db.Model):
-    __tablename__ = 'Artist'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    seeking_venue = db.Column(db.Boolean())
-    seeking_description = db.Column(db.String(400))
-    shows = db.relationship('Shows', backref='artist', lazy=True)
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-class Shows(db.Model):
-  __tablename__ = 'Shows'
-
-  id = db.Column(db.Integer, primary_key=True)
-  date = db.Column(db.DateTime, nullable = False)
-  venue_id = db.Column(db.Integer, db.ForeignKey(Venue.id), nullable=False)
-  artist_id = db.Column(db.Integer, db.ForeignKey(Artist.id), nullable=False)
-  
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
@@ -142,7 +97,8 @@ def search_venues():
   for result in search_result:
     data.append({
       "id": result.id,
-      "name": result.name
+      "name": result.name,
+      "num_upcoming_shows": len(db.session.query(Shows).filter(Shows.artist_id == result.id).filter(Shows.date > datetime.now()).all())
     })
   
   response = ({
@@ -165,32 +121,25 @@ def show_venue(venue_id):
   if not venue:
     return render_template('pages/home.html')
 
-  shows = Shows.query.filter(Shows.venue_id==venue_id).all()
+  shows = db.session.query(Shows).join(Artist).filter(Shows.venue_id==venue_id).all()
 
   #TODO: make sure that with show data, we can get info here
-  if not shows:
-    return render_template('pages/home.html')
-
-  # future_shows = db.session.query(Shows).join(Artist).filter_by(Shows.venue_id==venue_id, Shows.date > datetime.now()).all()
-
-  # previous_shows = db.session.query(Shows).join(Artist).filter_by(Shows.venue_id==venue_id, Shows.date < datetime.now()).all()
 
   for show in shows:
-    artist = Artist.query.filter_by(id=show.artist_id).first()
     if show.date > datetime.now():
       upcoming_shows.append({
-        "artist_id": artist.id,
-        "artist_name": artist.name,
-        "artist_imagie_link": artist.artist_image_link,
-        "start_time" : show.date
+        "artist_id": show.artist_id,
+        "artist_name": show.artist.name,
+        "artist_image_link": show.artist.image_link,
+        "start_time" : show.date.strftime('%Y-%m-%d %H:%M:%S')
 
       })
     else:
       past_shows.append({
-        "artist_id": artist.id,
-        "artist_name": artist.name,
-        "artist_imagie_link": artist.artist_image_link,
-        "start_time" : show.date
+        "artist_id": show.artist_id,
+        "artist_name": show.artist.name,
+        "artist_image_link": show.artist.image_link,
+        "start_time" : show.date.strftime('%Y-%m-%d %H:%M:%S')
 
     })
 
@@ -337,30 +286,25 @@ def show_artist(artist_id):
   if not artist:
     return render_template('pages/home.html')
 
-  shows = Shows.query.filter(Shows.artist_id==artist_id).all()
+  shows = db.session.query(Shows).join(Venue).filter(Shows.artist_id==artist_id).all()
 
   #TODO: make sure that with show data, we can get info here
   
-  # future_shows = db.session.query(Shows).join(Artist).filter_by(Shows.venue_id==venue_id, Shows.date > datetime.now()).all()
-
-  # previous_shows = db.session.query(Shows).join(Artist).filter_by(Shows.venue_id==venue_id, Shows.date < datetime.now()).all()
-
   for show in shows:
-    venue = Venue.query.filter_by(id=show.venue_id).first()
     if show.date > datetime.now():
       upcoming_shows.append({
-        "venue_id": venue.id,
-        "venue_name": venue.name,
-        "venue_image_link": venue.image_link,
-        "start_time" : show.date
+        "venue_id": show.venue.id,
+        "venue_name": show.venue.name,
+        "venue_image_link": show.venue.image_link,
+        "start_time" : show.date.strftime('%Y-%m-%d %H:%M:%S')
 
       })
     else:
       past_shows.append({
-        "venue_id": venue.id,
-        "venue_name": venue.name,
-        "venue_image_link": venue.image_link,
-        "start_time" : show.date
+        "venue_id": show.venue.id,
+        "venue_name": show.venue.name,
+        "venue_image_link": show.venue.image_link,
+        "start_time" : show.date.strftime('%Y-%m-%d %H:%M:%S')
 
     })
 
@@ -407,6 +351,7 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  form = ArtistForm()
 
   error = False
   artist = Artist.query.get(artist_id)
@@ -422,7 +367,6 @@ def edit_artist_submission(artist_id):
     artist.seeking_description: request.form['seeking_description']
     artist.image_link: request.form['image_link']
     
-    db.session.add(artist)
     db.session.commit()
         
   except():
@@ -451,7 +395,7 @@ def edit_venue(venue_id):
   form.phone.data = venue.phone
   form.website.data = venue.website
   form.facebook_link.data = venue.facebook_link
-  form.seeking_artist.data = venue.seeking_artist
+  form.seeking_talent.data = venue.seeking_talent
   form.seeking_description.data = venue.seeking_description
   form.image_link.data = venue.image_link
   # TODO: populate form with values from venue with ID <venue_id>
@@ -462,9 +406,8 @@ def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
   error = False
-  artist = Artist.query.get(artist_id)
+  venue = Venue.query.get(venue_id)
   try:
-   
     venue.name: request.form['name']
     venue.genres: request.form.getlist('genres')
     venue.city: request.form['city']
@@ -477,7 +420,6 @@ def edit_venue_submission(venue_id):
     venue.seeking_description: request.form['seeking_description']
     venue.image_link: request.form['image_link']
     
-    db.session.add(venue)
     db.session.commit()
         
   except():
@@ -556,9 +498,9 @@ def shows():
       "venue_id": show.venue_id,
       "venue_name": show.venue.name,
       "artist_id": show.artist_id,
-      "artist_name": show.artist.artist_name,
+      "artist_name": show.artist.name,
       "artist_image_link": show.artist.image_link,
-      "start_time": show.date
+      "start_time": show.date.strftime('%Y-%m-%d %H:%M:%S')
     })
 
   return render_template('pages/shows.html', shows=data)

@@ -119,7 +119,7 @@ class VenueForm(Form):
     website = StringField(
         'website', validators=[URL()]
     )
-    seeking_artist = StringField(
+    seeking_talent = StringField(
         'seeking_talent'
     )
     seeking_description = StringField(
