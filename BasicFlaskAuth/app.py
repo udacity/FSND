@@ -1,4 +1,4 @@
-from flask import Flask, request, abort
+from flask import Flask, request, abort, make_response, jsonify
 import json
 from functools import wraps
 from jose import jwt
@@ -50,6 +50,21 @@ def get_token_auth_header():
 
     token = parts[1]
     return token
+
+
+def check_permissions(permission, payload):
+    if 'permissions' not in payload:
+        raise AuthError({
+            'code': 'invalid_claims',
+            'description': 'Permissions not included in JWT.'
+        }, 400)
+
+    if permission not in payload['permissions']:
+        raise AuthError({
+            'code': 'unauthorized',
+            'description': 'Permission not found.'
+        }, 403)
+    return True
 
 
 def verify_decode_jwt(token):
@@ -120,10 +135,26 @@ def requires_auth(f):
             token = get_token_auth_header()
             payload = verify_decode_jwt(token)
         except AuthError as e:
-            abort(401, e.error.get('description'))
+            abort(make_response(jsonify(e.error), e.status_code))
         return f(payload, *args, **kwargs)
-
     return wrapper
+
+
+# curl -X GET --url http://localhost:5000/images -H "Authorization: Bearer <TOKEN!>"
+
+def requires_permission(permission=''):
+    def requires_permission_decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                token = get_token_auth_header()
+                payload = verify_decode_jwt(token)
+                check_permissions(permission, payload)
+            except AuthError as e:
+                abort(make_response(jsonify(e.error), e.status_code))
+            return f(payload, *args, **kwargs)
+        return wrapper
+    return requires_permission_decorator
 
 
 @app.route('/headers')
@@ -131,6 +162,13 @@ def requires_auth(f):
 def headers(payload):
     print(payload)
     return 'Access Granted'
+
+
+@app.route('/images')
+@requires_permission('get:images')
+def images(payload):
+    print(payload)
+    return 'Access Granted to images'
 
 
 if __name__ == '__main__':
