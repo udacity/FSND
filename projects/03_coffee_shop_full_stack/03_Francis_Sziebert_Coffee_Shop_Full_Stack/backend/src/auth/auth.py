@@ -7,7 +7,7 @@ from urllib.request import urlopen
 
 AUTH0_DOMAIN = 'flis.us.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'udacity_coffee_shop'
+API_AUDIENCE = 'coffee'
 
 
 class AuthError(Exception):
@@ -74,7 +74,8 @@ def check_permissions(permission, payload):
     ** NOTE **
     Largely copied from practice exercises in course lessons.
     """
-
+    # print(f'checking permission: {permission}')
+    # print(json.dumps(payload, indent=4))
     # it should raise an AuthError if permissions are not included
     #    in the payload
     if 'permissions' not in payload:
@@ -89,7 +90,7 @@ def check_permissions(permission, payload):
         raise AuthError({
             'code': 'unauthorized',
             'description': 'Permission not found.'
-        }, 403)
+        }, 401)
     return True
 
 
