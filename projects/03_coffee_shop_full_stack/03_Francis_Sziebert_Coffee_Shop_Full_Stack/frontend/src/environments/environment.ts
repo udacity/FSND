@@ -9,6 +9,6 @@ export const environment = {
     url: 'flis.us', // the auth0 domain prefix
     audience: 'coffee', // the audience set for the auth0 app
     clientId: 'I12UnrxbhRGHcQG9wCyJwARE3YN81WLz', // the client id generated for the auth0 app
-    callbackURL: 'https://127.0.0.1:8100', // the base url of the running ionic application.
+    callbackURL: 'http://127.0.0.1:8100', // the base url of the running ionic application.
   }
 };
