@@ -32,7 +32,7 @@ Our tech stack will include:
   ```sh
   ├── README.md
   ├── app.py *** the main driver of the app. Includes your SQLAlchemy models.
-                    "python app.py" to run after installing dependences
+                    "python app.py" to run after installing dependencies
   ├── config.py *** Database URLs, CSRF generation, etc
   ├── error.log
   ├── forms.py *** Your forms
