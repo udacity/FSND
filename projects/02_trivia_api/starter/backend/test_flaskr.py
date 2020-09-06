@@ -33,7 +33,11 @@ class TriviaTestCase(unittest.TestCase):
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
-
+    def test_creating_question(self):
+        """Test creating a new question """
+        body = {'question':'new question', 'answer':'new answer', 'category':2, 'difficulty': 5}
+        res = self.client().post('/api/questions', data=json.dumps(body), headers={'Content-Type': 'application/json'})
+        self.assertEqual(res.status_code, 200)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
