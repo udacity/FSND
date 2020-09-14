@@ -194,55 +194,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["question"])
         self.assertTrue(data["quiz_category"])
 
-    def test_play_game_with_specific_category(self):
-        """
-        Test API can play the quiz with a specific category
-        of questions
-        """
-        category = 1
-        self.game["quiz_category"] = {"id": category}
-        response = self.client.post("/api/quizzes", json=self.game)
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(data["question"])
-        self.assertEqual(data["question"]["category"], category)
-        self.assertTrue(data["question"])
-        self.assertEqual(data["quiz_category"]["id"], category)
-
-        self.game["quiz_category"]["id"] = category = 3
-        response = self.client.post("/api/quizzes", json=self.game)
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(data["question"])
-        self.assertEqual(data["question"]["category"], category)
-        self.assertTrue(data["question"])
-        self.assertEqual(data["quiz_category"]["id"], category)
-
-    def test_play_game_with_previous_questions(self):
-        """
-        Test API can play the quiz after the last question
-        being answered
-        """
-        category = 4
-        self.game["quiz_category"] = {"id": category}
-
-        for _ in range(5):
-            response = self.client.post("/api/quizzes", json=self.game)
-            data = json.loads(response.data)
-            self.assertEqual(response.status_code, 200)
-            self.assertTrue(data["question"])
-            self.assertTrue(data["question"]["id"])
-            self.assertTrue(data["quiz_category"])
-            self.assertTrue(data["quiz_category"]["id"])
-            self.assertEqual(data["quiz_category"]["id"], category)
-
-            if len(self.game["previous_questions"]):
-                self.assertNotIn(
-                    data["question"]["id"], self.game["previous_questions"]
-                )
-
-            self.game["previous_questions"].append(data["question"]["id"])
-
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
