@@ -36,6 +36,7 @@ def create_app(test_config=None):
             "Access-Control-Allow-Headers", "Content-Type,Authorization"
         )
         response.headers.add("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
+        response.headers.add("Access-Control-Allow-Credentials", "true")
 
         return response
 
@@ -62,10 +63,13 @@ def create_app(test_config=None):
 
         # get all categories
         categories = query_all_categories()
-        return jsonify(categories)
+
+        res = {"categories": categories}
+
+        return jsonify(res)
 
     def query_all_categories():
-        """Query to get all categories. *decoupled from GET all categories
+        """Query to get all categories. 
 
         Returns:
             List of all categories
@@ -73,7 +77,7 @@ def create_app(test_config=None):
         """
 
         categories = Category.query.all()
-        formatted_categories = [c.format() for c in categories]
+        formatted_categories = {cat.id: cat.type for cat in categories}
         return formatted_categories
 
     """
@@ -166,54 +170,45 @@ def create_app(test_config=None):
 
         """
 
-        # get request args
-        args = request.args
-
         # get page from args
-        if "page" in args:
-            page = int(args["page"])
-        else:
-            page = 1
+        page = request.args.get("page")
 
-        # apparently the search request is not in args?
-        # if "q" in args:
-        #    query_string = args["q"]
-        #    # call func to search questions
-        #    print(f"QUERY_STRING: {query_string}")
-        #    return get_questions_by_query(query_string)
+        # actual page for pagination...
+        page_int = 0
+
+        # convert to int
+        if page:
+            page_int = int(page)
+        else:
+            page_int = 1
 
         # set questions per page
         per_page = QUESTIONS_PER_PAGE
 
-        # get questions for current page
+        # get questions for current page (paginated)
         questions = Question.query.order_by(Question.id.asc()).paginate(
-            page, per_page, error_out=False
+            page_int, per_page, error_out=True
         )
 
         # formatted questions in array
         formatted_questions = [q.format() for q in questions.items]
 
         # get all categories
-        categories = Category.query.all()
+        # categories = Category.query.all()
+        categories = query_all_categories()
+
+        current_category = Category.query.order_by(Category.type.asc()).first()
 
         # for some reason need to return as a dict not list/array?
-        formatted_categories = {cat.id: cat.type for cat in categories}
+        # formatted_categories = {cat.id: cat.type for cat in categories}
 
         # return as JSON
         return jsonify(
             questions=formatted_questions,
             total_questions=questions.total,
-            categories=formatted_categories,
-            # current_category=current_category,
+            categories=categories,
+            current_category=current_category.id,
         )
-
-        # front-end state ->
-        # setState({
-        #    questions: result.questions,
-        #    totalQuestions: result.total_questions,
-        #    categories: result.categories,
-        #    currentCategory: result.current_category
-        # })
 
     """
     @TODO: 
@@ -254,17 +249,44 @@ def create_app(test_config=None):
 
     @app.route("/api/categories/<int:category_id>/questions")
     def get_questions_by_category(category_id):
-        questions = Question.query.filter_by(category=f"{category_id}").all()
-        formatted_questions = [q.format() for q in questions]
 
-        return jsonify(
-            {
-                "questions": formatted_questions,
-                "total_questions": len(questions),
-                "current_category": category_id,
-                # TODO fix this it's breaking the ADD form"categories": query_all_categories(),
-            }
-        )
+        # page from args
+        page = request.args.get("page")
+
+        page_int = 0
+
+        if page:
+            page_int = int(page)
+        else:
+            page_int = 1
+
+        # questions per page for pagination
+        per_page = QUESTIONS_PER_PAGE
+
+        category = Category.query.get(category_id)
+
+        if category:
+            # get category id as int
+            category_id_int = int(category.id)
+
+            questions = Question.query.filter_by(category=category_id_int).paginate(
+                page_int, per_page, error_out=True
+            )
+
+            # clean up questions for response
+            formatted_questions = [q.format() for q in questions.items]
+
+            return jsonify(
+                {
+                    "questions": formatted_questions,
+                    "total_questions": len(questions.items),
+                    "current_category": category_id,
+                    "categories": query_all_categories(),
+                }
+            )
+        # if category doesn't exist return error
+        else:
+            return make_response(jsonify({"error": "category does not exist"}), 404)
 
     """
     @TODO: 
@@ -301,7 +323,7 @@ def create_app(test_config=None):
     of the questions list in the "List" tab.  
     """
 
-    @app.route("/api/questions", methods=["POST"])
+    @app.route("/api/questions/create", methods=["POST"])
     def create_question():
         # get body data as json
         body = request.get_json()
