@@ -31,7 +31,9 @@ def create_app(test_config=None):
         response.headers.add(
             "Access-Control-Allow-Headers", "Content-Type,Authorization"
         )
-        response.headers.add("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
+        response.headers.add(
+            "Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS"
+        )
         response.headers.add("Access-Control-Allow-Credentials", "true")
 
         return response
@@ -154,9 +156,9 @@ def create_app(test_config=None):
             # get category id as int
             category_id_int = int(category.id)
 
-            questions = Question.query.filter_by(category=category_id_int).paginate(
-                page_int, per_page, error_out=True
-            )
+            questions = Question.query.filter_by(
+                category=category_id_int
+            ).paginate(page_int, per_page, error_out=True)
 
             # clean up questions for response
             formatted_questions = [q.format() for q in questions.items]
@@ -171,7 +173,9 @@ def create_app(test_config=None):
             )
         # if category doesn't exist return error
         else:
-            return make_response(jsonify({"error": "category does not exist"}), 404)
+            return make_response(
+                jsonify({"error": "category does not exist"}), 404
+            )
 
     @app.route("/api/questions/<int:question_id>", methods=["DELETE"])
     def delete_question(question_id):
@@ -263,7 +267,8 @@ def create_app(test_config=None):
 
         if question is None:
             question = next(
-                (q for q in questions if q.id == previous_questions[0]), questions[0],
+                (q for q in questions if q.id == previous_questions[0]),
+                questions[0],
             )
 
         # format it for res
@@ -281,12 +286,17 @@ def create_app(test_config=None):
     # error handlers
     @app.errorhandler(404)
     def not_found(error):
-        return jsonify({"success": False, "error": 404, "message": "Not found"}), 404
+        return (
+            jsonify({"success": False, "error": 404, "message": "Not found"}),
+            404,
+        )
 
     @app.errorhandler(422)
     def unprocessable(error):
         return (
-            jsonify({"success": False, "error": 422, "message": "unprocessable"}),
+            jsonify(
+                {"success": False, "error": 422, "message": "unprocessable"}
+            ),
             422,
         )
 

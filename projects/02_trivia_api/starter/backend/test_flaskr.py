@@ -89,7 +89,9 @@ class TriviaTestCase(unittest.TestCase):
         response = self.client.get("/api/questions")
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(data["questions"]), len(questions[0:QUESTIONS_PER_PAGE]))
+        self.assertEqual(
+            len(data["questions"]), len(questions[0:QUESTIONS_PER_PAGE])
+        )
         self.assertEqual(data["total_questions"], len(questions))
         self.assertEqual(data["current_category"], first_category.id)
         self.assertEqual(len(data["categories"]), category_count)
@@ -111,7 +113,9 @@ class TriviaTestCase(unittest.TestCase):
 
         response = self.client.get("/api/categories/1/questions")
         data = json.loads(response.data)
-        self.assertEqual(len(data["questions"]), len(questions[0:QUESTIONS_PER_PAGE]))
+        self.assertEqual(
+            len(data["questions"]), len(questions[0:QUESTIONS_PER_PAGE])
+        )
         self.assertEqual(data["total_questions"], len(questions))
         self.assertEqual(data["current_category"], 1)
         self.assertEqual(len(data["categories"]), category_count)
@@ -148,7 +152,9 @@ class TriviaTestCase(unittest.TestCase):
         """
         test api can create question
         """
-        response = self.client.post("/api/questions/create", json=self.new_question)
+        response = self.client.post(
+            "/api/questions/create", json=self.new_question
+        )
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 201)
         self.assertIsNotNone([data["id"]])
@@ -198,4 +204,3 @@ class TriviaTestCase(unittest.TestCase):
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
-
