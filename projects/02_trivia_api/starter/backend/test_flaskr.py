@@ -51,6 +51,11 @@ class TriviaTestCase(unittest.TestCase):
             "difficulty": 2,
         }
 
+        self.bad_question = {
+            "question": "What is my favorite color?",
+            "foo": 2,
+        }
+
         self.search_term = "color"
         self.search_json_data = jsonify({"searchTerm": "color"})
 
@@ -64,10 +69,7 @@ class TriviaTestCase(unittest.TestCase):
         self.context.pop()
         pass
 
-    """
-    TODO
-    Write at least one test for each test for successful operation and for expected errors.
-    """
+    # Tests
 
     def test_can_get_all_categories(self):
         """ test that API can get all categories"""
@@ -77,6 +79,13 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(data.get("categories")), count_categories)
+
+    def test_can_get_all_categories_error(self):
+        """ test that an error is returned if failure to get all categories"""
+
+        response = self.client.get("/api/categories/all")
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 404)
 
     def test_get_questions(self):
         """
@@ -96,7 +105,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["current_category"], first_category.id)
         self.assertEqual(len(data["categories"]), category_count)
 
-    def test_404_when_get_questions(self):
+    def test_get_questions_failure(self):
         """
         test for 404 response when unreachable page is requested
         """
@@ -120,7 +129,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["current_category"], 1)
         self.assertEqual(len(data["categories"]), category_count)
 
-    def test_404_when_get_questions_by_category(self):
+    def test_get_questions_by_category_failure(self):
         """
         test api returns 404 when requesting q's for bad category
         """
@@ -135,12 +144,12 @@ class TriviaTestCase(unittest.TestCase):
         question_id = question.id
 
         response = self.client.delete(f"/api/questions/{question_id}")
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, 200)
 
         deleted = Question.query.get(question_id)
         self.assertIsNone(deleted)
 
-    def test_404_when_delete_question(self):
+    def test_delete_question_failure(self):
         """
         test api returns 404 when deleting non existent question
         """
@@ -170,6 +179,17 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["category"], created.category)
         self.assertEqual(data["difficulty"], created.difficulty)
 
+    def test_create_question_failure(self):
+        """
+        test that error is returned on bad create request
+        """
+        response = self.client.post(
+            "/api/questions/create", json=self.bad_question
+        )
+
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 422)
+
     def test_search_question(self):
         """
         test api can search questions by query term
@@ -190,6 +210,16 @@ class TriviaTestCase(unittest.TestCase):
         for q in data["questions"]:
             self.assertIn(self.search_term.lower(), q["question"].lower())
 
+    def test_search_question_failure(self):
+        """
+        test 404 is returned on failed search (nonexistent)
+        """
+        response = self.client.post(
+            "http://localhost:5000/api/questions", json=({"searchTerm": []})
+        )
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 404)
+
     def test_play_game_with_all_categories(self):
         """
         Test API can play the quiz with any category
@@ -199,6 +229,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(data["question"])
         self.assertTrue(data["quiz_category"])
+
+    def test_play_game_with_all_categories_failure(self):
+        """
+        test api returns error when bad quiz request is made
+        """
+        response = self.client.get("/api/quizzes")
+
+        self.assertEqual(response.status_code, 405)
 
 
 # Make the tests conveniently executable

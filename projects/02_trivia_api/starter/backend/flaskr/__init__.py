@@ -129,9 +129,11 @@ def create_app(test_config=None):
             Question.question.ilike(f"%{query_term}%")
         ).all()
 
-        formatted_result = [q.format() for q in query_result]
-
-        return jsonify({"questions": formatted_result})
+        if len(query_result):
+            formatted_result = [q.format() for q in query_result]
+            return jsonify({"questions": formatted_result})
+        else:
+            abort(404)
 
     @app.route("/api/categories/<int:category_id>/questions")
     def get_questions_by_category(category_id):
@@ -189,7 +191,14 @@ def create_app(test_config=None):
         # if question exists, delete it and send a response
         if question:
             question.delete()
-            res = make_response(jsonify({}), 204)
+            res = make_response(
+                jsonify(
+                    {
+                        "message": f"successfully deleted question id: {question_id}"
+                    }
+                ),
+                200,
+            )
             return res
         else:
             abort(404)
@@ -202,12 +211,19 @@ def create_app(test_config=None):
         if body is None:
             abort(422)
 
-        # create new question
+        question = (body.get("question"),)
+        answer = (body.get("answer"),)
+        category = (body.get("category"),)
+        difficulty = body.get("difficulty")
+
+        if not all([question, answer, category, difficulty]):
+            abort(422)
+
         new_question = Question(
-            question=body.get("question"),
-            answer=body.get("answer"),
-            category=body.get("category"),
-            difficulty=body.get("difficulty"),
+            question=question,
+            answer=answer,
+            category=category,
+            difficulty=difficulty,
         )
 
         # insert
@@ -220,23 +236,8 @@ def create_app(test_config=None):
 
     @app.route("/api/quizzes", methods=["POST"])
     def play_quiz():
-
-        # front-end state for reference
-        # this.state = {
-        #         quizCategory: null,
-        #         previousQuestions: [],
-        #         showAnswer: false,
-        #         categories: {},
-        #         numCorrect: 0,
-        #         currentQuestion: {},
-        #         guess: '',
-        #         forceEnd: false
-        #         }
-
         # get category and previous ques params
         body = request.get_json()
-
-        print(body)
 
         if body is None:
             # if no body then set init values
@@ -248,6 +249,8 @@ def create_app(test_config=None):
 
         if quiz_category is None:
             # get all questions if there is no category set
+            questions = Question.query.all()
+        elif quiz_category["id"] == 0:
             questions = Question.query.all()
         else:
             # get questions for current category
