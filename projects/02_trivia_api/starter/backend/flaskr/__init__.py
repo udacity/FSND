@@ -13,9 +13,6 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
 
-    # create swagger docs
-    swagger = Swagger(app)
-
     # db init
     setup_db(app)
 

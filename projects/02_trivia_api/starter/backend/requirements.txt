@@ -1,6 +1,7 @@
 aniso8601==6.0.0
 attrs==20.1.0
 Click==7.0
+flasgger==0.9.5
 Flask==1.0.3
 Flask-Cors==3.0.9
 Flask-RESTful==0.3.7
