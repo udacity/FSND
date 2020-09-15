@@ -16,15 +16,7 @@ def create_app(test_config=None):
     # db init
     setup_db(app)
 
-    """
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-    """
-
     cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-    """
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    """
 
     @app.after_request
     def after_request(response):
@@ -45,11 +37,14 @@ def create_app(test_config=None):
         """
 
         # get all categories
-        categories = query_all_categories()
+        try:
+            categories = query_all_categories()
 
-        res = {"categories": categories}
+            res = {"categories": categories}
 
-        return jsonify(res)
+            return jsonify(res)
+        except:
+            abort(404)
 
     def query_all_categories():
         # decoupled from get_categories so it can be used elsewhere
@@ -69,46 +64,50 @@ def create_app(test_config=None):
         """
         endpoint for retrieving all questions
         """
+        try:
+            # get page from args
+            page = request.args.get("page")
 
-        # get page from args
-        page = request.args.get("page")
+            # actual page for pagination...
+            page_int = 0
 
-        # actual page for pagination...
-        page_int = 0
+            # convert to int
+            if page:
+                page_int = int(page)
+            else:
+                page_int = 1
 
-        # convert to int
-        if page:
-            page_int = int(page)
-        else:
-            page_int = 1
+            # set questions per page
+            per_page = QUESTIONS_PER_PAGE
 
-        # set questions per page
-        per_page = QUESTIONS_PER_PAGE
+            # get questions for current page (paginated)
+            questions = Question.query.order_by(Question.id.asc()).paginate(
+                page_int, per_page, error_out=True
+            )
 
-        # get questions for current page (paginated)
-        questions = Question.query.order_by(Question.id.asc()).paginate(
-            page_int, per_page, error_out=True
-        )
+            # formatted questions in array
+            formatted_questions = [q.format() for q in questions.items]
 
-        # formatted questions in array
-        formatted_questions = [q.format() for q in questions.items]
+            # get all categories
+            # categories = Category.query.all()
+            categories = query_all_categories()
 
-        # get all categories
-        # categories = Category.query.all()
-        categories = query_all_categories()
+            current_category = Category.query.order_by(
+                Category.type.asc()
+            ).first()
 
-        current_category = Category.query.order_by(Category.type.asc()).first()
+            # for some reason need to return as a dict not list/array?
+            # formatted_categories = {cat.id: cat.type for cat in categories}
 
-        # for some reason need to return as a dict not list/array?
-        # formatted_categories = {cat.id: cat.type for cat in categories}
-
-        # return as JSON
-        return jsonify(
-            questions=formatted_questions,
-            total_questions=questions.total,
-            categories=categories,
-            current_category=current_category.id,
-        )
+            # return as JSON
+            return jsonify(
+                questions=formatted_questions,
+                total_questions=questions.total,
+                categories=categories,
+                current_category=current_category.id,
+            )
+        except:
+            abort(404)
 
     @app.route("/api/questions", methods=["POST"])
     def get_questions_by_query():
@@ -118,6 +117,9 @@ def create_app(test_config=None):
 
         # get request data (body)
         body = request.get_json()
+
+        if body is None:
+            abort(422)
 
         # get searchTerm from body
         query_term = body.get("searchTerm")
@@ -173,9 +175,7 @@ def create_app(test_config=None):
             )
         # if category doesn't exist return error
         else:
-            return make_response(
-                jsonify({"error": "category does not exist"}), 404
-            )
+            abort(404)
 
     @app.route("/api/questions/<int:question_id>", methods=["DELETE"])
     def delete_question(question_id):
@@ -191,15 +191,16 @@ def create_app(test_config=None):
             question.delete()
             res = make_response(jsonify({}), 204)
             return res
-
-        # else, respond with 404
-        res = make_response(jsonify({"error": "question not found"}), 404)
-        return res
+        else:
+            abort(404)
 
     @app.route("/api/questions/create", methods=["POST"])
     def create_question():
         # get body data as json
         body = request.get_json()
+
+        if body is None:
+            abort(422)
 
         # create new question
         new_question = Question(
@@ -235,6 +236,8 @@ def create_app(test_config=None):
         # get category and previous ques params
         body = request.get_json()
 
+        print(body)
+
         if body is None:
             # if no body then set init values
             previous_questions = []
@@ -254,32 +257,26 @@ def create_app(test_config=None):
                 .all()
             )
 
-        question = None
-
-        if len(previous_questions):
-            # if previous_questions then get next question
+        # if no previous questions, get the first question
+        if len(previous_questions) == 0:
+            question = questions[0]
+        else:
             question = next(
                 (q for q in questions if q.id not in previous_questions), None
             )
-        else:
-            # get the first question available
-            question = questions[0]
-
-        if question is None:
-            question = next(
-                (q for q in questions if q.id == previous_questions[0]),
-                questions[0],
-            )
 
         # format it for res
-        result_question = question.format()
+        if question is None:
+            result_question = ""
+            category = ""
+        else:
+            result_question = question.format()
+            category = (
+                Category.query.filter_by(id=str(result_question["category"]))
+                .first()
+                .format()
+            )
 
-        # get the category
-        category = (
-            Category.query.filter_by(id=str(result_question["category"]))
-            .first()
-            .format()
-        )
         # return as json
         return jsonify({"question": result_question, "quiz_category": category})
 
