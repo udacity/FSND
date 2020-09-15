@@ -13,7 +13,7 @@ class FormView extends Component {
             answer: "",
             difficulty: 1,
             category: 1,
-            categories: {}
+            categories: []
         }
     }
 
@@ -36,7 +36,7 @@ class FormView extends Component {
     submitQuestion = (event) => {
         event.preventDefault();
         $.ajax({
-            url: `${BASE_URL}/questions`,
+            url: `${BASE_URL}/questions/create`,
             type: "POST",
             dataType: 'json',
             contentType: 'application/json',
