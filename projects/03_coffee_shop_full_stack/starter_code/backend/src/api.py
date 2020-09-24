@@ -41,7 +41,6 @@ def create_app():
 
     ## ROUTES
     """
-    @TODO implement endpoint
         GET /drinks
             it should be a public endpoint
             it should contain only the drink.short() data representation
@@ -62,13 +61,21 @@ def create_app():
         return res
 
     """
-    @TODO implement endpoint
         GET /drinks-detail
             it should require the 'get:drinks-detail' permission
             it should contain the drink.long() data representation
         returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
             or appropriate status code indicating reason for failure
     """
+
+    @app.route("/drinks-detail")
+    @requires_auth("get:drinks-detail")
+    def get_drinks_detail(payload):
+        drinks = [drink.long() for drink in Drink.query.all()]
+
+        res = make_response(jsonify({"success": True, "drinks": drinks}), 200)
+
+        return res
 
     """
     @TODO implement endpoint
@@ -79,6 +86,30 @@ def create_app():
         returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
             or appropriate status code indicating reason for failure
     """
+
+    @app.route("/drinks", methods=["POST"])
+    @requires_auth("post:drinks")
+    def create_drink(payload):
+        # get drink info from payload
+        body = request.get_json()
+
+        # get title and recipe
+        title = body.get("title")
+        recipe = body.get("recipe")
+        recipe_items = recipe.items()
+
+        # enforce required fields validation
+        if not all([title, recipe]):
+            abort(400, description="Required fields are missing")
+        elif len(recipe_items) != 3:
+            abort(400, description="Required fields are mission")
+
+        # create Drink and insert to db
+        new_drink = Drink(title=title, recipe=json.dumps(recipe))
+        # add to db
+        new_drink.insert()
+
+        return jsonify({"success": True, "drinks": [new_drink.long()]})
 
     """
     @TODO implement endpoint
