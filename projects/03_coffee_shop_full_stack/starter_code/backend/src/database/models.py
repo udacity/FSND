@@ -57,10 +57,12 @@ class Drink(db.Model):
         short form representation of the Drink model
     """
 
+    # this isn't any shorter than the long form? starter code doesn't work
     def short(self):
-        # print(json.loads(self.recipe))
         short_recipe = [
-            {"color": r["color"], "parts": r["parts"]}
+            # {"color": r["color"], "parts": r["parts"] for r in json.loads(self.recipe)}
+            # start throws error 'string indices must be integers'
+            {"color": r[0], "parts": r[1]}
             for r in json.loads(self.recipe)
         ]
         return {"id": self.id, "title": self.title, "recipe": short_recipe}
