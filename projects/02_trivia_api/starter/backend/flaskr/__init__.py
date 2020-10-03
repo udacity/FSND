@@ -58,7 +58,27 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
-
+  @app.route('/questions')
+  def get_questions():
+    """
+    GET '/questions'
+    - fetches questions, including pagination (every 10 questions).
+    - Request Arguments: page (default is 1)
+    - Returns: An object with multible keys, questions, total_questions, categories, current_category 
+    """
+    page = request.args.get('page', 1, int)
+    questions_pagination  = Question.query.paginate(page, QUESTIONS_PER_PAGE, True)
+    total_questions = questions_pagination.total
+    questions = questions_pagination.items
+    categories = Category.query.all()
+    data = dict([d.format().values() for d in categories])
+    current_category = ''
+    return jsonify({
+      "questions" : [question.format() for question in questions],
+      "total_questions" : total_questions,
+      "categories": data,
+      "current_category": current_category
+    })
   '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
