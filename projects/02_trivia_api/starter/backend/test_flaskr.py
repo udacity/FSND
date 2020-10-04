@@ -46,7 +46,6 @@ class TriviaTestCase(unittest.TestCase):
     def test_get_questions(self):
         res = self.client().get('/questions')
         self.assertEqual(res.status_code, 200)
-        print(res.json)
 
     def test_get_questions_pagination_in_range(self):
         res = self.client().get('/questions?page=2')
@@ -64,6 +63,14 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_delete_question_by_invalid_id(self):
         res = self.client().delete('/questions/1000')
+        self.assertEqual(res.status_code, 404)
+
+    def test_get_questions_by_category(self):
+        res = self.client().get('categories/4/questions')
+        self.assertEqual(res.status_code, 200)
+    
+    def test_get_questions_by_invalid_category(self):
+        res = self.client().get('categories/900/questions')
         self.assertEqual(res.status_code, 404)
 
 # Make the tests conveniently executable
