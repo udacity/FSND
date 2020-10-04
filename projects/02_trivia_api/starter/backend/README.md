@@ -88,7 +88,108 @@ GET '/categories'
 '6' : "Sports"}
 
 ```
+## API Reference
+### Endpoints
+GET '/categories'
+GET '/questions'
+GET '/categories/<int:cat_id>/questions'
+POST '/questions'
+POST '/quizzes'
+DELETE '/questions'
 
+### GET '/categories'
+- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+- Request Arguments: None
+- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
+
+{'1' : "Science",
+'2' : "Art",
+'3' : "Geography",
+'4' : "History",
+'5' : "Entertainment",
+'6' : "Sports"}
+
+### GET '/questions'
+- Fetches questions, including pagination (every 10 questions)
+- Request Arguments: page, default to 1 
+- Returns: An object with a multiple keys:
+    - questions
+    - total_questions
+    - categories
+    - current_category
+
+{'categories': {'1': 'Science', '2': 'Art', ...}, 'current_category': '', 'questions': [{'answer': 'Maya Angelou', 'category': 4, 'difficulty': 2, 'id': 5, 'question': "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"}, ...], 'total_questions': 20}
+
+- Errors: the following rules will cause a 404 response 
+    - No items are found and page is not 1.
+    - page is less than 1, or per_page is negative.
+    - page or per_page are not ints.
+
+{'success': False, 'error': 404, 'message': 'Not Found'}
+
+### GET '/categories/<id>/questions'
+- Fetches questions in specific category
+- Request Arguments: None
+- URL Arguments: <int:id> category id
+- Returns: An object with a multiple keys:
+    - questions
+    - total_questions
+    - current_category
+
+{'current_category': {'id': 4, 'type': 'History'}, 'questions': [{'answer': 'Maya Angelou', 'category': 4, 'difficulty': 2, 'id': 5, 'question': "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"}, {'answer': 'Muhammad Ali', 'category': 4, 'difficulty': 1, 'id': 9, 'question': "What boxer's original name is Cassius Clay?"}, ...], 'total_questions': 7}
+
+- Errors: passing non-existent category id will cause a 404 response 
+
+{'success': False, 'error': 404, 'message': 'Not Found'}
+
+### POST '/questions'
+- depend on the payload, inserts a new question into db or featches questions that contain a specific search term
+- Request Arguments: searchTerm or (question, answer, category, and difficulty) should exists in the payload.
+    - searchTerm 
+    - question
+    - answer
+    - category
+    - difficulty
+- in case of search Returns:
+    - questions
+    - total_questions
+    - current_category
+
+{'current_category': '', 'questions': [{'answer': 'Maya Angelou', 'category': 4, 'difficulty': 2, 'id': 5, 'question': "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"}, ...], 'total_questions': 2}
+
+- in case of insert a new question Returns:
+    - success
+
+{'success': True}
+
+- Errors: missing required arg/s will cause a 400 response
+
+{'success': False, 'error': 400, 'message': 'Bad Request'}
+
+### POST '/quizzes'
+- Fetches a random questions within the given category
+- Request Arguments:
+    - previous_questions
+    - quiz_category
+- Returns:
+    - question
+    - quiz_category
+- Errors: passing non-existent category id will cause a 404 response
+
+{'success': False, 'error': 404, 'message': 'Not Found'}
+
+### DELETE '/questions/<id>'
+- DELETE question using a question ID
+- Request Arguments: None
+- URL Arguments: <int:id> question id
+- Returns: An object with a multiple keys:
+    - success
+
+{'success': True}
+
+- Errors: passing non-existent question id will cause a 404 response 
+
+{'success': False, 'error': 404, 'message': 'Not Found'}
 
 ## Testing
 To run the tests, run
