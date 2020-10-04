@@ -42,6 +42,18 @@ class TriviaTestCase(unittest.TestCase):
     def test_get_categories(self):
         res = self.client().get('/categories')
         self.assertEqual(res.status_code, 200)
+    
+    def test_get_questions(self):
+        res = self.client().get('/questions')
+        self.assertEqual(res.status_code, 200)
+
+    def test_get_questions_pagination_in_range(self):
+        res = self.client().get('/questions?page=2')
+        self.assertEqual(res.status_code, 200)
+
+    def test_get_questions_pagination_out_of_range(self):
+        res = self.client().get('/questions?page=20')
+        self.assertEqual(res.status_code, 404)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
