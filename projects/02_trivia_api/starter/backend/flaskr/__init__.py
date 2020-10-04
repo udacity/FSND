@@ -119,19 +119,38 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
   @app.route('/questions', methods=["POST"])
-  def search_questions():
+  def questions_post_router():
     search_term = request.json.get('searchTerm', None)
     if search_term:
-      questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
-      total_questions = len(questions)
-      current_category = ''
-      return jsonify({
-        "questions" : [question.format() for question in questions],
-        "total_questions" : total_questions,
-        "current_category": current_category
-      })
+      return search_questions(search_term)
     else:
-      abort(400)
+      submitted_question = request.json.get('question', None)
+      submitted_answer = request.json.get('answer', None)
+      submitted_category_id = request.json.get('category', None)
+      submitted_difficulty = request.json.get('difficulty', None)
+      if all([submitted_question, submitted_answer, submitted_category_id, submitted_difficulty]):
+        return add_new_question(submitted_question, submitted_answer, submitted_category_id, submitted_difficulty)
+      else:
+        abort(400)
+
+  def add_new_question(submitted_question, submitted_answer, submitted_category_id, submitted_difficulty):
+    category = Category.query.get_or_404(submitted_category_id)
+    question = Question(question=submitted_question, answer=submitted_answer, category=category.id, difficulty=submitted_difficulty)
+    question.insert()
+    return jsonify({
+      "success": True
+    })
+
+  def search_questions(search_term):
+    questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
+    total_questions = len(questions)
+    current_category = ''
+    return jsonify({
+      "questions" : [question.format() for question in questions],
+      "total_questions" : total_questions,
+      "current_category": current_category
+    })
+
   '''
   @TODO: 
   Create a GET endpoint to get questions based on category. 
