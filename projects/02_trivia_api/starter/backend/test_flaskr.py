@@ -92,6 +92,19 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/questions', json={"question": "what is my name?"})
         self.assertEqual(res.status_code, 400)
 
+    def test_play_quiz_getting_question(self):
+        res = self.client().post('/quizzes', json={})
+        self.assertEqual(res.status_code, 200)
+    
+    def test_play_quiz_getting_question_in_valid_category(self):
+        res = self.client().post('/quizzes', json={"quiz_category":{'type': 'Sports', 'id': '6'}})
+        question = res.json.get('question')
+        self.assertEqual(question['category'], 6)
+
+    def test_play_quiz_getting_question_in_invalid_category(self):
+        res = self.client().post('/quizzes', json={"quiz_category":{'type': 'not exists', 'id': '80'}})
+        self.assertEqual(res.status_code, 404)
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
