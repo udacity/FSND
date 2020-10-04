@@ -73,6 +73,15 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('categories/900/questions')
         self.assertEqual(res.status_code, 404)
 
+    def test_get_questions_by_search_term(self):
+        res = self.client().post('/questions', json={"searchTerm":"title"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(res.json['questions']), 2)
+
+    def test_get_questions_by_search_term_bad_request(self):
+        res = self.client().post('/questions', json={})
+        self.assertEqual(res.status_code, 400)
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
