@@ -120,6 +120,11 @@ def create_app(test_config=None):
   '''
   @app.route('/questions', methods=["POST"])
   def questions_post_router():
+    """
+    POST '/questions'
+    - this function will handle both search and insert new question functionality based on the payload content.
+    - it is call one of two functions (add_new_question, search_questions) or abort with 400 http error.
+    """
     search_term = request.json.get('searchTerm', None)
     if search_term:
       return search_questions(search_term)
@@ -161,6 +166,11 @@ def create_app(test_config=None):
   '''
   @app.route('/categories/<int:cat_id>/questions')
   def get_questions_by_category(cat_id):
+    """
+    GET '/questions/<int:cat_id>/questions'
+    - fetches questions in specific category.
+    - Returns: An object with multible keys, questions, total_questions, current_category 
+    """
     category = Category.query.get_or_404(cat_id)
     questions = Question.query.filter(Question.category==cat_id).all()
     total_questions = len(questions)
@@ -180,7 +190,31 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
-
+  @app.route('/quizzes', methods=["POST"])
+  def play():
+    """
+    POST '/quizzes'
+    - This endpoint should take category and previous question parameters 
+    and return a random questions within the given category, 
+    if provided, and that is not one of the previous questions. 
+    """
+    previous_questions = request.json.get("previous_questions", [])
+    quiz_category = request.json.get("quiz_category", None)
+    print(previous_questions)
+    if quiz_category:
+      category = Category.query.get_or_404(quiz_category["id"])
+      questions = Question.query.filter(Question.category==category.id)
+    else:
+      questions = Question.query
+    questions = questions.filter(Question.id.notin_(previous_questions)).all() if previous_questions else questions.all()
+    if questions:
+      random_question = random.choice([question.format() for question in questions])
+    else:
+      random_question = False # give signal to front end to force end the quizze if no more questions left
+    return jsonify({
+      "question": random_question,
+      "quiz_category": quiz_category
+    })
   '''
   @TODO: 
   Create error handlers for all expected errors 
