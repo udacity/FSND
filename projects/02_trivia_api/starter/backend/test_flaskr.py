@@ -82,6 +82,16 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/questions', json={})
         self.assertEqual(res.status_code, 400)
 
+    def test_insert_question(self):
+        res = self.client().post('/questions', json={"question": "what is my name?", "answer": "sameh abouelsaad", "difficulty": "3", "category": "4"})
+        self.assertEqual(res.status_code, 200)
+        question=Question.query.filter(Question.question=="what is my name?").one_or_none()
+        self.assertIsNotNone(question)
+
+    def test_insert_invalid_question(self):
+        res = self.client().post('/questions', json={"question": "what is my name?"})
+        self.assertEqual(res.status_code, 400)
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
