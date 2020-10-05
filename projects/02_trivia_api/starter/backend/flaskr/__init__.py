@@ -98,7 +98,8 @@ def create_app(test_config=None):
         question = Question.query.get_or_404(question_id)
         question.delete()
         return jsonify({
-            "success": True
+            "success": True,
+            "deleted": question_id
         })
     '''
     @TODO: 
