@@ -184,8 +184,8 @@ DELETE '/questions'
 - URL Arguments: <int:id> question id
 - Returns: An object with a multiple keys:
     - success
-
-{'success': True}
+    - deleted: question id
+{'success': True, "deleted": 2}
 
 - Errors: passing non-existent question id will cause a 404 response 
 
