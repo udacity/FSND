@@ -206,7 +206,7 @@ def create_app(test_config=None):
         previous_questions = request.json.get("previous_questions", [])
         quiz_category = request.json.get("quiz_category", None)
 
-        if quiz_category:
+        if quiz_category and quiz_category["id"] != 0:
             category = Category.query.get_or_404(quiz_category["id"])
             questions = Question.query.filter(Question.category == category.id)
         else:
