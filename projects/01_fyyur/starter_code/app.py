@@ -725,37 +725,42 @@ def edit_artist_submission(artist_id):
     if artist_info.state != request.form.get('state'):
       artist_info.state = request.form.get('state')
       flag=True
-    if artist_info.address != request.form.get('address'):
-      artist_info.address = request.form.get('address')
-      flag=True
+    # if artist_info.address != request.form.get('address'):
+    #   artist_info.address = request.form.get('address')
+    #   flag=True
     if artist_info.phone != request.form.get('phone'):
       artist_info.phone = request.form.get('phone')
       flag=True
-    if artist_info.genres != request.form.get('genres'):
+    genre_list = request.form.getlist('genres')
+    artist_genres = genre_list[0]
+    if len(genre_list)>1:
+      for i in genre_list[1:]:
+        artist_genres= artist_genres + ', ' + i 
+    if artist_info.genres != genre_list:
       artist_info.genres = request.form.get('genres')
       flag=True
     if artist_info.facebook_link != request.form.get('facebook_link'):
       artist_info.facebook_link = request.form.get('facebook_link')
       flag=True
-    if artist_info.website != request.form.get('website'):
-      artist_info.website = request.form.get('website')
-      flag=True    
-    if artist_info.seeking_venue != request.form.get('seeking_venue'):
-      artist_info.seeking_venue = request.form.get('seeking_venue')
-      flag=True
-    if artist_info.seeking_description != request.form.get('seeking_description'):
-      artist_info.seeking_description = request.form.get('seeking_description')
-      flag=True
-    if artist_info.image_link != request.form.get('image_link'):
-      artist_info.image_link = request.form.get('image_link')
-      flag=True
+    # if artist_info.website != request.form.get('website'):
+    #   artist_info.website = request.form.get('website')
+    #   flag=True    
+    # if artist_info.seeking_venue != request.form.get('seeking_venue'):
+    #   artist_info.seeking_venue = request.form.get('seeking_venue')
+    #   flag=True
+    # if artist_info.seeking_description != request.form.get('seeking_description'):
+    #   artist_info.seeking_description = request.form.get('seeking_description')
+    #   flag=True
+    # if artist_info.image_link != request.form.get('image_link'):
+    #   artist_info.image_link = request.form.get('image_link')
+    #   flag=True
     if flag == True:
       db.session.commit()
-      flash('Venue ' + venue_name + ' was successfully updated!')
+      flash('Artist ' + artist_info.name + ' was successfully updated!')
     else:
-      flash('Venue ' + venue_name + ' information is not changed!')
+      flash('Artist ' + artist_info.name + ' information is not changed!')
   except:
-    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be edited.')
     db.session.rollback()
 
   finally:
@@ -830,7 +835,7 @@ def edit_venue_submission(venue_id):
     else:
       flash('Venue ' + venue_name + ' information is not changed!')
   except:
-    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be edited.')
     db.session.rollback()
 
   finally:
