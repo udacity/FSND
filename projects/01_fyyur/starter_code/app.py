@@ -103,14 +103,10 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   form = VenueForm(request.form)
-  print(request.form['genres'])
   venue = Venue()
-  for field in form:
-    if field.type == 'SelectMultipleField':
-      field.data = json.dumps(field.data)
-  
   form.populate_obj(venue)
-
+  genres = request.form.getlist('genres')
+  
   # TODO: make user upload an image
   venue.image_link = 'https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60'
 
