@@ -34,14 +34,17 @@ class Venue(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
+    genres = db.Column(db.JSON())
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
+    website = db.Column(db.String(120))
     facebook_link = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
+    seeking_description = db.Column(db.String())
     shows = db.relationship('Show', backref='venue', lazy=True)
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
     __tablename__ = 'artists'
