@@ -181,10 +181,10 @@ def show_artist(artist_id):
     })
 
   upcomingShowsQuery = db.session.query(Show).join(Venue).filter(Show.artist_id == artist_id).filter(Show.start_time>datetime.now()).all()
-  upcomingShow = []
+  upcomingShows = []
 
   for show in upcomingShowsQuery:
-    upcomingShow.append({
+    upcomingShows.append({
       "venue_id": show.venue_id,
       "venue_name": show.venue.name,
       "artist_image_link": show.venue.image_link,
