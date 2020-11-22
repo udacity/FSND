@@ -356,9 +356,8 @@ def create_show_submission():
   error = False
   try: 
     form = ShowForm(request.form)
-    show = show()
-    form.populate_obj(show)
-
+    show = show(artist_id=request.form['artist_id'], venue_id=request.form['venue_id'], start_time=request.form['start_time'])
+  
     db.session.add(show)
     db.session.commit()
   except: 
