@@ -33,6 +33,10 @@
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id='genres', autofocus = true) }}
       </div>
       <div class="form-group">
+        <label for="image_link">Image</label>
+        {{ form.image_link(class_ = 'form-control', placeholder='http://', id='image_link', autofocus = true) }}
+      </div>
+      <div class="form-group">
           <label for="facebook_link">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id='facebook_link', autofocus = true) }}
         </div>
