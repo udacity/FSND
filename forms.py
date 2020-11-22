@@ -15,6 +15,9 @@ class ShowForm(Form):
         validators=[DataRequired()],
         default= datetime.today()
     )
+    image_link = StringField(
+        'image_link'
+    )
 
 class VenueForm(Form):
     name = StringField(
