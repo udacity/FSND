@@ -52,7 +52,7 @@
 		{%for show in venue.upcoming_shows %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
-				<img src="{{ show.artist_image_link }}" alt="Show Artist Image" />
+				<img src="{{ show.image_link }}" alt="Show Artist Image" />
 				<h5><a href="/artists/{{ show.artist_id }}">{{ show.artist_name }}</a></h5>
 				<h6>{{ show.start_time|datetime('full') }}</h6>
 			</div>
@@ -66,7 +66,7 @@
 		{%for show in venue.past_shows %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
-				<img src="{{ show.artist_image_link }}" alt="Show Artist Image" />
+				<img src="{{ show.image_link }}" alt="Show Artist Image" />
 				<h5><a href="/artists/{{ show.artist_id }}">{{ show.artist_name }}</a></h5>
 				<h6>{{ show.start_time|datetime('full') }}</h6>
 			</div>
@@ -74,6 +74,8 @@
 		{% endfor %}
 	</div>
 </section>
+<!--<input type="submit" value="Delete Venue" class="btn btn-primary btn-lg btn-block">-->
+<button class="delete-button" data-id="{{ venue.id }}">&cross;</button>
 
 {% endblock %}
 

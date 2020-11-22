@@ -1,6 +1,14 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Fyyur | Venues Search{% endblock %}
 {% block content %}
+<!--<div class="form-wrapper">
+	<form method="post" class="form">
+		<label for="search_keywords">Search Keywords:</label>
+		<input type="text" id="search_keywords" name="search_keywords"<br><br>
+		<input type="submit" value="Search Venue" class="btn btn-primary btn-lg btn-block">
+	</form>
+</div>-->
+
 <h3>Number of search results for "{{ search_term }}": {{ results.count }}</h3>
 <ul class="items">
 	{% for venue in results.data %}

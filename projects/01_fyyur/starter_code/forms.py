@@ -1,7 +1,8 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL
+from wtforms.validators import DataRequired, AnyOf, URL, InputRequired, Length
+#from wtforms_components import PhoneNumberField
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -18,13 +19,13 @@ class ShowForm(Form):
 
 class VenueForm(Form):
     name = StringField(
-        'name', validators=[DataRequired()]
+        'name', validators=[InputRequired()]
     )
     city = StringField(
-        'city', validators=[DataRequired()]
+        'city', validators=[InputRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state', validators=[InputRequired()],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -82,16 +83,16 @@ class VenueForm(Form):
     address = StringField(
         'address', validators=[DataRequired()]
     )
+
     phone = StringField(
-        'phone'
+        'phone', validators=[Length(min=10,max=10,message='Phone number has to be 10 digits.')]
     )
+
     image_link = StringField(
         'image_link'
     )
-    genres = SelectMultipleField(
-        # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
-        choices=[
+
+    genres_choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),
             ('Classical', 'Classical'),
@@ -110,9 +111,38 @@ class VenueForm(Form):
             ('Reggae', 'Reggae'),
             ('Rock n Roll', 'Rock n Roll'),
             ('Soul', 'Soul'),
-            ('Other', 'Other'),
-        ]
+            ('Other', 'Other')
+    ]
+
+    genres = SelectMultipleField(
+        # TODO implement enum restriction
+        'genres', 
+        validators=[DataRequired()],
+        choices=genres_choices
     )
+        # choices=[
+        #     ('Alternative', 'Alternative'),
+        #     ('Blues', 'Blues'),
+        #     ('Classical', 'Classical'),
+        #     ('Country', 'Country'),
+        #     ('Electronic', 'Electronic'),
+        #     ('Folk', 'Folk'),
+        #     ('Funk', 'Funk'),
+        #     ('Hip-Hop', 'Hip-Hop'),
+        #     ('Heavy Metal', 'Heavy Metal'),
+        #     ('Instrumental', 'Instrumental'),
+        #     ('Jazz', 'Jazz'),
+        #     ('Musical Theatre', 'Musical Theatre'),
+        #     ('Pop', 'Pop'),
+        #     ('Punk', 'Punk'),
+        #     ('R&B', 'R&B'),
+        #     ('Reggae', 'Reggae'),
+        #     ('Rock n Roll', 'Rock n Roll'),
+        #     ('Soul', 'Soul'),
+        #     ('Other', 'Other')
+        # ]
+        
+    
     facebook_link = StringField(
         'facebook_link', validators=[URL()]
     )
@@ -177,12 +207,15 @@ class ArtistForm(Form):
             ('WA', 'WA'),
             ('WV', 'WV'),
             ('WI', 'WI'),
-            ('WY', 'WY'),
+            ('WY', 'WY')
         ]
     )
+
+
     phone = StringField(
         # TODO implement validation logic for state
-        'phone'
+        'phone', validators=[Length(min=10,max=10,message='Phone number has to be 10 digits.')]
+
     )
     image_link = StringField(
         'image_link'
@@ -209,7 +242,7 @@ class ArtistForm(Form):
             ('Reggae', 'Reggae'),
             ('Rock n Roll', 'Rock n Roll'),
             ('Soul', 'Soul'),
-            ('Other', 'Other'),
+            ('Other', 'Other')
         ]
     )
     facebook_link = StringField(
