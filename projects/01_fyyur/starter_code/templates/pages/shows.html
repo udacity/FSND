@@ -1,17 +1,22 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Fyyur | Shows{% endblock %}
 {% block content %}
-<div class="row shows">
-    {%for show in shows %}
-    <div class="col-sm-4">
-        <div class="tile tile-show">
-            <img src="{{ show.artist_image_link }}" alt="Artist Image" />
-            <h4>{{ show.start_time|datetime('full') }}</h4>
-            <h5><a href="/artists/{{ show.artist_id }}">{{ show.artist_name }}</a></h5>
-            <p>playing at</p>
-            <h5><a href="/venues/{{ show.venue_id }}">{{ show.venue_name }}</a></h5>
-        </div>
+    <a class="btn btn-default" role="button" href="/shows/create">
+        <i class="fa far fa-plus-circle"></i> New Show
+    </a>
+    <h1>{% if show_count > 0 %} {{ show_count }} {% endif %} Show(s)</h1>
+    <div class="row shows" style="overflow-y: auto; height: 60vh">
+        {% for show in shows %}
+            <div class="col-sm-4">
+                <div class="tile tile-show">
+                    <img src="{{ show.artist_image_link }}" alt="Artist Image"/>
+                    <h4>{{ show.start_time|datetime('full') }}</h4>
+                    <h5><a href="/artists/{{ show.artist_id }}">{{ show.artist_name }}</a></h5>
+                    <p>playing at</p>
+                    <h5><a href="/venues/{{ show.venue_id }}">{{ show.venue_name }}</a></h5>
+                    {% if show.is_future %}<span class="label label-success">Coming Up</span>{% endif %}
+                </div>
+            </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 {% endblock %}

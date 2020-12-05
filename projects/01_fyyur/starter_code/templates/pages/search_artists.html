@@ -1,7 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Fyyur | Artists Search{% endblock %}
 {% block content %}
-<h3>Number of search results for "{{ search_term }}": {{ results.count }}</h3>
+<h3>Number of search results for "{{ search_term }}": {{ results.count }} <a href="/artists">Reset</a></h3>
 <ul class="items">
 	{% for artist in results.data %}
 	<li>

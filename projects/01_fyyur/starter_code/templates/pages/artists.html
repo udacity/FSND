@@ -2,12 +2,20 @@
 {% block title %}Fyyur | Artists{% endblock %}
 {% block content %}
 <ul class="items">
+    <a href="/artists/create" class="btn btn-default">
+        <i class="fa far fa-plus-circle"></i> New Artist
+    </a>
+    <h1> {% if artist_count > 0 %} {{ artist_count }} {% endif %} Artist(s)</h1>
 	{% for artist in artists %}
 	<li>
 		<a href="/artists/{{ artist.id }}">
 			<i class="fas fa-users"></i>
 			<div class="item">
-				<h5>{{ artist.name }}</h5>
+				<h5>{{ artist.name }}
+                    {% if artist.upcoming_shows_count > 0 %}
+                        <span class="text-success">- Upcoming ({{ artist.upcoming_shows_count }})</span>
+                    {% endif %}
+                </h5>
 			</div>
 		</a>
 	</li>
