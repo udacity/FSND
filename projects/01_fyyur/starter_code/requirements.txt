@@ -1,4 +1,9 @@
 babel
-python-dateutil==2.6.0
+python-dateutil==2.8.1
 flask-moment
 flask-wtf
+flask
+alembic
+sqlalchemy
+flask-seeder
+wtforms
