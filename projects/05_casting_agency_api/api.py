@@ -4,13 +4,16 @@ from sqlalchemy import exc
 import json
 from flask_cors import CORS
 
-from .database.models import db_drop_and_create_all, setup_db, Movie, Actor
-from .auth.auth import AuthError, requires_auth
+from models import db_drop_and_create_all, setup_db, Movie, Actor
+from auth import AuthError, requires_auth
+from config import Config
 
 
 def create_app():
     # create app
     app = Flask(__name__)
+
+    app.config.from_object("config.Config")
 
     # setup db
     setup_db(app)
