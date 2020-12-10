@@ -4,7 +4,7 @@ from sqlalchemy import exc
 import json
 from flask_cors import CORS
 
-from .database.models import db_drop_and_create_all, setup_db, Drink
+from .database.models import db_drop_and_create_all, setup_db, Movie, Actor
 from .auth.auth import AuthError, requires_auth
 
 
@@ -41,15 +41,11 @@ def create_app():
             or appropriate status code indicating reason for failure
     """
 
-    @app.route("/drinks")
-    def get_drinks():
-        drinks = Drink.query.all()
+    @app.route("/actors")
+    def get_actors():
+        actors = Actor.query.all()
 
-        formatted_drinks = [drink.long() for drink in drinks]
-
-        res = make_response(
-            jsonify({"success": True, "drinks": formatted_drinks}), 200
-        )
+        res = make_response(jsonify({"success": True, "actors": actors}), 200)
 
         return res
 

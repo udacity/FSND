@@ -7,7 +7,7 @@ from urllib.request import urlopen
 
 AUTH0_DOMAIN = "dev-kcrtg2gg.us.auth0.com"
 ALGORITHMS = ["RS256"]
-API_AUDIENCE = "coffee-shop-endpoint"
+API_AUDIENCE = "capstone-project-api"
 
 ## AuthError Exception
 """
@@ -79,7 +79,7 @@ def get_token_auth_header():
 """
 @TODO implement check_permissions(permission, payload) method
     @INPUTS
-        permission: string permission (i.e. 'post:drink')
+        permission: string permission (i.e. 'post:movie')
         payload: decoded jwt payload
 
     it should raise an AuthError if permissions are not included in the payload
@@ -194,7 +194,7 @@ def verify_decode_jwt(token):
 """
 @TODO implement @requires_auth(permission) decorator method
     @INPUTS
-        permission: string permission (i.e. 'post:drink')
+        permission: string permission (i.e. 'post:movie')
 
     it should use the get_token_auth_header method to get the token
     it should use the verify_decode_jwt method to decode the jwt
