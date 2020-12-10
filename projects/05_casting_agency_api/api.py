@@ -37,138 +37,173 @@ def create_app():
 
     ## ROUTES
     """
-        GET /drinks
-            it should be a public endpoint
-            it should contain only the drink.short() data representation
-        returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-            or appropriate status code indicating reason for failure
+    GET /actors
     """
 
     @app.route("/actors")
+    @requires_auth("get:actors")
     def get_actors():
         actors = Actor.query.all()
 
-        res = make_response(jsonify({"success": True, "actors": actors}), 200)
+        if len(actors) == 0:
+            abort(404, {"message": "no actors found"})
 
-        return res
-
-    """
-        GET /drinks-detail
-            it should require the 'get:drinks-detail' permission
-            it should contain the drink.long() data representation
-        returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-            or appropriate status code indicating reason for failure
-    """
-
-    @app.route("/drinks-detail")
-    @requires_auth("get:drinks-detail")
-    def get_drinks_detail(payload):
-        drinks = [drink.long() for drink in Drink.query.all()]
-
-        res = make_response(jsonify({"success": True, "drinks": drinks}), 200)
-
-        return res
+        return jsonify({"success": True, "actors": actors})
 
     """
-        POST /drinks
-            it should create a new row in the drinks table
-            it should require the 'post:drinks' permission
-            it should contain the drink.long() data representation
-        returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-            or appropriate status code indicating reason for failure
+    POST /actors
     """
 
-    @app.route("/drinks", methods=["POST"])
-    @requires_auth("post:drinks")
-    def create_drink(payload):
-        # get drink info from payload
+    @app.route("/actors", methods=["POST"])
+    @requires_auth("post:actors")
+    def create_actor(payload):
         body = request.get_json()
 
-        # get title and recipe
-        title = body.get("title")
-        recipe = body.get("recipe")
-        recipe_items = recipe.items()
+        name = body.get("name")
+        age = body.get("age")
+        gender = body.get("gender")
 
         # enforce required fields validation
-        if not all([title, recipe]):
-            abort(400, description="Required fields are missing")
-        elif len(recipe_items) != 3:
+        if not all([name, age, gender]):
             abort(400, description="Required fields are missing")
 
         # create Drink and insert to db
-        new_drink = Drink(title=title, recipe=json.dumps(recipe))
+        new_actor = Actor(name=name, age=age, gender=gender)
         # add to db
-        new_drink.insert()
+        new_actor.insert()
 
-        return jsonify({"success": True, "drinks": [new_drink.long()]})
+        return jsonify({"success": True, "actor_id": new_actor.id})
 
     """
-    implement endpoint
-        PATCH /drinks/<id>
-            where <id> is the existing model id
-            it should respond with a 404 error if <id> is not found
-            it should update the corresponding row for <id>
-            it should require the 'patch:drinks' permission
-            it should contain the drink.long() data representation
-            returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing
-            or appropriate status code indicating reason for failure
+    PATCH /actors/<id>
     """
 
-    @app.route("/drinks/<int:drink_id>", methods=["PATCH"])
-    @requires_auth("patch:drinks")
-    def update_drink(payload, drink_id):
+    @app.route("/actors/<int:actor_id>", methods=["PATCH"])
+    @requires_auth("patch:actors")
+    def update_actor(payload, actor_id):
         body = request.get_json()
 
         # check to see if drink exists
-        drink = Drink.query.filter_by(id=drink_id).first_or_404()
+        actor = Actor.query.filter_by(id=actor_id).first_or_404()
 
-        if not any([body.get("title"), body.get("recipe")]):
-            abort(400, description="Required fields are missing")
-        elif ("recipe" in body) and not (
-            all(
-                any([item["color"], item["name"], item["parts"]])
-                for item in body["recipe"]
-            )
-        ):
+        if not any([body.get("name"), body.get("age"), body.get("gender")]):
             abort(400, description="Required fields are missing")
 
-        new_drink = drink
+        new_actor = actor
 
-        # check the body for parts of drink
         for k, v in body.items():
-            if k == "title":
-                new_drink.title = v
-            elif k == "recipe":
-                new_drink.recipe = json.dumps(v)
+            if k == "name":
+                new_actor.name = v
+            elif k == "age":
+                new_actor.age = v
+            elif k == "gender":
+                new_actor.gender = v
 
-        new_drink.update()
+        new_actor.update()
 
-        return jsonify({"success": True, "drinks": [new_drink.long()]})
+        return jsonify({"success": True, "actor": new_actor.format()})
 
         # check for required parts of payload
 
     """
-    implement endpoint
-        DELETE /drinks/<id>
-            where <id> is the existing model id
-            it should respond with a 404 error if <id> is not found
-            it should delete the corresponding row for <id>
-            it should require the 'delete:drinks' permission
-        returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-            or appropriate status code indicating reason for failure
+    DELETE /actors/<id>
     """
 
-    @app.route("/drinks/<int:drink_id>", methods=["DELETE"])
-    @requires_auth("delete:drinks")
-    def delete_drink(payload, drink_id):
-        # get drink or 404
-        drink = Drink.query.filter_by(id=drink_id).first_or_404()
+    @app.route("/actors/<int:actor_id>", methods=["DELETE"])
+    @requires_auth("delete:actors")
+    def delete_actor(payload, actor_id):
+        actor = Actor.query.filter_by(id=actor_id).first_or_404()
 
-        drink.delete()
+        actor.delete()
 
-        res = make_response(jsonify({"success": True, "delete": drink_id}), 200)
+        res = make_response(jsonify({"success": True, "delete": actor_id}), 200)
 
         return res
+
+    """
+    GET /movies
+    """
+
+    @app.route("/movies", methods=["GET"])
+    @requires_auth("get:movies")
+    def get_movies(payload):
+
+        movies = Movie.query.all()
+
+        if len(movies) == 0:
+            abort(404, {"message": "no movies found"})
+
+        return jsonify({"success": True, "movies": movies})
+
+    """
+    POST /movies
+    """
+
+    @app.route("/movies", methods=["POST"])
+    @requires_auth("post:movies")
+    def create_movie(payload):
+
+        body = request.get_json()
+
+        if not body:
+            abort(400, {"message": "invalid movie"})
+
+        title = body.get("title")
+        release_date = body.get("release_date")
+
+        if not all([title, release_date]):
+            abort(400, description="Required fields are missing")
+
+        new_movie = Movie(title=title, release_date=release_date)
+
+        new_movie.insert()
+
+        return jsonify({"success": True, "movie": new_movie.id})
+
+    @app.route("/movies/<movie_id>", methods=["PATCH"])
+    @requires_auth("patch:movies")
+    def update_movie(payload, movie_id):
+
+        body = request.get_json()
+
+        if not movie_id:
+            abort(400, {"message": "no movie id provided"})
+
+        movie = Movie.query.filter_by(id=movie_id).first_or_404()
+
+        if not movie:
+            abort(404, {"message": "Movie not found"})
+
+        title = body.get("title", movie.title)
+        release_date = body.get("release_date", movie.release_date)
+
+        # Set new field values
+        movie.title = title
+        movie.release_date = release_date
+
+        # Delete movie with new values
+        movie.update()
+
+        # Return success, updated movie id and updated movie as formatted list
+        return jsonify(
+            {"success": True, "updated": movie.id, "movie": [movie.format()]}
+        )
+
+    @app.route("/movies/<movie_id>", methods=["DELETE"])
+    @requires_auth("delete:movies")
+    def delete_movie(payload, movie_id):
+
+        if not movie_id:
+            abort(400, {"message": "please include movie id"})
+
+        movie = Movie.query.filter_by(id == movie_id).first_or_404()
+
+        if not movie:
+            abort(404, {"message": "Movie not found"})
+
+        movie.delete()
+
+        return jsonify({"success": True, "deleted": movie_id})
 
     ## Error Handling
     """
