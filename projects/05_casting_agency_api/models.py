@@ -2,6 +2,7 @@ import os
 from sqlalchemy import Column, String, Integer, Date
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from datetime import date
 import json
 
 db = SQLAlchemy()
@@ -30,20 +31,33 @@ db_drop_and_create_all()
 def db_drop_and_create_all():
     db.drop_all()
     db.create_all()
+    create_test_records()
+
+
+def create_test_records():
+    new_actor = Actor(name="clay", gender="male", age=92)
+
+    new_movie = Movie(title="titanic", release_date=date.today())
+
+    new_role = Role.insert().values(
+        movie_id=new_movie.id, actor_id=new_actor.id
+    )
+
+    new_actor.insert()
+    new_movie.insert()
+    db.session.execute(new_role)
+    db.session.commit()
 
 
 """
-movies_actors join table
+movies_actors join table (not sure if this is needed)
 """
 # this is an association table for actors and movies... capturing 'roles' that actors have held in specific movies
-movies_actors = db.Table(
-    "movies_actors",
-    db.Column(
-        "movie_id", db.Integer, db.ForeignKey("movies.id"), primary_key=True
-    ),
-    db.Column(
-        "actor_id", db.Integer, db.ForeignKey("actors.id"), primary_key=True
-    ),
+Role = db.Table(
+    "roles",
+    db.Model.metadata,
+    db.Column("movie_id", db.Integer, db.ForeignKey("movies.id")),
+    db.Column("actor_id", db.Integer, db.ForeignKey("actors.id")),
 )
 
 """
@@ -93,13 +107,10 @@ class Movie(db.Model):
     __tablename__ = "movies"
 
     id = Column(Integer, primary_key=True)
-    title = Column(String(120), nullable=False)
+    title = Column(String)
     release_date = Column(Date)
     actors = db.relationship(
-        "Actor",
-        secondary=movies_actors,
-        backref=db.backref("movies", lazy="dynamic"),
-        lazy="dynamic",
+        "Actor", secondary=Role, backref=db.backref("roles", lazy="joined"),
     )
 
     def __init__(self, title, release_date):
@@ -108,7 +119,7 @@ class Movie(db.Model):
 
     def insert(self):
         db.session.add(self)
-        db.session.commit(self)
+        db.session.commit()
 
     def update(self):
         db.session.commit()

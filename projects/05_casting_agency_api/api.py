@@ -5,7 +5,14 @@ import json
 from flask_cors import CORS
 
 from models import db_drop_and_create_all, setup_db, Movie, Actor
-from auth import AuthError, requires_auth
+from auth import (
+    AuthError,
+    requires_auth,
+    AUTH0_DOMAIN,
+    AUTH0_CLIENT_ID,
+    AUTH0_CALLBACK_URL,
+    API_AUDIENCE,
+)
 from config import Config
 
 
@@ -35,6 +42,22 @@ def create_app():
 
         return response
 
+    """
+    AUTH Route /auth
+    """
+
+    @app.route("/auth")
+    def generate_auth_url():
+        url = (
+            f"https://{AUTH0_DOMAIN}/authorize"
+            f"?audience={API_AUDIENCE}"
+            f"&response_type=token&client_id="
+            f"{AUTH0_CLIENT_ID}&redirect_uri="
+            f"{AUTH0_CALLBACK_URL}"
+        )
+
+        return jsonify({"auth_url": url})
+
     ## ROUTES
     """
     GET /actors
@@ -42,11 +65,10 @@ def create_app():
 
     @app.route("/actors")
     @requires_auth("get:actors")
-    def get_actors():
-        actors = Actor.query.all()
+    def get_actors(payload):
+        selection = Actor.query.all()
 
-        if len(actors) == 0:
-            abort(404, {"message": "no actors found"})
+        actors = [a.format() for a in selection]
 
         return jsonify({"success": True, "actors": actors})
 
@@ -127,11 +149,9 @@ def create_app():
     @app.route("/movies", methods=["GET"])
     @requires_auth("get:movies")
     def get_movies(payload):
+        selection = Movie.query.all()
 
-        movies = Movie.query.all()
-
-        if len(movies) == 0:
-            abort(404, {"message": "no movies found"})
+        movies = [m.format() for m in selection]
 
         return jsonify({"success": True, "movies": movies})
 
@@ -142,11 +162,7 @@ def create_app():
     @app.route("/movies", methods=["POST"])
     @requires_auth("post:movies")
     def create_movie(payload):
-
         body = request.get_json()
-
-        if not body:
-            abort(400, {"message": "invalid movie"})
 
         title = body.get("title")
         release_date = body.get("release_date")
@@ -196,7 +212,7 @@ def create_app():
         if not movie_id:
             abort(400, {"message": "please include movie id"})
 
-        movie = Movie.query.filter_by(id == movie_id).first_or_404()
+        movie = Movie.query.filter_by(id=movie_id).first_or_404()
 
         if not movie:
             abort(404, {"message": "Movie not found"})

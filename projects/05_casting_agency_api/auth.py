@@ -8,6 +8,8 @@ from urllib.request import urlopen
 AUTH0_DOMAIN = "dev-kcrtg2gg.us.auth0.com"
 ALGORITHMS = ["RS256"]
 API_AUDIENCE = "capstone-project-api"
+AUTH0_CLIENT_ID = "MPSUEKsthPOJhz3El8kDqVBrc58baTPd"
+AUTH0_CALLBACK_URL = "http://0.0.0.0:5000"
 
 ## AuthError Exception
 """
