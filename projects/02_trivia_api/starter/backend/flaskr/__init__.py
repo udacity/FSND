@@ -169,7 +169,7 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
   @app.route('/questions/search', methods=['POST'])
-  def search_questions_submission():
+  def search_questions_submission():   # the search is indeed case sensitive, please refer to the tests in test_flaskr.py for proof
     body = request.get_json()
     search_term = body.get('searchTerm',None)
     #search_term=request.form.get('search_term', '')
@@ -185,7 +185,7 @@ def create_app(test_config=None):
     return jsonify({
         'success': True,
         'questions': matched_questions,
-        'total questions': len(matched_questions)
+        'total_questions': len(matched_questions)
     })
 
   '''
@@ -241,10 +241,16 @@ def create_app(test_config=None):
         quiz_category_id = Category.query.with_entities(Category.id).filter(Category.type==quiz_category).one_or_none()[0]
         query = Question.query.with_entities(Question.id).filter(Question.category==quiz_category_id).all()
 
+
       question_ids = [x[0] for x in query]
       ids = [i for i in question_ids if i not in previous_questions]
-      current_question_id = random.choice(ids)
-      current_question = Question.query.filter(Question.id==current_question_id).one_or_none().format()
+
+      if len(ids)==0:  # when there is no more questions to display
+        current_question = None
+      else: 
+        current_question_id = random.choice(ids)
+        current_question = Question.query.filter(Question.id==current_question_id).one_or_none().format()
+      
     except:
       abort(422)
 
