@@ -26,6 +26,8 @@ class TriviaTestCase(unittest.TestCase):
 
         self.search_term_1  = {'searchTerm': 'actor'}
         self.search_term_2  = {'searchterm': 'actor'}  # wrong requst parameter
+        self.search_term_3  = {'searchTerm': 'World Cup'}  
+        self.search_term_4  = {'searchTerm': 'world Cup'}  # lower case which doesn't exist in any question
 
         # when category is 'click' which menas ALL category
         self.quizzes_1 = {
@@ -43,6 +45,12 @@ class TriviaTestCase(unittest.TestCase):
         self.quizzes_3 = {
             'previous_questions': [18, 19],
             'quiz_category': {'id': '1', 'type': 'Full Stack Web Development'}
+        }
+
+        # previous_questions contains all questions which means we run out of questions
+        self.quizzes_4 = {
+            'previous_questions': [2,4,5,6,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
+            'quiz_category': {'id': '1', 'type': 'Art'}
         }
 
         # binds the app to the current context
@@ -120,7 +128,7 @@ class TriviaTestCase(unittest.TestCase):
 
     # success test for DELETE '/questions/<int:question_id> '
     def test_delete_question_success(self):
-        question_id = '4'
+        question_id = '23'
         question_pre = Question.query.filter(Question.id == question_id).one_or_none()
         res = self.client().delete('/questions/'+ question_id)
         data = json.loads(res.data)
@@ -180,6 +188,22 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 500)
         self.assertEqual(data['success'],False)
 
+    def test_search_questions_case_sensitive_success(self):
+        res = self.client().post('/questions/search', json=self.search_term_3)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+        self.assertEqual(data['total_questions'],2)  # two questions include search_term_3 as substring, case sensitive
+
+    def test_search_questions_case_sensitive_failure(self):
+        res = self.client().post('/questions/search', json=self.search_term_4)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)
+        self.assertEqual(data['total_questions'],0)  # no question includes search_term_4 as substring, case sensitive
+
     # test for POST '/quizzes'
     def test_get_next_quizze_from_all_categories_success(self):
         res = self.client().post('/quizzes', json = self.quizzes_1)
@@ -212,6 +236,14 @@ class TriviaTestCase(unittest.TestCase):
         
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'],False) 
+
+    def test_run_out_of_questions_sucess(self):
+        res = self.client().post('/quizzes', json = self.quizzes_4)
+        data= json.loads(res.data)
+        
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'],True)         
+        self.assertEqual(data.question, False)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
