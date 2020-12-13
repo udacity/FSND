@@ -5,10 +5,10 @@
   "proxy": "http://127.0.0.1:5000/",
   "dependencies": {
     "corsproxy": "^1.5.0",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-router-dom": "^5.0.0",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "3.0.1"
   },
   "scripts": {
