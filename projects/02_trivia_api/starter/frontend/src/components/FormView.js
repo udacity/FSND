@@ -24,7 +24,8 @@ class FormView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to load categories. Please try your request again')
+        alert('Unable to load categories . Please try your request again')
+        alert('get_categories funcion')
         return;
       }
     })
@@ -34,7 +35,7 @@ class FormView extends Component {
   submitQuestion = (event) => {
     event.preventDefault();
     $.ajax({
-      url: '/questions', //TODO: update request URL
+      url: '/questions/add', //TODO: update request URL
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',

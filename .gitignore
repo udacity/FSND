@@ -11,3 +11,7 @@ venv
 .Trashes
 ehthumbs.db
 Thumbs.db
+projects/02_trivia_api/starter/frontend/node_modules/*
+projects/02_trivia_api/starter/backend/env/*
+projects/02_trivia_api/starter/backend/test.py
+*.log
