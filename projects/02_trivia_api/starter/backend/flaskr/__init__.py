@@ -169,7 +169,7 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
   @app.route('/questions/search', methods=['POST'])
-  def search_questions_submission():   # the search is indeed case sensitive, please refer to the tests in test_flaskr.py for proof
+  def search_questions_submission():   
     body = request.get_json()
     search_term = body.get('searchTerm',None)
     #search_term=request.form.get('search_term', '')
@@ -180,7 +180,7 @@ def create_app(test_config=None):
       abort(404)
     
     if len(questions)!=0:
-      matched_questions = [i for i in questions if search_term in i['question']]
+      matched_questions = [i for i in questions if search_term.lower() in i['question'].lower()]
 
     return jsonify({
         'success': True,

@@ -196,13 +196,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'],True)
         self.assertEqual(data['total_questions'],2)  # two questions include search_term_3 as substring, case sensitive
 
-    def test_search_questions_case_sensitive_failure(self):
+    def test_search_questions_case_insensitive_success(self):
         res = self.client().post('/questions/search', json=self.search_term_4)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'],True)
-        self.assertEqual(data['total_questions'],0)  # no question includes search_term_4 as substring, case sensitive
+        self.assertEqual(data['total_questions'],2)  # case insensitive
 
     # test for POST '/quizzes'
     def test_get_next_quizze_from_all_categories_success(self):
