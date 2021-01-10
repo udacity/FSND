@@ -52,7 +52,7 @@ The `--reload` flag will detect file changes and restart the server automaticall
 
 ### Setup Auth0
 
-1. Create a new Auth0 Account
+1. Create a new Auth0 Account  （note: SSO with Google）
 2. Select a unique tenant domain
 3. Create a new, single page web application
 4. Create a new API

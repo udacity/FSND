@@ -1,0 +1,5 @@
+Requirement already satisfied: python-jose in d:\github\fsnd\projects\03_coffee_shop_full_stack\starter_code\backend\env\lib\site-packages (3.2.0)
+Requirement already satisfied: six<2.0 in d:\github\fsnd\projects\03_coffee_shop_full_stack\starter_code\backend\env\lib\site-packages (from python-jose) (1.12.0)
+Requirement already satisfied: ecdsa<0.15 in d:\github\fsnd\projects\03_coffee_shop_full_stack\starter_code\backend\env\lib\site-packages (from python-jose) (0.13.2)
+Requirement already satisfied: rsa in d:\github\fsnd\projects\03_coffee_shop_full_stack\starter_code\backend\env\lib\site-packages (from python-jose) (4.6)
+Requirement already satisfied: pyasn1 in d:\github\fsnd\projects\03_coffee_shop_full_stack\starter_code\backend\env\lib\site-packages (from python-jose) (0.4.8)

@@ -19,10 +19,11 @@ export interface Drink {
 })
 export class DrinksService {
 
-  url = environment.apiServerUrl;
+  url = environment.apiServerUrl; //'http://127.0.0.1:5000'
 
   public items: {[key: number]: Drink} = {};
-  // = {
+
+  // public items: {[key: number]: Drink}= {
   //                             1: {
   //                             id: 1,
   //                             title: 'matcha shake',
