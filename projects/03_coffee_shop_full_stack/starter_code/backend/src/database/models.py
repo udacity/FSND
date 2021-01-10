@@ -4,8 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 
 database_filename = "database.db"
+database_filename_test = "db_test.db"
 project_dir = os.path.dirname(os.path.abspath(__file__))
-database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
+database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename_test))
+#database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
 
 db = SQLAlchemy()
 
@@ -41,6 +43,22 @@ class Drink(db.Model):
     # the ingredients blob - this stores a lazy json blob
     # the required datatype is [{'color': string, 'name':string, 'parts':number}]
     recipe =  Column(String(180), nullable=False)
+
+    # def constructor(self, title, recipe):
+    #     self.title = title
+    #     self.recipe = recipe
+
+    # def constructor(self,id,title,recipe):
+    #     self.id = id
+    #     self.title = title
+    #     self.recipe = recipe
+
+    def __init__(self, id, title, recipe):
+        if id is not None:
+            self.id = id
+        self.title = title
+        self.recipe = recipe
+ 
 
     '''
     short()
@@ -79,6 +97,8 @@ class Drink(db.Model):
         db.session.add(self)
         db.session.commit()
 
+
+
     '''
     delete()
         deletes a new model into a database
@@ -88,8 +108,16 @@ class Drink(db.Model):
             drink.delete()
     '''
     def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+        #db.session.delete(self)
+        #db.session.commit()
+        try:
+            Drink.query.filter_by(id=self.id).delete()
+            db.session.commit()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
 
     '''
     update()
@@ -100,6 +128,7 @@ class Drink(db.Model):
             drink.title = 'Black Coffee'
             drink.update()
     '''
+
     def update(self):
         db.session.commit()
 
