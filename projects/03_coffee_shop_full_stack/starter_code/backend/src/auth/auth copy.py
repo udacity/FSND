@@ -39,7 +39,7 @@ def get_token_auth_header():
         raise AuthError({
             'code': 'authorization_header_missing',
             'description': 'Authorization header is expected.'
-        }, 401)
+    }, 401)
 
     parts = auth.split()
 
