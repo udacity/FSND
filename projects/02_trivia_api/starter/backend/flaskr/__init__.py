@@ -117,28 +117,27 @@ def create_app(test_config=None):
   '''
   @app.route('/add',methods=['POST'])
   def add_question():
-        body = request.get_json()
-        question = body.get('question',None)
-        answer = body.get('answer', None)
-        category = body.get('category', None)
-        difficulty = body.get('difficulty', None)
+      body = request.get_json()
+      question = body.get('question',None)
+      answer = body.get('answer', None)
+      category = body.get('category', None)
+      difficulty = body.get('difficulty', None)
 
-        try:
-            question = Question(question = question, answer = answer,
-                                category = category, difficulty = difficulty)
-            question.insert()
+      try:
+          question = Question(question = question, answer = answer,category = category, difficulty = difficulty)
+          question.insert()
 
-            selection = Question.query.all()
-            current_question = paginate_questions(request,selection)
+          selection = Question.query.all()
+          current_question = paginate_questions(request,selection)
 
-            return jsonify({
-              'success': True,
-              'created': question.id,
-              'questions': current_question,
-              'total_question': len(selection)
-            })
-        except:
-          abort(422)
+          return jsonify({
+            'success': True,
+            'created': question.id,
+            'questions': current_question,
+            'total_question': len(selection)
+          })
+      except:
+        abort(422)
         
   '''
   @TODO: 
@@ -159,6 +158,22 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
+  @app.route('/categories/<int:category_id>/questions',methods=['GET'])
+  def get_questions_by_category(category_id):
+      try:
+        questions = Question.query.filter(Question.category == category_id).all()
+        current_questions = paginate_questions(request,questions)
+
+        return jsonify({
+          'success': True,
+          'questions': current_questions,
+          'total_questions': len(questions),
+          'current_category': category_id
+        })
+      except:
+        abort(422)
+        
+        
 
 
   '''
