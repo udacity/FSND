@@ -40,6 +40,7 @@ def create_app(test_config=None):
   @TODO: 
   Create an endpoint to handle GET requests 
   for all available categories.
+  curl -X GET http://127.0.0.1:5000/categories
   '''
   @app.route('/categories')
   def get_categories():
@@ -47,7 +48,8 @@ def create_app(test_config=None):
 
         return jsonify({
           'success': True,
-          'categories': categories
+          'categories': categories,
+          'total_categories': len(categories)
         })
   '''
   @TODO: 
@@ -209,8 +211,57 @@ def create_app(test_config=None):
   TEST: In the "Play" tab, after a user selects "All" or a category,
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
+
+  curl -d '{"previous_questions": [],"quiz_category": {"type":"Geography",
+  "id": "2"}}' -H 'Content-Type: application/json' -X POST 
+  http://127.0.0.1:5000/quizzes
   '''
 
+  @app.route('/quizzes',methods=['POST'])
+  def play_quiz():
+      print("line 222:",request.get_data())
+      quiz_category = request.json.get('quiz_category')
+      print('line 224: quiz_category:',quiz_category)
+      previous_questions = request.json.get('previous_questions')
+      print('line 226: previous_questions: ', previous_questions)
+      try:
+        if quiz_category:
+              if quiz_category['id'] == 0:
+                  print("quiz_category exits here on line 232!")
+                  questions = Question.query.all()
+                  
+              else:
+                  print("line 234 quiz_category is not all ")
+                  questions = Question.query.filter(Question.category == quiz_category['id']).all()
+              if not questions:
+                  print("question not exist here on 239!")
+                  return abort(422)
+             
+              quizzes = [quiz for quiz in questions if quiz.id not in previous_questions]
+              quiz = random.choice(quizzes)
+              print("before return joson")
+              print("the random quiz: ", quiz)
+              print("random quiz on format: ", quiz.format())
+              return jsonify({
+                  'success': True,
+                  'question':quiz.format(),
+                  'current_category': quiz_category['type']
+        })
+        else:
+              abort(404)
+              
+      except:
+        abort(422)
+      # return jsonify({
+      #   'success': True,
+      #   'quiz_category':quiz_category,
+      #   'questions': questions,
+      #   'previous_questions':previous_questions 
+      # })
+
+
+       
+        
   '''
   @TODO: 
   Create error handlers for all expected errors 

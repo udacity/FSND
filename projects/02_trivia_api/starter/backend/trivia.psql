@@ -124,14 +124,15 @@ COPY public.categories (id, type) FROM stdin;
 --
 
 COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
-5	Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?	Maya Angelou	2	4
+1	Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?	Maya Angelou	2	4
+12	Who invented Peanut Butter?	George Washington Carver	2	4
 9	What boxer's original name is Cassius Clay?	Muhammad Ali	1	4
+23	Which dung beetle was worshipped by the ancient Egyptians?	Scarab	4	4
 2	What movie earned Tom Hanks his third straight Oscar nomination, in 1996?	Apollo 13	4	5
 4	What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?	Tom Cruise	4	5
 6	What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?	Edward Scissorhands	3	5
 10	Which is the only team to play in every soccer World Cup tournament?	Brazil	3	6
 11	Which country won the first ever soccer World Cup in 1930?	Uruguay	4	6
-12	Who invented Peanut Butter?	George Washington Carver	2	4
 13	What is the largest lake in Africa?	Lake Victoria	2	3
 14	In which royal palace would you find the Hall of Mirrors?	The Palace of Versailles	3	3
 15	The Taj Mahal is located in which Indian city?	Agra	2	3
@@ -141,8 +142,24 @@ COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
 19	Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?	Jackson Pollock	2	2
 20	What is the heaviest organ in the human body?	The Liver	4	1
 21	Who discovered penicillin?	Alexander Fleming	3	1
-22	Hematology is a branch of medicine involving the study of what?	Blood	4	1
-23	Which dung beetle was worshipped by the ancient Egyptians?	Scarab	4	4
+22	Hematology is a branch of medicine involving the study of what?	Blood	4	1 
+24	Where was Napoleon Bonaparte born?	Corsica	3	3
+25	Who wrote the 12th-century account Historia regum Britanniae (The History of the Kings of Britain), which is often credited with making the legend of King Arthur popular?	Geoffrey of Monmouth	4	4
+26	Elton John is known for what signature accessory?	Eyeglasses	2	5
+27	On "Seinfeld", what is the first talk show Kramer goes on during his book tour?	Live With Regis And Kathie Lee	4	5
+28	Which member of Nirvana was injured during the 1992 "MTV Video Music Awards"?	Krist Novoselic	 4	5
+29	What’s the diameter of a basketball hoop in inches?	18 inches	3	6
+30	How big is an Olympic sized swimming pool in meters?	50 meters long and 25 meters wide	3	6
+31	In professional basketball, how high is the basketball hoop from the ground?	10 feet	4 	6
+32	What is Canada’s national sport?	lacrosse	4	6
+33	What is Earth's largest continent?	Asia 	1 	3
+34	What razor-thin country accounts for more than half of the western coastline of South America?	Chile	3	3
+35	What river runs through Baghdad?	Tigris	4	3
+36	Name the extravagant period of art and architecture prevalent in Europe during most of the 17th century?	The Baroque period	2 	2
+37	Which famous painter was also a sculptor, an architect, and an engineer?	Leonardo Da Vinci	2	2 
+38	What is the nearest planet to the Sun?	Mercury	1	1
+39	How many teeth does an adult human have?	32	2	1
+40	This essential gas is important so that we can breath.	Oxygen	1	1
 \.
 
 
