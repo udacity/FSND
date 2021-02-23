@@ -5,24 +5,35 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import (
+    Flask, 
+    render_template, 
+    request, 
+    Response, 
+    flash, 
+    redirect, 
+    url_for
+)
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+import os
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
 moment = Moment(app)
-app.config.from_object('config')
+app.config.from_object('config.DevelopmentConfig')
+app.config.from_envvar("APP_SETTINGS")
 db = SQLAlchemy(app)
 
 # TODO: connect to a local postgresql database
-
+migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
@@ -62,12 +73,12 @@ class Artist(db.Model):
 #----------------------------------------------------------------------------#
 
 def format_datetime(value, format='medium'):
-  date = dateutil.parser.parse(value)
-  if format == 'full':
-      format="EEEE MMMM, d, y 'at' h:mma"
-  elif format == 'medium':
-      format="EE MM, dd, y h:mma"
-  return babel.dates.format_datetime(date, format)
+    date = dateutil.parser.parse(value)
+    if format == 'full':
+        format="EEEE MMMM, d, y 'at' h:mma"
+    elif format == 'medium':
+        format="EE MM, dd, y h:mma"
+    return babel.dates.format_datetime(date, format)
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -511,12 +522,12 @@ if not app.debug:
 #----------------------------------------------------------------------------#
 
 # Default port:
-if __name__ == '__main__':
-    app.run()
+#if __name__ == '__main__':
+    #app.run()
 
 # Or specify port manually:
-'''
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-'''
+
