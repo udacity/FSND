@@ -7,7 +7,8 @@ import os
 # database_name = 'capstone.db'
 # database_path = os.environ['DATABASE_URL']
 database_path = os.environ.get('DATABASE_URL')
-# database_path = 'postgresql://postgres:postgres@localhost:5432/Capstone'
+if(database_path is None):
+  database_path = 'postgresql://postgres:postgres@localhost:5432/Capstone'
 # database_path = "postgres://{}/{}".format('postgres:postgres@localhost:5432', database_name)
 # project_dir = os.path.dirname(os.path.abspath(__file__))
 # database_path = "sqlite:///{}".format(os.path.join(project_dir, database_name))

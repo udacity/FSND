@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from db.models import setup_db, Movie, Actor
+from models import setup_db, Movie, Actor
 from auth.auth import AuthError, requires_auth
 
 
@@ -89,17 +89,19 @@ def create_app(test_config=None):
   # @requires_auth('post:actors')
   # def create_actor(jwt):
   def create_actor():
-    # data = request.get_json()
-    # # if len(data) == 0:
-    # if data is None:
-    #   abort(400)
-    # name = data['name']
-    # age = data['age']
-    # gender = data['gender']
-    data = request.form
-    name = data.get('name')
-    age = data.get('age')
-    gender = data.get('gender')
+    if len(request.form) == 0:
+      data = request.get_json()
+      if len(data) == 0:
+        abort(400)
+      name = data['name']
+      age = data['age']
+      gender = data['gender']
+    else:
+      data = request.form
+      name = data.get('name')
+      age = data.get('age')
+      gender = data.get('gender')
+
     new_actor = Actor(None, name, age, gender)
     try:
       new_actor.insert()
@@ -118,16 +120,16 @@ def create_app(test_config=None):
   # @requires_auth('post:movies')
   # def create_movie(jwt):
   def create_movie():
-    # data = request.get_json()
-    # # if len(data) == 0:
-    # if data is None:
-    #   abort(400)
-      
-    # title = data['title']
-    # release_date = data['release_date']
-    data = request.form
-    title = data.get('title')
-    release_date = data.get('release_date')
+    if len(request.form) == 0: 
+      data = request.get_json()    
+      if len(data) == 0:
+        abort(400)
+      title = data['title']
+      release_date = data['release_date']
+    else:
+      data = request.form
+      title = data.get('title')
+      release_date = data.get('release_date')
     new_movie = Movie(None, title, release_date)
     try:
       new_movie.insert()
@@ -149,21 +151,19 @@ def create_app(test_config=None):
     if actor is None:
       abort(404)
     else:
-      data = request.form
-      # data = request.get_json()
-
-      # if len(data) == 0:
-      # if data is None:
-      #   abort(400)
-
-      if(data['name']):
-        actor.name = data.get('name')
-
-      if(data.get('age')):
-        actor.age = data.get('age')
-
-      if(data.get('gender')):
-        actor.gender = data.get('gender')
+      if len(request.form) == 0:
+        data = request.get_json()
+        if(data['name']):
+          actor.name = data.get('name')
+        if(data.get('age')):
+          actor.age = data.get('age')
+        if(data.get('gender')):
+          actor.gender = data.get('gender')
+      else:
+        data = request.form
+        actor.name = data['name']
+        actor.age = data['age']
+        actor.gender = data['gender']
 
     try:
       actor.update()
@@ -182,17 +182,16 @@ def create_app(test_config=None):
     if movie is None:
       abort(404)
     else:
-      data = request.form
-      # data = request.get_json()
-      # if len(data) == 0:
-      # if data is None:
-      #   abort(400)
-
-      if(data.get('title')):
-        movie.title = data.get('title')
-
-      if(data.get('release_date')):
-        movie.release_date = data.get('release_date')
+      if len(request.form) == 0:
+        data = request.get_json()
+        if(data.get('title')):
+          movie.title = data.get('title')
+        if(data.get('release_date')):
+          movie.release_date = data.get('release_date')
+        else:
+          data = request.form
+          movie.title = data['movie']
+          movie.release_date = data['release_date']
 
     try:
       movie.update()
@@ -275,7 +274,7 @@ def create_app(test_config=None):
 
 
 
-# APP = create_app()
+app = create_app()
 
-# if __name__ == '__main__':
-#     APP.run(host='0.0.0.0', port=8080, debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080, debug=True)
