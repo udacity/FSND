@@ -146,9 +146,10 @@ class CapstoneTestCase(unittest.TestCase):
             .all()
         num_now = len(same_actor_now)
         
-        self.assertEqual(num_now-num_pre,1)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'],True)
+        self.assertEqual(num_now-num_pre,1)
+
 
     def test_add_actor_failure(self):
 
@@ -172,9 +173,10 @@ class CapstoneTestCase(unittest.TestCase):
             .all()
         num_now = len(same_movie_now)
         
-        self.assertEqual(num_now-num_pre,1)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'],True)
+        self.assertEqual(num_now-num_pre,1)
+
 
     def test_add_movie_failure(self):
 

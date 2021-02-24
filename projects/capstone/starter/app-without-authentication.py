@@ -13,8 +13,9 @@ def create_app(test_config=None):
   setup_db(app)
 
   @app.route('/actors', methods=['GET'])
-  @requires_auth('get:actors')
-  def get_actors(jwt):
+  # @requires_auth('get:actors')
+  # def get_actors(jwt):
+  def get_actors():
     try:
       actors = Actor.query.with_entities(Actor.id, Actor.name, Actor.age, Actor.gender).order_by(Actor.id).all()
 
@@ -28,8 +29,9 @@ def create_app(test_config=None):
 
 
   @app.route('/movies', methods=['GET'])
-  @requires_auth('get:movies')
-  def get_movies(jwt):
+  # @requires_auth('get:movies')
+  # def get_movies(jwt):
+  def get_movies():
     try:
       movies = Movie.query.with_entities(Movie.id, Movie.title, Movie.release_date).order_by(Movie.id).all()
 
@@ -43,8 +45,9 @@ def create_app(test_config=None):
 
 
   @app.route('/actors/<int:actor_id>', methods=['DELETE'])
-  @requires_auth('delete:actors')
-  def delete_actor(jwt, actor_id):
+  # @requires_auth('delete:actors')
+  # def delete_actor(jwt, actor_id):
+  def delete_actor(actor_id):
     try:
       actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
@@ -62,8 +65,9 @@ def create_app(test_config=None):
       abort(422)
 
   @app.route('/movies/<int:movie_id>', methods=['DELETE'])
-  @requires_auth('delete:movies')
-  def delete_movie(jwt, movie_id):
+  # @requires_auth('delete:movies')
+  # def delete_movie(jwt, movie_id):
+  def delete_movie(movie_id):
     try:
       movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
 
@@ -82,8 +86,9 @@ def create_app(test_config=None):
 
 
   @app.route('/actors/add', methods=['POST'])
-  @requires_auth('post:actors')
-  def create_actor(jwt):
+  # @requires_auth('post:actors')
+  # def create_actor(jwt):
+  def create_actor():
     if len(request.form) == 0:
       data = request.get_json()
       if len(data) == 0:
@@ -112,8 +117,9 @@ def create_app(test_config=None):
       abort(422)
 
   @app.route('/movies/add', methods=['POST'])
-  @requires_auth('post:movies')
-  def create_movie(jwt):
+  # @requires_auth('post:movies')
+  # def create_movie(jwt):
+  def create_movie():
     if len(request.form) == 0: 
       data = request.get_json()    
       if len(data) == 0:
@@ -138,8 +144,9 @@ def create_app(test_config=None):
       abort(422)
 
   @app.route('/actors/<int:actor_id>', methods=['PATCH'])
-  @requires_auth('patch:actors')
-  def update_actor(jwt, actor_id):
+  # @requires_auth('patch:actors')
+  # def update_actor(jwt, actor_id):
+  def update_actor(actor_id):
     actor = Actor.query.filter_by(id=actor_id).one_or_none()
     if actor is None:
       abort(404)
@@ -168,8 +175,9 @@ def create_app(test_config=None):
       abort(422)
 
   @app.route('/movies/<int:movie_id>', methods=['PATCH'])
-  @requires_auth('patch:movies')
-  def update_movie(jwt, movie_id):
+  # @requires_auth('patch:movies')
+  # def update_movie(jwt, movie_id):
+  def update_movie(movie_id):
     movie = Movie.query.filter_by(id=movie_id).one_or_none()
     if movie is None:
       abort(404)
