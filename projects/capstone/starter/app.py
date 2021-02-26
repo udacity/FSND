@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from models import setup_db, Movie, Actor
+from models import setup_db, Movie, Actor, Casting
 from auth.auth import AuthError, requires_auth
 
 
@@ -12,6 +12,36 @@ def create_app(test_config=None):
   CORS(app)
   setup_db(app)
 
+  # access home page
+  @app.route('/', methods=['GET'])
+  def home():
+    return jsonify({
+      'success': True
+    })
+
+  # Public Endpoint fetch actors involved in a movie by movie id
+  @app.route('/casting/<int:movie_id>', methods=['GET'])
+  def get_actors_in_movie(movie_id):
+    try:
+      movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+
+      if movie is None:
+        abort(404)
+      else: 
+        actors = Actor.query.join(Casting).with_entities(Actor.name).filter(Actor.id==Casting.actor_id).filter(Casting.movie_id==movie_id).order_by(Casting.actor_id).all()
+        #actors = Actor.query.join(Casting).filter(Actor.id==Casting.actor_id).filter(Casting.movie_id==movie_id).order_by(Casting.actor_id).all()
+    # actors = Casting.query.join(Actor).filter(Casting.actor_id==Actor.id).filter(Casting.)
+
+
+        return jsonify({
+          'success': True,
+          'movie_id': movie_id,
+          'actors': [i for [i] in actors]
+        })
+    except Exception:
+      abort(422)
+
+# fetch all actors
   @app.route('/actors', methods=['GET'])
   @requires_auth('get:actors')
   def get_actors(jwt):
@@ -26,7 +56,7 @@ def create_app(test_config=None):
     except Exception:
       abort(422)
 
-
+# fetch all movies
   @app.route('/movies', methods=['GET'])
   @requires_auth('get:movies')
   def get_movies(jwt):
@@ -41,7 +71,7 @@ def create_app(test_config=None):
     except Exception:
       abort(422)
 
-
+# remove actors by id
   @app.route('/actors/<int:actor_id>', methods=['DELETE'])
   @requires_auth('delete:actors')
   def delete_actor(jwt, actor_id):
@@ -61,6 +91,7 @@ def create_app(test_config=None):
     except Exception:
       abort(422)
 
+# remove movies by id
   @app.route('/movies/<int:movie_id>', methods=['DELETE'])
   @requires_auth('delete:movies')
   def delete_movie(jwt, movie_id):
@@ -80,7 +111,7 @@ def create_app(test_config=None):
     except Exception:
       abort(422)
 
-
+# create actors
   @app.route('/actors/add', methods=['POST'])
   @requires_auth('post:actors')
   def create_actor(jwt):
@@ -111,6 +142,7 @@ def create_app(test_config=None):
     except:
       abort(422)
 
+# create movies
   @app.route('/movies/add', methods=['POST'])
   @requires_auth('post:movies')
   def create_movie(jwt):
@@ -137,6 +169,29 @@ def create_app(test_config=None):
     except:
       abort(422)
 
+# assign actor to movie
+  @app.route('/casting/add', methods=['POST'])
+  @requires_auth('post:casting')
+  def assign_actor_to_movie(jwt):
+    data = request.get_json()
+    movie_id = data.get('movie_id')
+    actor_id = data.get('actor_id')
+
+    new_casting = Casting(None, movie_id, actor_id)
+
+    try:
+      new_casting.insert()
+      return jsonify({
+        'success': True,
+        'add': {
+          'movie': movie_id,
+          'actor': actor_id
+        }
+      })
+    except Exception:
+      abort(422)      
+
+# update actors by id
   @app.route('/actors/<int:actor_id>', methods=['PATCH'])
   @requires_auth('patch:actors')
   def update_actor(jwt, actor_id):
@@ -144,15 +199,15 @@ def create_app(test_config=None):
     if actor is None:
       abort(404)
     else:
-      if len(request.form) == 0:
+      if len(request.form) == 0:  #get json data
         data = request.get_json()
-        if(data['name']):
+        if(data.get('name')):
           actor.name = data.get('name')
         if(data.get('age')):
           actor.age = data.get('age')
         if(data.get('gender')):
           actor.gender = data.get('gender')
-      else:
+      else:   # get form data
         data = request.form
         actor.name = data['name']
         actor.age = data['age']
@@ -167,6 +222,7 @@ def create_app(test_config=None):
     except:
       abort(422)
 
+# update movies by id
   @app.route('/movies/<int:movie_id>', methods=['PATCH'])
   @requires_auth('patch:movies')
   def update_movie(jwt, movie_id):
