@@ -25,7 +25,7 @@ This will install all the required packages to your virtual environment to work 
 The models.py file contains connection information to the Postgres database, which must be setup and running. Provide a valid username and password if applicable.
 
 1. Create a database with name Capstone using Psql CLI as shown below:
-`create database Capstone;`
+`create database capstone;`
 
 2. Initiate and migrate the database with the following commands in command line:
 ```
