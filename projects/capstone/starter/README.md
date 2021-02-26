@@ -25,12 +25,14 @@ This will install all the required packages to your virtual environment to work 
 The models.py file contains connection information to the Postgres database, which must be setup and running. Provide a valid username and password if applicable.
 
 1. Create a database with name Capstone using Psql CLI as shown below:
-create database Capstone;
+`create database Capstone;`
 
 2. Initiate and migrate the database with the following commands in command line:
+```
 flask db init
 flask db migrate
 flask db upgrade
+```
 
 This will create all necessary tables and relationships to work with the project.
 
@@ -45,18 +47,18 @@ The Casting talbe is used to store the many-to-many relationships between actors
 
 ## Running the Local Development Server
 All necessary credential to run the project are provided in the setup.sh file. The credentials can be enabled by running the following command:
-source setup.sh
+`source setup.sh`
 To run the API server on a local development environment the following commands must be additionally executed:
 ### On Linux: export
-
+```
 export FLASK_APP=app.py
 export FLASK_ENV=development
-
+```
 ### On Windows: set
-
+```
 set FLASK_APP=app.py
 set FLASK_ENV=development
-
+```
 
 ### API Server
 
