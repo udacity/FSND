@@ -13,6 +13,8 @@ os.environ["PORT"] = str(9001)
 
 # Enable debug mode.
 # TODO IMPLEMENT DATABASE URL
+
+
 class DevelopmentConfig:
     DEBUG = True
     TESTING = False
