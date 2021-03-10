@@ -1,15 +1,11 @@
-#----------------------------------------------------------------------------#
-# Imports
-#----------------------------------------------------------------------------#
 from datetime import datetime
-import json
+from enum import unique
 import dateutil.parser
 import babel
 from flask import (
     Flask,
     render_template,
     request,
-    Response,
     flash,
     redirect,
     url_for
@@ -18,7 +14,6 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
-from flask_wtf import Form
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects import postgresql
 from forms import (
@@ -29,30 +24,25 @@ from forms import (
 import os
 from flask_migrate import Migrate
 from typing import List
-#----------------------------------------------------------------------------#
-# App Config.
-#----------------------------------------------------------------------------#
 
+# App config
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config.DevelopmentConfig')
 app.config.from_envvar("APP_SETTINGS")
 db = SQLAlchemy(app)
 
-# TODO: connect to a local postgresql database
+# DB migrations
 migrate = Migrate(app, db)
-#----------------------------------------------------------------------------#
-# Models.
-#----------------------------------------------------------------------------#
 
 
 class Venue(db.Model):
     __tablename__ = 'venue'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(120), nullable=False)
-    state = db.Column(db.String(120), nullable=False)
+    name = db.Column(db.String, nullable=False, unique=True)
+    city = db.Column(db.String(50), nullable=False)
+    state = db.Column(db.String(2), nullable=False)
     address = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
@@ -78,9 +68,9 @@ class Artist(db.Model):
     __tablename__ = 'artist'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    name = db.Column(db.String, unique=True)
+    city = db.Column(db.String(50))
+    state = db.Column(db.String(2))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
@@ -106,10 +96,10 @@ class Show(db.Model):
                             backref=db.backref("shows", lazy=True))
 
     def __repr__(self):
-        return f"<Show id={self.id}  artist={self.artist_id}  venue={self.venue_id}>"
-#----------------------------------------------------------------------------#
+        return f"<Show id={self.id}  start_time={self.start_time}>"
+
+
 # Filters.
-#----------------------------------------------------------------------------#
 
 
 def format_datetime(value, format='medium'):
@@ -123,9 +113,8 @@ def format_datetime(value, format='medium'):
 
 app.jinja_env.filters['datetime'] = format_datetime
 
-#----------------------------------------------------------------------------#
-# Controllers.
-#----------------------------------------------------------------------------#
+
+# routes
 
 
 @app.route('/')
@@ -134,11 +123,9 @@ def index():
 
 
 #  Venues
-#  ----------------------------------------------------------------
 
 @app.route('/venues')
 def venues():
-    import pdb; pdb.set_trace()
     locations: List[tuple] = []
     data: List[dict] = []
     
@@ -196,7 +183,6 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-    import pdb;pdb.set_trace()
     venue = Venue.query.get(venue_id)
     shows = venue.shows
     past_shows = [el for el in filter(lambda s: s.start_time < datetime.now(), shows)]
@@ -247,9 +233,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-    import pdb; pdb.set_trace()
+    
     venue = Venue(name=request.form.get("name"),
                   city=request.form.get("city"),
                   state=request.form.get("state"),
@@ -293,7 +277,6 @@ def delete_venue(venue_id):
 
 @app.route('/artists')
 def artists():
-    import pdb; pdb.set_trace()
     data: List[dict] = [{"id": el.id, "name": el.name} for el in Artist.query.all()]
     return render_template('pages/artists.html', artists=data)
 
@@ -333,7 +316,6 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-    import pdb; pdb.set_trace()
     artist = Artist.query.get(artist_id)
     shows = artist.shows
     past_shows, upcoming_shows = list(), list()
@@ -376,29 +358,14 @@ def show_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-    import pdb; pdb.set_trace()
     artist_data = Artist.query.get(artist_id)
-
-    artist = {
-        "id": artist_data.id if artist_data else None,
-        "name": artist_data.name if artist_data else None,
-        "genres": artist_data.genres if artist_data else None,
-        "city": artist_data.city if artist_data else None,
-        "state": artist_data.state if artist_data else None,
-        "phone": artist_data.phone if artist_data else None,
-        "facebook_link": artist_data.facebook_link if artist_data else None,
-        "seeking_venue": artist_data.seeking_venue if artist_data else None,
-        "seeking_description": artist_data.seeking_description if artist_data else None,
-        "image_link": artist_data.image_link if artist_data else None
-    }    
-
-    return render_template('forms/edit_artist.html', form=ArtistForm(), artist=artist)
+    return render_template('forms/edit_artist.html', 
+                           form=ArtistForm(obj=artist_data), 
+                           artist=artist_data)
 
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-    # TODO: take values from the form submitted, and update existing
-    # artist record with ID <artist_id> using the new attributes
     
     artist = Artist.query.get(artist_id)
     if artist:
@@ -423,36 +390,21 @@ def edit_artist_submission(artist_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
     venue_data = Venue.query.get(venue_id)
-    venue = {
-        "name": venue_data.name if venue_data else None,
-        "genres": venue_data.genres if venue_data else None,
-        "address": venue_data.address if venue_data else None,
-        "city": venue_data.city if venue_data else None,
-        "state": venue_data.state if venue_data else None,
-        "phone": venue_data.phone if venue_data else None,
-        "website": venue_data.website if venue_data else None,
-        "facebook_link": venue_data.facebook_link if venue_data else None,
-        "seeking_talent": venue_data.seeking_talent if venue_data else None,
-        "seeking_description": venue_data.seeking_description if venue_data else None,
-        "image_link": venue_data.image_link if venue_data else None
-    }
-    
-    return render_template('forms/edit_venue.html', form=VenueForm(), venue=venue)
+    return render_template('forms/edit_venue.html', 
+                           form=VenueForm(obj=venue_data), 
+                           venue=venue_data)
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    import pdb; pdb.set_trace()
-    form_data = request.get_json()
+    form_data = request.form
     venue = Venue.query.get(venue_id)
-    
     venue.name = form_data.get("name", venue.name)
-    venue.genres = form_data.get("genres", venue.genres)
+    venue.genres = form_data.getlist("genres")
     venue.address = form_data.get("address", venue.address)
     venue.city = form_data.get("city", venue.city)
     venue.state = form_data.get("venue_state", venue.state)
     venue.phone = form_data.get("phone", venue.phone)
-    venue.website = form_data.get("website", venue.website)
     venue.facebook_link = form_data.get("facebook_link", venue.facebook_link)
     venue.seeking_talent = form_data.get("seeking_talent", venue.seeking_talent)
     venue.seeking_description = form_data.get("seeking_description", venue.seeking_description)
@@ -527,7 +479,6 @@ def create_show_submission():
         "venue_id": request.form.get("venue_id"),
         "start_time": request.form.get("start_time")
     }
-
     try:
         show = Show(start_time=datetime.strptime(form.get("start_time"),
                                                  "%Y-%m-%d %H:%M:%S"))
@@ -568,9 +519,6 @@ if not app.debug:
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
 
-#----------------------------------------------------------------------------#
-# Launch.
-#----------------------------------------------------------------------------#
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
