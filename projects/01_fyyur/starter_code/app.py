@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import unique, Enum
 import dateutil.parser
 import babel
 from flask import (
@@ -24,6 +23,7 @@ from forms import (
 import os
 from flask_migrate import Migrate
 from typing import List
+from psycopg2.errors import UniqueViolation
 
 # App config
 app = Flask(__name__)
@@ -89,11 +89,13 @@ class Show(db.Model):
     start_time = db.Column(db.DateTime(), nullable=False)
     artist_id = relationship("Artist", 
                              secondary=artist_shows, 
-                             backref=db.backref("shows", lazy=True))
+                             backref=db.backref("shows", lazy=True),
+                             cascade="all, delete")
     
     venue_id = relationship("Venue",
                             secondary=venue_shows,
-                            backref=db.backref("shows", lazy=True))
+                            backref=db.backref("shows", lazy=True),
+                            cascade="all, delete")
 
     def __repr__(self):
         return f"<Show id={self.id}  start_time={self.start_time}>"
@@ -206,7 +208,7 @@ def show_venue(venue_id):
                 "artist_name": el.artist_id[0].name,
                 "artist_image_link": el.artist_id[0].image_link,
                 "start_time": datetime.strftime(el.start_time, "%Y-%m-%d %H:%M:%S")
-            } for el in [s for s in filter(lambda s: len(s.artist_id), past_shows)]
+            } for el in filter(lambda s: len(s.artist_id), past_shows)
         ],  
         "upcoming_shows": [
             {
@@ -214,12 +216,11 @@ def show_venue(venue_id):
                 "artist_name": el.artist_id[0].name,
                 "artist_image_link": el.artist_id[0].image_link,
                 "start_time": datetime.strftime(el.start_time, "%Y-%m-%d %H:%M:%S")
-            } for el in [s for s in filter(lambda s: len(s.artist_id), upcoming_shows)]
+            } for el in filter(lambda s: len(s.artist_id), upcoming_shows)
         ],
         "past_shows_count": len(past_shows),
-        "upcoming_shows_counts": len(upcoming_shows) 
+        "upcoming_shows_count": len(upcoming_shows) 
     }
-
     return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -233,7 +234,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    
+
     venue_name: str = " ".join([el.capitalize() for el in request.form.get("name").split(sep=" ")])
     
     venue = Venue(name=venue_name,
@@ -249,6 +250,11 @@ def create_venue_submission():
         db.session.add(venue)
         db.session.commit()
         flash(f"Venue {venue.name} was successfully listed!")
+    
+    except UniqueViolation:
+        db.rollback()
+        flash(f"Error: Venue {venue_name} has already been registered")
+    
     except Exception as e:
         logging.warning(e.args)
         db.session.rollback()
@@ -267,10 +273,11 @@ def delete_venue(venue_id):
             return redirect(url_for('venues'))
         else:
             flash(f"Venue with id {venue_id} not found.")
+            return redirect(url_for('venues'))
     except Exception as e:
         logging.warning(e.args)
         db.session.rollback()
-    
+        return redirect(url_for('venues'))
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -447,6 +454,11 @@ def create_artist_submission():
         db.session.add(artist)
         db.session.commit()
         flash(f"Artist {artist_name} was successfully listed!")
+    
+    except UniqueViolation:
+        db.rollback()
+        flash(f"error: Artist {artist_name} has been listen already.")
+    
     except Exception as e:
         logging.warning(e.args)
         db.session.rollback()
