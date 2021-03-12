@@ -11,9 +11,12 @@
 		</p>
 		<div class="genres">
 			{% for genre in venue.genres %}
-			<span class="genre">{{ genre }}</span>
+				<span class="genre">{{ genre }}</span>
 			{% endfor %}
 		</div>
+		<form class="form" method="post" action="/venues/{{venue.id}}">
+			<input type="submit" value="Delete Venue" id="delete-venue"/>
+		</form>
 		<p>
 			<i class="fas fa-globe-americas"></i> {{ venue.city }}, {{ venue.state }}
 		</p>

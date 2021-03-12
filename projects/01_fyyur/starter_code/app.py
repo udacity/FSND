@@ -206,7 +206,7 @@ def show_venue(venue_id):
                 "artist_name": el.artist_id[0].name,
                 "artist_image_link": el.artist_id[0].image_link,
                 "start_time": datetime.strftime(el.start_time, "%Y-%m-%d %H:%M:%S")
-            } for el in past_shows
+            } for el in [s for s in filter(lambda s: len(s.artist_id), past_shows)]
         ],  
         "upcoming_shows": [
             {
@@ -214,7 +214,7 @@ def show_venue(venue_id):
                 "artist_name": el.artist_id[0].name,
                 "artist_image_link": el.artist_id[0].image_link,
                 "start_time": datetime.strftime(el.start_time, "%Y-%m-%d %H:%M:%S")
-            } for el in upcoming_shows
+            } for el in [s for s in filter(lambda s: len(s.artist_id), upcoming_shows)]
         ],
         "past_shows_count": len(past_shows),
         "upcoming_shows_counts": len(upcoming_shows) 
@@ -256,24 +256,21 @@ def create_venue_submission():
     return render_template('pages/home.html')
 
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<int:venue_id>', methods=['POST'])
 def delete_venue(venue_id):
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
         
     try:
         venue = Venue.query.get(venue_id)
         if venue is not None:
             db.session.delete(venue)
             db.session.commit()
+            return redirect(url_for('venues'))
         else:
             flash(f"Venue with id {venue_id} not found.")
     except Exception as e:
         logging.warning(e.args)
         db.session.rollback()
-    return redirect(url_for('home'))
+    
 
 #  Artists
 #  ----------------------------------------------------------------
