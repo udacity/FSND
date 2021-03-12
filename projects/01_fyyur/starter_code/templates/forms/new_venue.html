@@ -33,6 +33,10 @@
         {{ form.genres(class_ = 'form-control', autofocus = true) }}
       </div>
       <div class="form-group">
+        <label for="seeking_description">Tell us something about you...</label>
+        {{ form.seeking_description(class_ = "form-control", placeholder="The house of Blues since 1968...", autofocus = true) }}
+      </div>
+      <div class="form-group">
           <label for="facebook_link">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder="http://", autofocus = true) }}
         </div>

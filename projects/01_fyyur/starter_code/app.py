@@ -1,5 +1,5 @@
 from datetime import datetime
-from enum import unique
+from enum import unique, Enum
 import dateutil.parser
 import babel
 from flask import (
@@ -44,11 +44,11 @@ class Venue(db.Model):
     city = db.Column(db.String(50), nullable=False)
     state = db.Column(db.String(2), nullable=False)
     address = db.Column(db.String(120), nullable=False)
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+    phone = db.Column(db.String(15))
+    image_link = db.Column(db.String(250))
+    facebook_link = db.Column(db.String(250))
     seeking_talent = db.Column(db.Boolean, default=True)
-    seeking_description = db.Column(db.String(250)) 
+    seeking_description = db.Column(db.String(100)) 
     genres = db.Column(postgresql.ARRAY(db.String, dimensions=1))
     
     def __repr__(self):
@@ -68,14 +68,14 @@ class Artist(db.Model):
     __tablename__ = 'artist'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True)
+    name = db.Column(db.String, unique=True, nullable=False)
     city = db.Column(db.String(50))
     state = db.Column(db.String(2))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+    phone = db.Column(db.String(15))
+    image_link = db.Column(db.String(250))
+    facebook_link = db.Column(db.String(250))
     seeking_venue = db.Column(db.Boolean, default=True)
-    seeking_description = db.Column(db.String(250))
+    seeking_description = db.Column(db.String(100))
     genres = db.Column(postgresql.ARRAY(db.String, dimensions=1))
 
     def __repr__(self):
@@ -202,7 +202,7 @@ def show_venue(venue_id):
         "image_link": venue.image_link,
         "past_shows": [
             {
-                "artist_id": el.artist_id[0],
+                "artist_id": el.artist_id[0].id,
                 "artist_name": el.artist_id[0].name,
                 "artist_image_link": el.artist_id[0].image_link,
                 "start_time": datetime.strftime(el.start_time, "%Y-%m-%d %H:%M:%S")
@@ -210,7 +210,7 @@ def show_venue(venue_id):
         ],  
         "upcoming_shows": [
             {
-                "artist_id": el.artist_id[0],
+                "artist_id": el.artist_id[0].id,
                 "artist_name": el.artist_id[0].name,
                 "artist_image_link": el.artist_id[0].image_link,
                 "start_time": datetime.strftime(el.start_time, "%Y-%m-%d %H:%M:%S")
@@ -234,13 +234,17 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
     
-    venue = Venue(name=request.form.get("name"),
+    venue_name: str = " ".join([el.capitalize() for el in request.form.get("name").split(sep=" ")])
+    
+    venue = Venue(name=venue_name,
                   city=request.form.get("city"),
                   state=request.form.get("state"),
                   address=request.form.get("address"),
                   facebook_link=request.form.get("facebook_link"),
-                  genres=request.form.getlist("genres"))
+                  genres=request.form.getlist("genres"),
+                  seeking_description=request.form.get("seeking_description"))
 
+    venue.image_link = "/static/img/rock1968.jfif" if venue.image_link is None else venue.image_link
     try:
         db.session.add(venue)
         db.session.commit()
@@ -285,7 +289,7 @@ def artists():
 def search_artists():
     
     response = {"data": []}
-    search_term: str = request.form.get("name", str())
+    search_term: str = request.form.get("search_term", str())
     
     artists_query_gen: List[db.Model] = Artist.query.filter(
         Artist.name.ilike(f"%{search_term}%")
@@ -321,17 +325,18 @@ def show_artist(artist_id):
     past_shows, upcoming_shows = list(), list()
     
     for show in shows: 
-        venue = show.venue_id[0]
-        show_info = {
-            "venue_id": venue.id,
-            "venue_name": venue.name,
-            "venue_image_link": venue.image_link,
-            "start_time": datetime.strftime(show.start_time, "%Y-%m-%d %H:%M:%S")
-        }
-        if show.start_time > datetime.now():
-            upcoming_shows.append(show_info)
-        else:
-            past_shows.append(show_info)
+        if len(show.venue_id): 
+            venue = show.venue_id[0]
+            show_info = {
+                "venue_id": venue.id,
+                "venue_name": venue.name,
+                "venue_image_link": venue.image_link,
+                "start_time": datetime.strftime(show.start_time, "%Y-%m-%d %H:%M:%S")
+            }
+            if show.start_time > datetime.now():
+                upcoming_shows.append(show_info)
+            else:
+                past_shows.append(show_info)
 
     data = {
         "id": artist.id,
@@ -349,7 +354,7 @@ def show_artist(artist_id):
         "past_shows_count": len(past_shows),
         "upcoming_shows_count": len(upcoming_shows)
     }    
-
+    
     return render_template('pages/show_artist.html', artist=data)
 
 #  Update
@@ -369,14 +374,14 @@ def edit_artist_submission(artist_id):
     
     artist = Artist.query.get(artist_id)
     if artist:
-        artist.name = request.get_json("name", artist.name)
-        artist.city = request.get_json("city", artist.city)
-        artist.state = request.get_json("phone", artist.phone)
-        artist.image_link = request.get_json("image_link", artist.image_link)
-        artist.facebook_link = request.get_json("facebook_link", artist.facebook_link)
-        artist.seeking_venue = request.get_json("seeking_venue", artist.seeking_venue)
-        artist.seeking_description = request.get_json("seeking_description", artist.seeking_description)
-        artist.genres = request.get_json("genres", artist.genres)       
+        artist.name = request.form.get("name", artist.name)
+        artist.city = request.form.get("city", artist.city)
+        artist.state = request.form.get("phone", artist.phone)
+        artist.image_link = request.form.get("image_link", artist.image_link)
+        artist.facebook_link = request.form.get("facebook_link", artist.facebook_link)
+        artist.seeking_venue = request.form.get("seeking_venue", artist.seeking_venue)
+        artist.seeking_description = request.form.get("seeking_description", artist.seeking_description)
+        artist.genres = request.form.getlist("genres")       
 
     try:
         db.session.commit()
@@ -384,7 +389,7 @@ def edit_artist_submission(artist_id):
         logging.warning(e.args)
         db.session.rollback()
 
-    return redirect(url_for('show_artist', artist_id=artist_id))
+    return redirect(url_for('show_artist', artist_id=artist.id))
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
@@ -430,16 +435,21 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
     
-    artist = Artist(name=request.form.get("name"),
+    artist_name: str = " ".join([el.capitalize() for el in request.form.get("name").split(sep=" ")])
+    artist = Artist(name=artist_name,
                     city=request.form.get("city"),
                     state=request.form.get("state"),
                     phone=request.form.get("phone"),
                     genres=request.form.getlist("genres"),
-                    facebook_link=request.form.get("facebook_link"))
+                    facebook_link=request.form.get("facebook_link"),
+                    seeking_description=request.form.get("seeking_description"))
+    
+    artist.image_link = "/static/img/rock1968.jfif" if artist.image_link is None else artist.image_link
+
     try:
         db.session.add(artist)
         db.session.commit()
-        flash('Artist ' + request.form['name'] + ' was successfully listed!')
+        flash(f"Artist {artist_name} was successfully listed!")
     except Exception as e:
         logging.warning(e.args)
         db.session.rollback()
@@ -452,17 +462,17 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
+    shows = [show for show in Show.query.all()]
     data = [
         {
-            "venue_id": show.venue_id,
+            "venue_id": show.venue_id[0].id,
             "venue_name": show.venue_id[0].name,
             "artist_id": show.artist_id[0].id,
             "artist_name": show.artist_id[0].name,
             "artist_image_link": show.artist_id[0].image_link,
             "start_time": datetime.strftime(show.start_time, "%Y-%m-%d %H:%M:%S")
-        } for show in Show.query.all()
+        } for show in filter(lambda s: len(s.artist_id) and len(s.venue_id), shows)
     ]
-
     return render_template('pages/shows.html', shows=data)
 
 

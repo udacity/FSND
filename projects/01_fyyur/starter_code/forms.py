@@ -131,6 +131,9 @@ class VenueForm(Form):
     facebook_link = StringField(
         'facebook_link', validators=[URL()]
     )
+    seeking_description = StringField(
+        "seeking_description", validators=[DataRequired()]
+    )
 
 
 class ArtistForm(Form):
@@ -157,5 +160,6 @@ class ArtistForm(Form):
     facebook_link = StringField(
         'facebook_link', validators=[URL()]
     )
-
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
+    seeking_description = StringField(
+        "seeking_description", validators=[DataRequired()]
+    )
