@@ -5,11 +5,11 @@
   "proxy": "http://127.0.0.1:5000/",
   "dependencies": {
     "corsproxy": "^1.5.0",
-    "jquery": "^3.4.1",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-router-dom": "^5.0.0",
-    "react-scripts": "3.0.1"
+    "jquery": "^3.5.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "^3.4.1"
   },
   "scripts": {
     "start": "node node_modules/react-scripts/scripts/start.js",
