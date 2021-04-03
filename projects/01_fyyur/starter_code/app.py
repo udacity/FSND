@@ -42,8 +42,20 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(256))
+    shows = db.relationship(
+      'Show',
+      backref='venue',
+      lazy=True
+    )
     # upcoming_shows calculated based on Date?
     # past_shows calculated based on Date?
+
+artist_shows = db.Table('artist_shows',
+  db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True),
+  db.Column('show_id', db.Integer, db.ForeignKey('Show.id'), primary_key=True)
+)
+
+  # Need a way to link shows/artists - might be many to many
 
 class Artist(db.Model):
   __tablename__ = 'Artist'
@@ -67,12 +79,14 @@ class Show(db.Model):
   __tablename__ = 'Show'
 
   id = db.Column(db.Integer, primary_key=True)
-  # Need a way to link shows/artists - might be many to many
-  # artists = db.relationship(
-  #   'Artist',
-  #   backref='show',
-  #   lazy=True
-  # )
+  # Foreign key reference to this show's venue
+  venue_id = db.Column(
+    db.Integer,
+    db.ForeignKey('Venue.id'),
+    nullable=False)
+  artists = db.relationship(
+    'Artist', secondary=artist_shows, backref=db.backref('shows', lazy=True)
+  )
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -145,6 +159,36 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+  venueError = False
+  venueData = {}
+  try: 
+    venue = Venue.query.get(venue_id)
+    venueData = {
+      "id": venue.id,
+      "name": venue.name,
+      "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
+      "address": "1015 Folsom Street",
+      "city": "San Francisco",
+      "state": "CA",
+      "phone": "123-123-1234",
+      "website": "https://www.themusicalhop.com",
+      "facebook_link": "https://www.facebook.com/TheMusicalHop",
+      "seeking_talent": True,
+      "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
+      "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+      "past_shows": [{
+        "artist_id": 4,
+        "artist_name": "Guns N Petals",
+        "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
+        "start_time": "2019-05-21T21:30:00.000Z"
+      }],
+      "upcoming_shows": [],
+      "past_shows_count": 1,
+      "upcoming_shows_count": 0,
+    }
+  except:
+    venueError = True
+
   data1={
     "id": 1,
     "name": "The Musical Hop",
@@ -223,7 +267,7 @@ def show_venue(venue_id):
     "upcoming_shows_count": 1,
   }
   data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_venue.html', venue=data)
+  return render_template('pages/show_venue.html', venue=venueData)
 
 #  Create Venue
 #  ----------------------------------------------------------------
