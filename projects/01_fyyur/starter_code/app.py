@@ -43,7 +43,6 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(256))
-    # Add Genres?
     genres = db.Column(db.String(256), nullable=False, default='Other')
     shows = db.relationship(
       'Show',
@@ -74,8 +73,7 @@ class Artist(db.Model):
 
   # TODO: implement any missing fields, as a database migration using Flask-Migrate
   website = db.Column(db.String(120))
-  seeking_venue = db.Column(db.Boolean)
-  # add venueTypes here
+  seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
@@ -235,6 +233,8 @@ def create_venue_submission():
     venueGenres = ','.join(request.form.getlist('genres'))
     print(venueGenres)
     venueFb = request.form['facebook_link']
+    venueTalent = request.form['seeking_talent']
+    venueTalentDescr = request.form['seeking_description']
     newVenue = Venue(
       name=venueName, 
       city=venueCity,
@@ -244,7 +244,11 @@ def create_venue_submission():
       image_link=venueImg,
       facebook_link=venueFb,
       website=venueWebsite,
-      genres=venueGenres)
+      genres=venueGenres,
+      seeking_talent=venueTalent)
+
+    if venueTalent:
+      newVenue.seeking_description = venueTalentDescr
 
     db.session.add(newVenue)
     db.session.commit()
