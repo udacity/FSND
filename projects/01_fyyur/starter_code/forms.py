@@ -226,7 +226,5 @@ class ArtistForm(Form):
         'facebook_link', validators=[URL()]
     )
     seeking_venue = BooleanField(
-        'seeking_venue'
+        'seeking_venue', false_values={False, 'false', ''}
     )
-
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
