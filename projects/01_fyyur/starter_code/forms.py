@@ -226,5 +226,5 @@ class ArtistForm(Form):
         'facebook_link', validators=[URL()]
     )
     seeking_venue = BooleanField(
-        'seeking_venue', false_values={False, 'false', ''}
+        'seeking_venue'
     )

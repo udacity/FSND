@@ -6,14 +6,36 @@
 	<ul class="items">
 		{% for venue in area.venues %}
 		<li>
+			<div style="display: flex; flex-direction: row;">
 			<a href="/venues/{{ venue.id }}">
 				<i class="fas fa-music"></i>
 				<div class="item">
 					<h5>{{ venue.name }}</h5>
 				</div>
 			</a>
+			<span><i class="fas fa-trash" onclick="deleteVenue({{venue.id}})"></i></span>
+			<span><i class="fas fa-edit"></i></span>
+		</div>
 		</li>
 		{% endfor %}
 	</ul>
+	<script>
+		deleteVenue = function(id){
+			console.log("Delete: " + id);
+            fetch('/venues/' + id, {
+               method: 'DELETE',
+            })
+            .then(function () {
+            //    document.getElementById('error').className = 'hidden';
+            //    let item = e.target.parentElement;
+            //    item.remove();
+				console.log("Deleted venue");
+            })
+            .catch(function () {
+            //    document.getElementById('error').className = '';
+				console.log("Error deleting venue");
+            })
+		}
+	</script>
 {% endfor %}
 {% endblock %}
