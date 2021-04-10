@@ -13,8 +13,13 @@
 					<h5>{{ venue.name }}</h5>
 				</div>
 			</a>
-			<span><i class="fas fa-trash" onclick="deleteVenue({{venue.id}})"></i></span>
-			<span><i class="fas fa-edit"></i></span>
+			<span style="padding: 3ch;">
+				<i class="fas fa-trash" onclick="deleteVenue({{ venue.id }})">
+				</i>
+			</span>
+			<span>
+				<a href="/venues/{{ venue.id }}/edit"><i class="fas fa-edit"></i></a>
+			</span>
 		</div>
 		</li>
 		{% endfor %}
@@ -26,14 +31,12 @@
                method: 'DELETE',
             })
             .then(function () {
-            //    document.getElementById('error').className = 'hidden';
-            //    let item = e.target.parentElement;
-            //    item.remove();
 				console.log("Deleted venue");
+				location.reload()
             })
             .catch(function () {
-            //    document.getElementById('error').className = '';
 				console.log("Error deleting venue");
+				location.reload()
             })
 		}
 	</script>
