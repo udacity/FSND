@@ -7,86 +7,24 @@ import dateutil.parser
 import babel
 import sys
 import datetime
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort, jsonify
+from flask import (
+  Flask, render_template, request, 
+  Response, flash, redirect, url_for, abort, jsonify
+)
 from flask_moment import Moment
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from models import app, db, Venue, Show, Artist
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
-
-app = Flask(__name__)
-moment = Moment(app)
 app.config.from_object('config')
-db = SQLAlchemy(app)
+moment = Moment(app)
+db.init_app(app)
 
-# TODO: connect to a local postgresql database
-migrate = Migrate(app, db)
-
-#----------------------------------------------------------------------------#
-# Models.
-#----------------------------------------------------------------------------#
-class Venue(db.Model):
-    __tablename__ = 'Venue'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(120), nullable=False)
-    state = db.Column(db.String(120), nullable=False)
-    address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500), nullable=False,
-      default='https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60')
-    facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String(120))
-    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
-    seeking_description = db.Column(db.String(256))
-    genres = db.Column(db.String(256), nullable=False, default='Other')
-    shows = db.relationship(
-      'Show',
-      backref='venue',
-      lazy=True
-    )
-
-artist_shows = db.Table('artist_shows',
-  db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True),
-  db.Column('show_id', db.Integer, db.ForeignKey('Show.id'), primary_key=True)
-)
-
-  # Need a way to link shows/artists - might be many to many
-
-class Artist(db.Model):
-  __tablename__ = 'Artist'
-
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String, nullable=False)
-  city = db.Column(db.String(120))
-  state = db.Column(db.String(120))
-  phone = db.Column(db.String(120))
-  genres = db.Column(db.String(120))
-  image_link = db.Column(db.String(500))
-  facebook_link = db.Column(db.String(120))
-  website = db.Column(db.String(120))
-  seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
-
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
-class Show(db.Model):
-  __tablename__ = 'Show'
-
-  id = db.Column(db.Integer, primary_key=True)
-  showdate = db.Column(db.DateTime, nullable=False, default=datetime.now())
-  # Foreign key reference to this show's venue
-  venue_id = db.Column(
-    db.Integer,
-    db.ForeignKey('Venue.id'),
-    nullable=False)
-  artists = db.relationship(
-    'Artist', secondary=artist_shows, backref=db.backref('shows', lazy=True)
-  )
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -103,6 +41,7 @@ app.jinja_env.filters['datetime'] = format_datetime
 
 def get_shows_by_date(shows):
   try:
+    # get current time to use for show time comparisons
     timeNow = datetime.now()
     showsByDate = {'pastShows':[], 'upcomingShows':[]}
     for show in shows:
@@ -116,7 +55,7 @@ def get_shows_by_date(shows):
           'artist_name': show.artists[0].name,
           'artist_image_link': show.artists[0].image_link,
           'venue_image_link': venue.image_link,
-          'start_time': format_datetime(str(show.showdate))
+          'start_time': show.showdate.strftime('%Y-%m-%d %H:%S:%M')
         })
       else:
         showsByDate['pastShows'].append({
@@ -126,7 +65,7 @@ def get_shows_by_date(shows):
           'artist_name': show.artists[0].name,
           'artist_image_link': show.artists[0].image_link,
           'venue_image_link': venue.image_link,
-          'start_time': format_datetime(str(show.showdate))
+          'start_time': show.showdate.strftime('%Y-%m-%d %H:%S:%M')
         })
   except:
     print(sys.exc_info())
@@ -304,8 +243,6 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
   showsToDelete = False
   deleteError = False
   try:
@@ -321,7 +258,6 @@ def delete_venue(venue_id):
 
     print("Deleted Show okay")
     Venue.query.filter_by(id=venue_id).delete()
-    # db.session.delete(venue)
     db.session.commit()
     print("Deleted Venue okay")
     
@@ -601,7 +537,7 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
-  # displays list of shows at /shows
+  # displays list of shows at   
   data = []
   try:
     shows = Show.query.order_by('id').all()
@@ -614,7 +550,8 @@ def shows():
         "artist_id": artist.id,
         "artist_name": artist.name,
         "artist_image_link": artist.image_link,
-        "start_time": format_datetime(str(show.showdate))
+        # "start_time": format_datetime(str(show.showdate))
+        "start_time": str(show.showdate)
       }
       data.append(showData)
 
