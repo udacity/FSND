@@ -3,3 +3,8 @@ python-dateutil==2.6.0
 flask-moment==0.11.0
 flask-wtf==0.14.3
 flask_sqlalchemy==2.4.4
+virtualenv
+SQLAlchemy
+postgres
+Flask
+Flask-Migrate
