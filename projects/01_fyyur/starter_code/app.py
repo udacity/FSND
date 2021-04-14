@@ -1,6 +1,7 @@
 # ----------------------------------------------------------------------------#
 # Imports
 from flask_migrate import Migrate
+import sys
 # ----------------------------------------------------------------------------#
 
 import dateutil.parser
@@ -45,6 +46,7 @@ class Venue(db.Model):
     website_link = db.Column(db.String(120))
     looking_for_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
+    genres = db.relationship('VenueGenre', backref='venue')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -75,6 +77,13 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=False)
 
+
+class VenueGenre(db.Model):
+    __tablename__ = 'venuegenre'
+
+    id = db.Column(db.Integer, primary_key=True)
+    genre = db.Column(db.String(120), nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=False)
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
@@ -248,9 +257,42 @@ def create_venue_form():
 def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
+    name = request.form['name']
+    city = request.form['city']
+    state = request.form['state']
+    address = request.form['address']
+    phone = request.form['phone']
+    genres = request.form.getlist(key='genres')
+    facebook_link = request.form['facebook_link']
+    image_link = request.form['image_link']
+    website_link = request.form['website_link']
+    seeking_description = request.form['seeking_description']
 
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
+    error = False
+    try:
+        venue = Venue(name=name, city=city, state=state, address=address, phone=phone, facebook_link=facebook_link,
+                      image_link=image_link, website_link=website_link, seeking_description=seeking_description)
+
+        db.session.add(venue)
+        # commit here so I have access to the venue id for the venuegenre table
+        db.session.commit()
+
+        for genre in genres:
+            venueGenre = VenueGenre(genre=genre, venue_id=venue.id)
+            db.session.add(venueGenre)
+
+        db.session.commit()
+
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+        if error:
+            flash('An error occurred. Venue ' + name + ' could not be listed.')
+        else:
+            flash('Venue ' + name + ' was successfully listed!')
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
