@@ -13,6 +13,9 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
+
+from sqlalchemy import func
+
 from forms import *
 
 # ----------------------------------------------------------------------------#
@@ -99,6 +102,13 @@ app.jinja_env.filters['datetime'] = format_datetime
 def str_to_date(str):
     return datetime.strptime(str, '%Y-%m-%d %H:%M:%S')
 
+
+def create_search_data(id, name, num_of_shows):
+    return {
+        "id": id,
+        "name": name,
+        "num_upcoming_shows": num_of_shows
+    }
 # ----------------------------------------------------------------------------#
 # Controllers.
 # ----------------------------------------------------------------------------#
@@ -164,16 +174,20 @@ def venues():
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
+    # search for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+
+    venues = Venue.query.filter(func.lower(Venue.name).contains(func.lower(request.form['search_term']))).all()
+
     response = {
-        "count": 1,
-        "data": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
+        "count" : len(venues),
+        "data": []
     }
+
+    for venue in venues:
+        num_of_upcoming_shows = Show.query.filter(Show.venue_id == venue.id).all()
+        response["data"].append(create_search_data(venue.id, venue.name, num_of_upcoming_shows))
+
     return render_template('pages/search_venues.html', results=response,
                            search_term=request.form.get('search_term', ''))
 
@@ -310,16 +324,20 @@ def artists():
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
+    # search for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
     # search for "band" should return "The Wild Sax Band".
+
+    artists = Artist.query.filter(func.lower(Artist.name).contains(func.lower(request.form['search_term']))).all()
+
     response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
+        "count" : len(artists),
+        "data": []
     }
+
+    for artist in artists:
+        num_of_upcoming_shows = Show.query.filter(Show.venue_id == artist.id).all()
+        response["data"].append(create_search_data(artist.id, artist.name, num_of_upcoming_shows))
+
     return render_template('pages/search_artists.html', results=response,
                            search_term=request.form.get('search_term', ''))
 
