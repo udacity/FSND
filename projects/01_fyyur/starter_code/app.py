@@ -110,14 +110,6 @@ def create_search_data(id, name, num_of_shows):
         "num_upcoming_shows": num_of_shows
     }
 
-
-def str_to_boolean(str):
-    if str == 'y':
-        return True
-    else:
-        return False
-
-
 # ----------------------------------------------------------------------------#
 # Controllers.
 # ----------------------------------------------------------------------------#
@@ -260,6 +252,9 @@ def create_venue_form():
 def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
+    seeking_talent = False
+    if request.form.__contains__('seeking_talent'):
+        seeking_talent = True
     name = request.form['name']
     city = request.form['city']
     state = request.form['state']
@@ -269,7 +264,7 @@ def create_venue_submission():
     facebook_link = request.form['facebook_link']
     image_link = request.form['image_link']
     website_link = request.form['website_link']
-    seeking_talent = str_to_boolean(request.form['seeking_talent'])
+    seeking_talent = seeking_talent
     seeking_description = request.form['seeking_description']
 
     error = False
@@ -300,11 +295,23 @@ def create_venue_submission():
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
     # TODO: Complete this endpoint for taking a venue_id, and using
+
+    try:
+        Show.query.filter(Show.venue_id == venue_id).delete()
+        Venue.query.filter(Venue.id == venue_id).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
+        print(sys.exc_info())
+
+    finally:
+        db.session.close()
+
     # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
-    return None
+    return render_template('pages/home.html')
 
 
 #  Artists
@@ -524,6 +531,9 @@ def create_artist_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
 
+    seeking_venue = False
+    if request.form.__contains__('seeking_venue'):
+        seeking_venue = True
     name = request.form['name']
     city = request.form['city']
     state = request.form['state']
@@ -532,7 +542,7 @@ def create_artist_submission():
     facebook_link = request.form['facebook_link']
     image_link = request.form['image_link']
     website_link = request.form['website_link']
-    seeking_venue = str_to_boolean(request.form['seeking_venue'])
+    seeking_venue = seeking_venue
     seeking_description = request.form['seeking_description']
 
     error = False
