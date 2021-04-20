@@ -73,6 +73,17 @@
 </section>
 
 <a href="/artists/{{ artist.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
+<a id="delete-btn" href="/">
+    <button class="btn btn-primary btn-lg">Delete</button>
+</a>
 
+<script>
+    document.getElementById('delete-btn').onclick =  e => {
+        fetch('/artists/{{ artist.id }}', {
+            method: 'DELETE',
+            redirect: 'follow'
+        })
+    }
+</script>
 {% endblock %}
 
