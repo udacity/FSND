@@ -62,8 +62,8 @@ CREATE TABLE public.questions (
     id integer NOT NULL,
     question text,
     answer text,
-    category character varying,
-    difficulty integer
+    difficulty integer,
+    category integer
 );
 
 
@@ -124,14 +124,14 @@ COPY public.categories (id, type) FROM stdin;
 --
 
 COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
-5	Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?	Maya Angelou	2	History
-9	What boxer's original name is Cassius Clay?	Muhammad Ali	1	History
+5	Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?	Maya Angelou	2	4
+9	What boxer's original name is Cassius Clay?	Muhammad Ali	1	4
 2	What movie earned Tom Hanks his third straight Oscar nomination, in 1996?	Apollo 13	4	5
 4	What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?	Tom Cruise	4	5
 6	What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?	Edward Scissorhands	3	5
 10	Which is the only team to play in every soccer World Cup tournament?	Brazil	3	6
 11	Which country won the first ever soccer World Cup in 1930?	Uruguay	4	6
-12	Who invented Peanut Butter?	George Washington Carver	2	History
+12	Who invented Peanut Butter?	George Washington Carver	2	4
 13	What is the largest lake in Africa?	Lake Victoria	2	3
 14	In which royal palace would you find the Hall of Mirrors?	The Palace of Versailles	3	3
 15	The Taj Mahal is located in which Indian city?	Agra	2	3
@@ -142,19 +142,7 @@ COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
 20	What is the heaviest organ in the human body?	The Liver	4	1
 21	Who discovered penicillin?	Alexander Fleming	3	1
 22	Hematology is a branch of medicine involving the study of what?	Blood	4	1
-23	Which dung beetle was worshipped by the ancient Egyptians?	Scarab	4	History
-24	Who played the character Harry Potter	Daniel Red Cliff	3	Entertainment
-25	How many continents are there	7	Geography	1
-26	What is the capitol of Hawaii	Honolulu	Geography	2
-27	What country is K2 Mountain located	Pakistan	4	Geography
-28	How many soccer players should be on the field at one time	22	3	Entertainment
-29	What country hosted 1930 FIFA cup?	Uruguay	5	History
-33	Who wrote Hamlet?	Shakespere	1	Entertainment
-34	Where is the Mona Lisa	The Louvre	3	Art
-44	what city hosted the 2012 Summer Olympics	London	5	Entertainment
-45	What is the U.S. Capitol	Washington D.C.	1	Geography
-55	What sport does Tom brady play	Football	1	Sports
-54	What team is Mike trout on?	Angels	2	Sports
+23	Which dung beetle was worshipped by the ancient Egyptians?	Scarab	4	4
 \.
 
 
@@ -186,6 +174,15 @@ ALTER TABLE ONLY public.categories
 
 ALTER TABLE ONLY public.questions
     ADD CONSTRAINT questions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: questions category; Type: FK CONSTRAINT; Schema: public; Owner: caryn
+--
+
+ALTER TABLE ONLY public.questions
+    ADD CONSTRAINT category FOREIGN KEY (category) REFERENCES public.categories(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
 
 --
 -- PostgreSQL database dump complete

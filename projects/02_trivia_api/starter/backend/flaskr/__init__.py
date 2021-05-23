@@ -162,8 +162,9 @@ def create_app(test_config=None):
       question = Question(
         question=new_question, 
         answer=new_answer,
-        category=category.type, 
+        category=category.id, 
         difficulty=new_difficulty)
+      
       question.insert()
 
       selection = Question.query.order_by(Question.id).all()
@@ -226,7 +227,7 @@ def create_app(test_config=None):
         abort(404)
 
       selection = Question.query.order_by(Question.id).filter(
-        Question.category == category.type)
+        Question.category == category.id)
       current_questions = paginate_questions(request, selection)
 
       return jsonify({
@@ -270,8 +271,7 @@ def create_app(test_config=None):
         # Get questions in specific category
         # Filter out questions in array of ids
         selection = Question.query.filter(
-            Question.category.like(
-              '{}'.format(quizCategory['type'])),
+            Question.category == quizCategory['id'],
             ~Question.id.in_(prevQuestions)
         ).all()
       

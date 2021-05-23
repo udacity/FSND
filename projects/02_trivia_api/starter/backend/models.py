@@ -20,7 +20,6 @@ def setup_db(app, database_path=database_path):
     db.app = app
     db.init_app(app)
     migrate = Migrate(app, db)
-    # db.create_all()
 
 '''
 Question
@@ -32,8 +31,12 @@ class Question(db.Model):
   id = Column(Integer, primary_key=True)
   question = Column(String)
   answer = Column(String)
-  category = Column(String)
   difficulty = Column(Integer)
+  # Foreign key reference to categories
+  category = db.Column(
+    db.Integer,
+    db.ForeignKey('categories.id'),
+    nullable=False)
 
   def __init__(self, question, answer, category, difficulty):
     self.question = question
@@ -61,22 +64,14 @@ class Question(db.Model):
       'difficulty': self.difficulty
     }
 
-# category_questions = db.Table('category_questions',
-#   db.Column('question_id', db.Integer, db.ForeignKey('Question.id'), primary_key=True),
-#   db.Column('category_id', db.Integer, db.ForeignKey('Category.id'), primary_key=True)
-# )   
 '''
 Category
-
 '''
 class Category(db.Model):  
   __tablename__ = 'categories'
 
   id = Column(Integer, primary_key=True)
   type = Column(String)
-  # questions = db.relationship(
-  #   'Question', secondary=category_questions, backref=db.backref('category', lazy=True)
-  # )
 
   def __init__(self, type):
     self.type = type
