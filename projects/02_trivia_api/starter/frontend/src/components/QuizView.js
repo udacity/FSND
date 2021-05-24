@@ -37,7 +37,6 @@ class QuizView extends Component {
   }
 
   selectCategory = ({type, id=0}) => {
-    console.log("Category: " + type + ": " + id)
     this.setState({quizCategory: {type, id}}, this.getNextQuestion)
   }
 
@@ -64,7 +63,6 @@ class QuizView extends Component {
       },
       crossDomain: true,
       success: (result) => {
-        debugger
         const questionLimit = previousQuestions.length === questionsPerPlay
         if (!questionLimit){
           totalQuestions = result.question ? (totalQuestions + 1) : totalQuestions

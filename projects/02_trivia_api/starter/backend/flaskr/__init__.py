@@ -83,6 +83,7 @@ def create_app(test_config=None):
   '''
   @app.route('/questions', methods=['GET'])
   def get_all_questions():
+    errorCode = 400
     try:
       questions = Question.query.order_by(Question.id).all()
       current_questions = paginate_questions(request, questions)
@@ -91,6 +92,7 @@ def create_app(test_config=None):
       categories = get_categories()
 
       if len(current_questions) == 0:
+        errorCode = 404
         abort(404)
     
       return jsonify({
@@ -102,7 +104,7 @@ def create_app(test_config=None):
       })
 
     except:
-      abort(400)
+      abort(errorCode)
 
   '''
   @TODO: 
@@ -113,10 +115,12 @@ def create_app(test_config=None):
   '''
   @app.route('/questions/<int:question_id>', methods=['DELETE'])
   def delete_question(question_id):
+    errorCode = 422
     try:
       question = Question.query.filter(Question.id == question_id).one_or_none()
       
       if question is None:
+        errorCode = 404
         abort(404)
 
       question.delete()
@@ -159,6 +163,12 @@ def create_app(test_config=None):
       if category is None:
         abort(422)
 
+      # After running tests, realized I missed checks for empty questions/answers
+      if new_question is None or new_question == '':
+        abort(422)
+      if new_answer is None or new_answer == '':
+        abort(422)
+
       question = Question(
         question=new_question, 
         answer=new_answer,
@@ -193,6 +203,11 @@ def create_app(test_config=None):
   @app.route('/questions/search', methods=['POST'])
   def search_questions():
     body = request.get_json()
+
+    # If no body was passed or the body didn't contain the correct json
+    if body is None or not body['searchTerm']:
+      abort(422)
+
     search = body.get('searchTerm', None)
     if search is None:
       abort(422)
@@ -220,11 +235,13 @@ def create_app(test_config=None):
   '''
   @app.route('/categories/<int:category_id>/questions', methods=['GET'])
   def get_questions_by_category(category_id):
+    errorCode = 422
     try:
       category = Category.query.get(category_id)
 
       if category is None:
-        abort(404)
+        errorCode = 404
+        abort(errorCode)
 
       selection = Question.query.order_by(Question.id).filter(
         Question.category == category.id)
@@ -236,7 +253,7 @@ def create_app(test_config=None):
         'total_questions': len(selection.all())
       })
     except:
-      abort(422)
+      abort(errorCode)
 
   '''
   @TODO: 
@@ -307,7 +324,7 @@ def create_app(test_config=None):
     return jsonify({
       "success": False, 
       "error": 404,
-      "message": "resource not found"
+      "message": "Resource not found"
       }), 404
 
   @app.errorhandler(422)
@@ -315,7 +332,7 @@ def create_app(test_config=None):
     return jsonify({
       "success": False, 
       "error": 422,
-      "message": "unprocessable"
+      "message": "Unprocessable"
       }), 422
 
   @app.errorhandler(400)
@@ -327,12 +344,20 @@ def create_app(test_config=None):
       }), 400
 
   @app.errorhandler(405)
-  def not_found(error):
+  def not_allowed(error):
     return jsonify({
       "success": False, 
       "error": 405,
-      "message": "method not allowed"
+      "message": "Not allowed"
       }), 405
+
+  @app.errorhandler(500)
+  def not_allowed(error):
+    return jsonify({
+      "success": False, 
+      "error": 500,
+      "message": "Server Error"
+      }), 500
   
   return app
 
