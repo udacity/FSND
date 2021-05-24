@@ -54,7 +54,7 @@ npm install bootstrap@3
   ```sh
   ├── README.md
   ├── app.py *** the main driver of the app. Includes your SQLAlchemy models.
-                    "python app.py" to run after installing dependences
+                    "python app.py" to run after installing dependencies
   ├── config.py *** Database URLs, CSRF generation, etc
   ├── error.log
   ├── forms.py *** Your forms
@@ -118,6 +118,7 @@ Acceptance Criteria
   * A user should be able to click on the venue for an upcoming show in the Artist's page, and on that Venue's page, see the same show in the Venue Page's upcoming shows section.
 4. As a fellow developer on this application, I should be able to run `flask db migrate`, and have my local database (once set up and created) be populated with the right tables to run this application and have it interact with my local postgres server, serving the application's needs completely with real data I can seed my local database with.
   * The models should be completed (see TODOs in the `Models` section of `app.py`) and model the objects used throughout Fyyur.
+  * Define the models in a different file to follow [Separation of Concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) design principles. You can refactor the models to a new file, such as `models.py`.
   * The right _type_ of relationship and parent-child dynamics between models should be accurately identified and fit the needs of this particular application.
   * The relationship between the models should be accurately configured, and referential integrity amongst the models should be preserved.
   * `flask db migrate` should work, and populate my local postgres database with properly configured tables for this application's objects, including proper columns, column data types, constraints, defaults, and relationships that completely satisfy the needs of this application. The proper type of relationship between venues, artists, and shows should be configured.

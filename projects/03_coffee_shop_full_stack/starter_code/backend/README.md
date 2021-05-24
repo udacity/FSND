@@ -8,9 +8,9 @@
 
 Follow instructions to install the latest version of python for your platform in the [python docs](https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python)
 
-#### Virtual Enviornment
+#### Virtual Environment
 
-We recommend working within a virtual environment whenever using Python for projects. This keeps your dependencies for each project separate and organaized. Instructions for setting up a virual enviornment for your platform can be found in the [python docs](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+We recommend working within a virtual environment whenever using Python for projects. This keeps your dependencies for each project separate and organized. Instructions for setting up a virtual environment for your platform can be found in the [python docs](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 
 #### PIP Dependencies
 
@@ -24,7 +24,7 @@ This will install all of the required packages we selected within the `requireme
 
 ##### Key Dependencies
 
-- [Flask](http://flask.pocoo.org/)  is a lightweight backend microservices framework. Flask is required to handle requests and responses.
+- [Flask](http://flask.pocoo.org/) is a lightweight backend microservices framework. Flask is required to handle requests and responses.
 
 - [SQLAlchemy](https://www.sqlalchemy.org/) and [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/2.x/) are libraries to handle the lightweight sqlite database. Since we want you to focus on auth, we handle the heavy lift for you in `./src/database/models.py`. We recommend skimming this code first so you know how to interface with the Drink model.
 
@@ -56,26 +56,26 @@ The `--reload` flag will detect file changes and restart the server automaticall
 2. Select a unique tenant domain
 3. Create a new, single page web application
 4. Create a new API
-    - in API Settings:
-        - Enable RBAC
-        - Enable Add Permissions in the Access Token
+   - in API Settings:
+     - Enable RBAC
+     - Enable Add Permissions in the Access Token
 5. Create new API permissions:
-    - `get:drinks-detail`
-    - `post:drinks`
-    - `patch:drinks`
-    - `delete:drinks`
+   - `get:drinks-detail`
+   - `post:drinks`
+   - `patch:drinks`
+   - `delete:drinks`
 6. Create new roles for:
-    - Barista
-        - can `get:drinks-detail`
-    - Manager
-        - can perform all actions
-7. Test your endpoints with [Postman](https://getpostman.com). 
-    - Register 2 users - assign the Barista role to one and Manager role to the other.
-    - Sign into each account and make note of the JWT.
-    - Import the postman collection `./starter_code/backend/udacity-fsnd-udaspicelatte.postman_collection.json`
-    - Right-clicking the collection folder for barista and manager, navigate to the authorization tab, and including the JWT in the token field (you should have noted these JWTs).
-    - Run the collection and correct any errors.
-    - Export the collection overwriting the one we've included so that we have your proper JWTs during review!
+   - Barista
+     - can `get:drinks-detail`
+   - Manager
+     - can perform all actions
+7. Test your endpoints with [Postman](https://getpostman.com).
+   - Register 2 users - assign the Barista role to one and Manager role to the other.
+   - Sign into each account and make note of the JWT.
+   - Import the postman collection `./starter_code/backend/udacity-fsnd-udaspicelatte.postman_collection.json`
+   - Right-clicking the collection folder for barista and manager, navigate to the authorization tab, and including the JWT in the token field (you should have noted these JWTs).
+   - Run the collection and correct any errors.
+   - Export the collection overwriting the one we've included so that we have your proper JWTs during review!
 
 ### Implement The Server
 

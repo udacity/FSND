@@ -12,7 +12,7 @@ This project depends on Nodejs and Node Package Manager (NPM). Before continuing
 
 #### Installing Ionic Cli
 
-The Ionic Command Line Interface is required to serve and build the frontend. Instructions for installing the CLI  is in the [Ionic Framework Docs](https://ionicframework.com/docs/installation/cli).
+The Ionic Command Line Interface is required to serve and build the frontend. Instructions for installing the CLI is in the [Ionic Framework Docs](https://ionicframework.com/docs/installation/cli).
 
 #### Installing project dependencies
 
@@ -22,11 +22,11 @@ This project uses NPM to manage software dependencies. NPM Relies on the package
 npm install
 ```
 
->_tip_: **npm i** is shorthand for **npm install**
+> _tip_: **npm i** is shorthand for **npm install**
 
 ## Required Tasks
 
-### Configure Enviornment Variables
+### Configure Environment Variables
 
 Ionic uses a configuration file to manage environment variables. These variables ship with the transpiled software and should not include secrets.
 
@@ -40,8 +40,8 @@ Ionic ships with a useful development server which detects changes and transpile
 ionic serve
 ```
 
->_tip_: Do not use **ionic serve**  in production. Instead, build Ionic into a build artifact for your desired platforms.
-[Checkout the Ionic docs to learn more](https://ionicframework.com/docs/cli/commands/build)
+> _tip_: Do not use **ionic serve** in production. Instead, build Ionic into a build artifact for your desired platforms.
+> [Checkout the Ionic docs to learn more](https://ionicframework.com/docs/cli/commands/build)
 
 ## Key Software Design Relevant to Our Coursework
 
@@ -49,8 +49,8 @@ The frontend framework is a bit beefy; here are the two areas to focus your stud
 
 ### Authentication
 
-The authentication system used for this project is Auth0. `./src/services/auth.service.ts` contains the logic to direct a user to the Auth0 login page, managing the JWT token upon successful callback, and handle setting and retrieving the token from the local store. This token is then consumed by our DrinkService (`./src/services/auth.service.ts`) and passed as an Authorization header when making requests to our backend.
+The authentication system used for this project is Auth0. `./src/app/services/auth.service.ts` contains the logic to direct a user to the Auth0 login page, managing the JWT token upon successful callback, and handle setting and retrieving the token from the local store. This token is then consumed by our DrinkService (`./src/app/services/drinks.service.ts`) and passed as an Authorization header when making requests to our backend.
 
 ### Authorization
 
-The Auth0 JWT includes claims for permissions based on the user's role within the Auth0 system. This project makes use of these claims using the `auth.can(permission)` method which checks if particular permissions exist within the JWT permissions claim of the currently logged in user. This method is defined in  `./src/services/auth.service.ts` and is then used to enable and disable buttons in `./src/pages/drink-menu/drink-form/drink-form.html`.
+The Auth0 JWT includes claims for permissions based on the user's role within the Auth0 system. This project makes use of these claims using the `auth.can(permission)` method which checks if particular permissions exist within the JWT permissions claim of the currently logged in user. This method is defined in  `./src/app/services/auth.service.ts` and is then used to enable and disable buttons in `./src/app/pages/drink-menu/drink-form/drink-form.html`.

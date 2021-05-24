@@ -14,6 +14,7 @@ class QuizView extends Component {
         showAnswer: false,
         categories: {},
         numCorrect: 0,
+        totalQuestions: 0,
         currentQuestion: {},
         guess: '',
         forceEnd: false
@@ -45,6 +46,7 @@ class QuizView extends Component {
 
   getNextQuestion = () => {
     const previousQuestions = [...this.state.previousQuestions]
+    let totalQuestions = this.state.totalQuestions
     if(this.state.currentQuestion.id) { previousQuestions.push(this.state.currentQuestion.id) }
 
     $.ajax({
@@ -61,12 +63,18 @@ class QuizView extends Component {
       },
       crossDomain: true,
       success: (result) => {
+        const questionLimit = previousQuestions.length === questionsPerPlay
+        if (!questionLimit){
+          totalQuestions = result.question ? (totalQuestions + 1) : totalQuestions
+        }
+
         this.setState({
           showAnswer: false,
           previousQuestions: previousQuestions,
           currentQuestion: result.question,
           guess: '',
-          forceEnd: result.question ? false : true
+          forceEnd: result.question ? false : true,
+          totalQuestions: totalQuestions
         })
         return;
       },
@@ -95,7 +103,8 @@ class QuizView extends Component {
       numCorrect: 0,
       currentQuestion: {},
       guess: '',
-      forceEnd: false
+      forceEnd: false,
+      totalQuestions: 0
     })
   }
 
@@ -124,7 +133,7 @@ class QuizView extends Component {
   renderFinalScore(){
     return(
       <div className="quiz-play-holder">
-        <div className="final-header"> Your Final Score is {this.state.numCorrect}</div>
+        <div className="final-header"> Your Final Score is {this.state.numCorrect} / {this.state.totalQuestions} </div>
         <div className="play-again button" onClick={this.restartGame}> Play Again? </div>
       </div>
     )
@@ -132,8 +141,9 @@ class QuizView extends Component {
 
   evaluateAnswer = () => {
     const formatGuess = this.state.guess.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase()
-    const answerArray = this.state.currentQuestion.answer.toLowerCase().split(' ');
-    return answerArray.includes(formatGuess)
+    const formattedAnswer = this.state.currentQuestion.answer.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+    const answerArray = formattedAnswer.toLowerCase().split(' ');
+    return answerArray.every(el => formatGuess.includes(el));
   }
 
   renderCorrectAnswer(){
