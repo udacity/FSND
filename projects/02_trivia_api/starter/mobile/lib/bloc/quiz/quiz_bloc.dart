@@ -38,9 +38,6 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
       if (isCorrect) {
         this.score += 1;
       }
-      if (this.currentQuestion == null) {
-        yield QuizError();
-      }
       yield QuizAnwserState(this.currentQuestion, isCorrect, event.answer);
     }
   }

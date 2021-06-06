@@ -1,6 +1,6 @@
-# mobile
-
-A new Flutter project.
+# Project Play Trivia QUIZ
+## Client mobile to consume Trivia API
+### feature available - PLAY QUIZ **API /quizzes**
 
 ## Getting Started
 
@@ -14,3 +14,22 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter, view our
 [online documentation](https://flutter.dev/docs), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+## setup
+
+set environment
+```
+setEnvironment(Environment.DEV_ANDROID_EMULATOR);
+```
+in file
+```
+lib/main.dart
+```
+case need another url set in file
+```
+lib/environment.dart
+```
+
+## RUN Test
+```
+flutter test test
+```

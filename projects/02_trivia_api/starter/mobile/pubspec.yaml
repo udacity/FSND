@@ -35,6 +35,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  mockito: any
+  build_runner: any
+  bloc_test: ^8.0.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

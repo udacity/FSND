@@ -22,7 +22,6 @@ class HomePage extends StatelessWidget {
             itemCount: state.categories.length,
             itemBuilder: (context, index) {
               final item = state.categories[index];
-
               return ListTile(
                 title: Text(item.type),
                 onTap: () {
