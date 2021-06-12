@@ -152,7 +152,7 @@ class QuizView extends Component {
           <div className="quiz-play-holder">
             <div className="quiz-question">{this.state.currentQuestion.question}</div>
             <form onSubmit={ this.submitGuess}>
-              <input type="text" name="guess" onChange={this.handleChange}/>
+              <input type="text" name="guess" class="form-input" onChange={this.handleChange}/>
               <input className="submit-guess button" type="submit" value="Submit Answer" />
             </form>
           </div>
