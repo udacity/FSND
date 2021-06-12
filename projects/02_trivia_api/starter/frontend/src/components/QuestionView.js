@@ -44,11 +44,11 @@ class QuestionView extends Component {
         'Content-Type': 'application/json;charset=utf-8'
       },
     }).then((res) => res.json())
-      .then(({questions, total_questions, current_category}) => {
+      .then(({questions, totalQuestions, currentCategory}) => {
         this.setState({
             questions: questions,
-            totalQuestions: total_questions,
-            currentCategory: current_category })
+            totalQuestions: totalQuestions,
+            currentCategory: currentCategory })
       }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
       return;
@@ -80,11 +80,11 @@ class QuestionView extends Component {
         'Content-Type': 'application/json;charset=utf-8'
       },
     }).then((res) => res.json())
-    .then(({questions, total_questions, current_category}) => {
+    .then(({questions, totalQuestions, currentCategory}) => {
       this.setState({
           questions: questions,
-          totalQuestions: total_questions,
-          currentCategory: current_category })
+          totalQuestions: totalQuestions,
+          currentCategory: currentCategory })
     }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
       return;
@@ -92,18 +92,18 @@ class QuestionView extends Component {
   }
 
   submitSearch = (searchTerm) => {
-    fetch(`/questions/search`,{
+    fetch(`/questions`,{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8'
       },
       body: JSON.stringify({searchTerm: searchTerm}),
     }).then((res) => res.json())
-    .then(({questions, total_questions, current_category}) => {
+    .then(({questions, totalQuestions, currentCategory}) => {
       this.setState({
           questions: questions,
-          totalQuestions: total_questions,
-          currentCategory: current_category })
+          totalQuestions: totalQuestions,
+          currentCategory: currentCategory })
     }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
       return;
@@ -157,7 +157,6 @@ class QuestionView extends Component {
                 key={q.id}
                 question={q.question}
                 answer={q.answer}
-
                 category={this.state.categories.find((c) => c.id == q.category)['type']} 
                 difficulty={q.difficulty}
                 questionAction={this.questionAction(q.id)}

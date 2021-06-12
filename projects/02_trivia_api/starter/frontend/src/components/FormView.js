@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import $ from 'jquery';
 
 import '../stylesheets/FormView.css';
 
@@ -16,46 +15,40 @@ class FormView extends Component {
   }
 
   componentDidMount(){
-    $.ajax({
-      url: `/categories`, //TODO: update request URL
-      type: "GET",
-      success: (result) => {
-        this.setState({ categories: result.categories })
-        return;
+    fetch('/categories',{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
       },
-      error: (error) => {
-        alert('Unable to load categories. Please try your request again')
-        return;
-      }
+    }).then((res) => res.json())
+    .then(({categories}) => {
+      this.setState({categories});
+    }).catch((error) => {
+      alert('Unable to load categories. Please try your request again')
+      return;
     })
   }
 
-
   submitQuestion = (event) => {
     event.preventDefault();
-    $.ajax({
-      url: '/questions', //TODO: update request URL
-      type: "POST",
-      dataType: 'json',
-      contentType: 'application/json',
-      data: JSON.stringify({
+    fetch(`/questions`,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify({
         question: this.state.question,
         answer: this.state.answer,
         difficulty: Number(this.state.difficulty),
         category: Number(this.state.category)
       }),
-      xhrFields: {
-        withCredentials: true
-      },
-      crossDomain: true,
-      success: (result) => {
-        document.getElementById("add-question-form").reset();
-        return;
-      },
-      error: (error) => {
+    })
+    .then( () => {
+      document.getElementById("add-question-form").reset();
+      return;
+    }).catch((error) => {
         alert('Unable to add question. Please try your request again')
         return;
-      }
     })
   }
 
