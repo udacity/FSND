@@ -53,6 +53,8 @@ div.button {
     padding: 0.3rem !important;
     border-radius: 0.5rem !important;
     border: none;
+    background-color: #ffffff24;
+    color: white;
 }
 
 .form-search-input {
@@ -68,4 +70,8 @@ div.button {
 .question-container{
     max-height: 600px;
     overflow: scroll;
+}
+
+.submit-guess {
+    margin-top: 10px;
 }

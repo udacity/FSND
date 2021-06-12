@@ -44,6 +44,6 @@ ul {
 form {
   display: flex;
   flex-direction: column;
-  width: 80%;
+  width: 10%;
   margin: auto;
 }

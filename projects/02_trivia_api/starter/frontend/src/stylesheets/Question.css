@@ -3,10 +3,11 @@
   flex-direction: row;
   background-color: #14141c;
   color: white;
+  height: 100%;
 }
 
 .categories-list {
-  flex-basis: 25%;
+  flex-basis: 15%;
   flex-shrink: 2;
 }
 
@@ -15,8 +16,10 @@
 }
 
 .questions-list {
-  flex-basis: 75%;
+  flex-basis: 85%;
   text-align: center;
+  padding-left: 1%;
+  padding-right: 1%;
 }
 
 .Question-holder {
@@ -72,7 +75,7 @@ span.page-num.active {
 
 img.category {
   width: 20px;
-  filter: invert(99%) sepia(7%) saturate(596%) hue-rotate(205deg) brightness(116%) contrast(100%);
+  filter: invert(56%) sepia(93%) saturate(1613%) hue-rotate(152deg) brightness(92%) contrast(99%);
   margin-right: 10px;
 }
 
@@ -85,6 +88,12 @@ img.delete {
 img.visible {
   width: 20px;
   filter: invert(99%) sepia(7%) saturate(596%) hue-rotate(205deg) brightness(116%) contrast(100%);
+}
+
+img.udacity-logo {
+  width: 30px;
+  height: 30px;
+  padding-right: 10px;
 }
 
 
