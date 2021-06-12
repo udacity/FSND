@@ -11,7 +11,7 @@ class FormView extends Component {
       answer: "",
       difficulty: 1,
       category: 1,
-      categories: {}
+      categories: []
     }
   }
 
@@ -41,8 +41,8 @@ class FormView extends Component {
       data: JSON.stringify({
         question: this.state.question,
         answer: this.state.answer,
-        difficulty: this.state.difficulty,
-        category: this.state.category
+        difficulty: Number(this.state.difficulty),
+        category: Number(this.state.category)
       }),
       xhrFields: {
         withCredentials: true
@@ -70,15 +70,15 @@ class FormView extends Component {
         <form className="form-view" id="add-question-form" onSubmit={this.submitQuestion}>
           <label>
             Question
-            <input type="text" name="question" onChange={this.handleChange}/>
+            <input type="text" class="form-input" name="question" onChange={this.handleChange}/>
           </label>
           <label>
             Answer
-            <input type="text" name="answer" onChange={this.handleChange}/>
+            <input type="text"  class="form-input" name="answer" onChange={this.handleChange}/>
           </label>
           <label>
             Difficulty
-            <select name="difficulty" onChange={this.handleChange}>
+            <select name="difficulty"  class="form-input" onChange={this.handleChange}>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -88,10 +88,10 @@ class FormView extends Component {
           </label>
           <label>
             Category
-            <select name="category" onChange={this.handleChange}>
-              {Object.keys(this.state.categories).map(id => {
+            <select name="category"  class="form-input" onChange={this.handleChange}>
+              {this.state.categories.map(({id, type}) => {
                   return (
-                    <option key={id} value={id}>{this.state.categories[id]}</option>
+                    <option key={id} value={id}>{type}</option>
                   )
                 })}
             </select>

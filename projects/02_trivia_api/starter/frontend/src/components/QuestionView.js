@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import '../stylesheets/App.css';
 import Question from './Question';
 import Search from './Search';
-import $ from 'jquery';
+import _ from 'lodash'
 
 class QuestionView extends Component {
   constructor(){
@@ -12,31 +12,46 @@ class QuestionView extends Component {
       questions: [],
       page: 1,
       totalQuestions: 0,
-      categories: {},
+      categories: [],
       currentCategory: null,
     }
   }
 
   componentDidMount() {
     this.getQuestions();
+    this.getCategories();
+  }
+
+  getCategories =  () => {
+    fetch('/categories',{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+    }).then((res) => res.json())
+    .then(({categories}) => {
+      this.setState({categories});
+    }).catch((error) => {
+      alert('Unable to load categories. Please try your request again')
+      return;
+    })
   }
 
   getQuestions = () => {
-    $.ajax({
-      url: `/questions?page=${this.state.page}`, //TODO: update request URL
-      type: "GET",
-      success: (result) => {
-        this.setState({
-          questions: result.questions,
-          totalQuestions: result.total_questions,
-          categories: result.categories,
-          currentCategory: result.current_category })
-        return;
+    fetch(`/questions?page=${this.state.page}`,{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
       },
-      error: (error) => {
+    }).then((res) => res.json())
+      .then(({questions, total_questions, current_category}) => {
+        this.setState({
+            questions: questions,
+            totalQuestions: total_questions,
+            currentCategory: current_category })
+      }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
-        return;
-      }
+      return;
     })
   }
 
@@ -59,99 +74,103 @@ class QuestionView extends Component {
   }
 
   getByCategory= (id) => {
-    $.ajax({
-      url: `/categories/${id}/questions`, //TODO: update request URL
-      type: "GET",
-      success: (result) => {
-        this.setState({
-          questions: result.questions,
-          totalQuestions: result.total_questions,
-          currentCategory: result.current_category })
-        return;
+    fetch(`/categories/${id}/questions`,{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
       },
-      error: (error) => {
+    }).then((res) => res.json())
+    .then(({questions, total_questions, current_category}) => {
+      this.setState({
+          questions: questions,
+          totalQuestions: total_questions,
+          currentCategory: current_category })
+    }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
-        return;
-      }
+      return;
     })
   }
 
   submitSearch = (searchTerm) => {
-    $.ajax({
-      url: `/questions`, //TODO: update request URL
-      type: "POST",
-      dataType: 'json',
-      contentType: 'application/json',
-      data: JSON.stringify({searchTerm: searchTerm}),
-      xhrFields: {
-        withCredentials: true
+    fetch(`/questions/search`,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
       },
-      crossDomain: true,
-      success: (result) => {
-        this.setState({
-          questions: result.questions,
-          totalQuestions: result.total_questions,
-          currentCategory: result.current_category })
-        return;
-      },
-      error: (error) => {
+      body: JSON.stringify({searchTerm: searchTerm}),
+    }).then((res) => res.json())
+    .then(({questions, total_questions, current_category}) => {
+      this.setState({
+          questions: questions,
+          totalQuestions: total_questions,
+          currentCategory: current_category })
+    }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
-        return;
-      }
+      return;
     })
   }
 
   questionAction = (id) => (action) => {
     if(action === 'DELETE') {
       if(window.confirm('are you sure you want to delete the question?')) {
-        $.ajax({
-          url: `/questions/${id}`, //TODO: update request URL
-          type: "DELETE",
-          success: (result) => {
-            this.getQuestions();
+        fetch(`/questions/${id}`,{
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8'
           },
-          error: (error) => {
-            alert('Unable to load questions. Please try your request again')
-            return;
-          }
         })
+        .then(() => {
+          this.getQuestions();
+        }).catch((error) => {
+            alert('Unable to load questions. Please try your request again')
+        return;
+      })
       }
     }
   }
 
   render() {
+
     return (
+      <>
       <div className="question-view">
         <div className="categories-list">
-          <h2 onClick={() => {this.getQuestions()}}>Categories</h2>
+          <h2 onClick={this.getQuestions}>Categories</h2>
           <ul>
-            {Object.keys(this.state.categories).map((id, ) => (
+            {this.state.categories.map(({id, type}) => (
               <li key={id} onClick={() => {this.getByCategory(id)}}>
-                {this.state.categories[id]}
-                <img className="category" src={`${this.state.categories[id].toLowerCase()}.svg`}/>
+                <img className="category" alt={`category-${type.toLowerCase()}`} src={`${type.toLowerCase()}.svg`}/>
+                {type}
               </li>
             ))}
           </ul>
-          <Search submitSearch={this.submitSearch}/>
         </div>
         <div className="questions-list">
           <h2>Questions</h2>
-          {this.state.questions.map((q, ind) => (
-            <Question
-              key={q.id}
-              question={q.question}
-              answer={q.answer}
-              category={this.state.categories[q.category]} 
-              difficulty={q.difficulty}
-              questionAction={this.questionAction(q.id)}
-            />
-          ))}
+            <div>
+              <Search submitSearch={this.submitSearch}/>
+            </div>
+            <div class="question-container">
+              {!_.isEmpty(this.state.categories) && this.state.questions.map((q) => {
+            return (
+              <Question
+                key={q.id}
+                question={q.question}
+                answer={q.answer}
+
+                category={this.state.categories.find((c) => c.id == q.category)['type']} 
+                difficulty={q.difficulty}
+                questionAction={this.questionAction(q.id)}
+              />
+            )})}
+            </div>
           <div className="pagination-menu">
             {this.createPagination()}
           </div>
         </div>
 
       </div>
+      </>
     );
   }
 }
