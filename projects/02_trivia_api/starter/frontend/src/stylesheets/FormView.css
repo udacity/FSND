@@ -1,7 +1,19 @@
+.form-view {
+  width: 20%;
+  display: flex;
+  justify-content: space-between;
+}
+
+
 .form-view > label {
   padding: 0px 0px 10px;
+  display: flex;
+  justify-content: space-between;
 }
 
 #add-form {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
