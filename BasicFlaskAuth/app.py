@@ -4,12 +4,13 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-
 app = Flask(__name__)
 
-AUTH0_DOMAIN = @TODO_REPLACE_WITH_YOUR_DOMAIN
+AUTH0_DOMAIN = 'fsnd-saylesc.us.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = @TODO_REPLACE_WITH_YOUR_API_AUDIENCE
+API_AUDIENCE = 'https://fsnd-auth'
+AUTHORIZATION = 'Authorization'
+BEARER = 'bearer'
 
 
 class AuthError(Exception):
@@ -21,7 +22,7 @@ class AuthError(Exception):
 def get_token_auth_header():
     """Obtains the Access Token from the Authorization Header
     """
-    auth = request.headers.get('Authorization', None)
+    auth = request.headers.get(AUTHORIZATION, None)
     if not auth:
         raise AuthError({
             'code': 'authorization_header_missing',
@@ -29,7 +30,7 @@ def get_token_auth_header():
         }, 401)
 
     parts = auth.split()
-    if parts[0].lower() != 'bearer':
+    if parts[0].lower() != BEARER:
         raise AuthError({
             'code': 'invalid_header',
             'description': 'Authorization header must start with "Bearer".'
