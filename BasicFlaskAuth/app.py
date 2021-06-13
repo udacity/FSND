@@ -109,7 +109,7 @@ def check_permissions(permission, payload):
     if 'permissions' not in payload:
         abort(400)
     
-    if permission not in payload['permission']:
+    if permission not in payload['permissions']:
         # Permission not allowed
         abort(403)
 
@@ -119,8 +119,8 @@ def requires_auth(permission=''):
     def requires_auth_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            token = get_token_auth_header()
             try:
+                token = get_token_auth_header()
                 payload = verify_decode_jwt(token)
             except:
                 abort(401)
@@ -133,7 +133,7 @@ def requires_auth(permission=''):
         return wrapper
     return requires_auth_decorator
 
-@app.route('/image')
+@app.route('/images')
 @requires_auth('get:images')
 def headers(payload):
     print(payload)
