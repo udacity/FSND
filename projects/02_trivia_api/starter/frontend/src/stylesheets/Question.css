@@ -27,8 +27,8 @@
 .Question-status {
   display: flex;
   flex-direction: row;
-  height: 30px;
-  width: 200px;
+  height: 60px;
+  width: 250px;
   align-items: center;
   justify-content: space-between;
 }
@@ -53,7 +53,11 @@
   margin-left: 0px !important;
 }
 
-span.page-num {
+button.page-num {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  
   margin: 5px;
   padding-bottom: 50px;
   /* color: blue; */
@@ -62,7 +66,7 @@ span.page-num {
   font-size: 16px;
 }
 
-span.page-num.active {
+button.page-num.active {
   color: blue;
 }
 
@@ -73,3 +77,5 @@ img.category {
 img.delete {
   width: 20px;
 }
+
+/* li > a { color: #f4ba51 ; } */

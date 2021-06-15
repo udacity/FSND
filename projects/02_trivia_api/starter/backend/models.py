@@ -6,10 +6,9 @@ import config
 from dataclasses import dataclass
 
 
-database_name = "trivia"
+# database_name = "trivia"
 database_path = config.DATABASE_URI
-# database_path = "postgres://{}/{}".format(
-#     'postgres:Ran!dom101@localhost:5432', database_name)
+# database_path = "postgresql://{}/{}".format(database_path, database_name)
 
 db = SQLAlchemy()
 
@@ -22,7 +21,7 @@ def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
-    db.create_all()
+    # db.create_all()
 
 
 def db_insert(model_obj):
@@ -47,7 +46,7 @@ class Question(db.Model):
     id = Column(Integer, primary_key=True)
     question = Column(String)
     answer = Column(String)
-    category = Column(String)
+    category = Column(Integer)
     difficulty = Column(Integer)
 
     def __init__(self, question, answer, category, difficulty):
@@ -97,3 +96,4 @@ class Category(db.Model):
             'id': self.id,
             'type': self.type
         }
+
