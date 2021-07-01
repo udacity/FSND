@@ -6,8 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
 import random
 import json
-import config
 from models import db, setup_db, Question, Category
+import config
 
 QUESTIONS_PER_PAGE = 10
 
@@ -42,8 +42,8 @@ def create_app(test_config=None):
     # CORS Headers
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, PATCH, POST, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
         return response
 
     
@@ -53,6 +53,7 @@ def create_app(test_config=None):
     def hello_world():
         return 'Hello, World!'
 
+    # helper function
     def get_category_names():
         all_categories = Category.query.order_by(Category.type.asc()).all()
         category_names = [c.format() for c in all_categories]
@@ -81,7 +82,6 @@ def create_app(test_config=None):
     Clicking on the page numbers should update the questions. 
     '''
     @app.route(f'/api/{app_version}/questions', methods=['GET'])
-    # @cross_origin()
     def get_questions():
         # page default value of 1
         page = request.args.get('page', 1, type=int)
@@ -102,7 +102,6 @@ def create_app(test_config=None):
 
 
     '''
-    @TODO: 
     Create an endpoint to DELETE question using a question ID. 
 
     TEST: When you click the trash icon next to a question, the question will be removed.
@@ -116,14 +115,13 @@ def create_app(test_config=None):
         else:
             try:
                 question.delete()
-                # db.session.delete(question)
-                # db.session.commit()
-                # do i need this refresh?
-                # db.session.refresh(question)
+                db.session.commit()
+                db.session.refresh(question)
             except:
                 db.session.rollback()
                 abort(500)
             finally:
+
                 if question is None:
                     abort(404)
                 else:
@@ -132,7 +130,6 @@ def create_app(test_config=None):
 
 
     '''
-    @TODO: 
     Create an endpoint to POST a new question, 
     which will require the question and answer text, 
     category, and difficulty score.
@@ -151,17 +148,16 @@ def create_app(test_config=None):
         try:
             db.session.add(new_question)
             db.session.commit()
+            db.session.refresh(new_question)
         except:
             db.session.rollback()
         finally:
-            db.session.refresh(new_question)
+            data = {
+                'success': True,
+                'qid': new_question.id
+            }
 
-        data = {
-            'success': True,
-            'qid': new_question.id
-        }
-
-        return jsonify(data)
+            return jsonify(data)
 
 
     '''
@@ -211,9 +207,7 @@ def create_app(test_config=None):
         return jsonify(data)
 
 
-
     '''
-    @TODO: 
     Create a POST endpoint to get questions to play the quiz. 
     This endpoint should take category and previous question parameters 
     and return a random questions within the given category, 
@@ -225,26 +219,42 @@ def create_app(test_config=None):
     '''
     @app.route(f'/api/{app_version}/quizzes', methods=['POST'])
     def get_quiz():
+        total_questions = 0
+        query = None
+        
         request_data = json.loads(request.data)
 
-        previous_questions = request_data.get('previous_questions')
-        
-        category = request_data.get('quiz_category')
-        category_id = category.get(id)
+        # filter by category if provided
+        quiz_category = request_data.get('quiz_category')
+        category_id = None
+        if quiz_category is not None:
+            category_id = quiz_category.get('id')
 
-        questions = Question.query.filter(Question.category==category_id).order_by(Question.difficulty.asc())
+        if category_id is not None:
+            query = Question.query.filter(Question.category == category_id)
+            total_questions = len(query.all())
+
+        # filter by previously unanswered questions only
+        previous_questions = request_data.get('previous_questions')
+        unanswered_questions = None
+        if previous_questions is not None:
+            unanswered_questions = query.filter(Question.id.notin_(previous_questions)).all()
+
+        # select random one from previously unanswered questions
+        random_question = None
+        if len(unanswered_questions) > 0:
+            random_question = unanswered_questions[random.randint(0, len(unanswered_questions))]
 
         data = {
-            "questions": [q.format() for q in questions],
-            "total_questions": questions.count(), 
+            "question": random_question.format() if random_question is not None else '',
+            "total_questions": total_questions, 
             "categories": get_category_names(),
-            "current_category": ""
+            "current_category": category_id,
         }
         return jsonify(data)
 
 
     '''
-    @TODO: 
     Create error handlers for all expected errors 
     including 404 and 422. 
     '''
