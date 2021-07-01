@@ -63,7 +63,8 @@ CREATE TABLE public.questions (
     question text,
     answer text,
     difficulty integer,
-    category integer
+    category integer,
+    created_at timestamp with time zone
 );
 
 
@@ -123,26 +124,26 @@ COPY public.categories (id, type) FROM stdin;
 -- Data for Name: questions; Type: TABLE DATA; Schema: public; Owner: caryn
 --
 
-COPY public.questions (id, question, answer, difficulty, category) FROM stdin;
-5	Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?	Maya Angelou	2	4
-9	What boxer's original name is Cassius Clay?	Muhammad Ali	1	4
-2	What movie earned Tom Hanks his third straight Oscar nomination, in 1996?	Apollo 13	4	5
-4	What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?	Tom Cruise	4	5
-6	What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?	Edward Scissorhands	3	5
-10	Which is the only team to play in every soccer World Cup tournament?	Brazil	3	6
-11	Which country won the first ever soccer World Cup in 1930?	Uruguay	4	6
-12	Who invented Peanut Butter?	George Washington Carver	2	4
-13	What is the largest lake in Africa?	Lake Victoria	2	3
-14	In which royal palace would you find the Hall of Mirrors?	The Palace of Versailles	3	3
-15	The Taj Mahal is located in which Indian city?	Agra	2	3
-16	Which Dutch graphic artist–initials M C was a creator of optical illusions?	Escher	1	2
-17	La Giaconda is better known as what?	Mona Lisa	3	2
-18	How many paintings did Van Gogh sell in his lifetime?	One	4	2
-19	Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?	Jackson Pollock	2	2
-20	What is the heaviest organ in the human body?	The Liver	4	1
-21	Who discovered penicillin?	Alexander Fleming	3	1
-22	Hematology is a branch of medicine involving the study of what?	Blood	4	1
-23	Which dung beetle was worshipped by the ancient Egyptians?	Scarab	4	4
+COPY public.questions (id, question, answer, difficulty, category, created_at) FROM stdin;
+5	Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?	Maya Angelou	2	4	2021-06-30T20:18:46.656058-07:00
+9	What boxer's original name is Cassius Clay?	Muhammad Ali	1	4	2021-06-30T20:17:46.656058-07:00
+2	What movie earned Tom Hanks his third straight Oscar nomination, in 1996?	Apollo 13	4	5	2021-06-30T20:16:46.656058-07:00
+4	What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?	Tom Cruise	4	5	2021-06-30T20:15:46.656058-07:00
+6	What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?	Edward Scissorhands	3	5	2021-06-30T20:14:46.656058-07:00
+10	Which is the only team to play in every soccer World Cup tournament?	Brazil	3	6	2021-06-30T20:13:46.656058-07:00
+11	Which country won the first ever soccer World Cup in 1930?	Uruguay	4	6	2021-06-30T20:12:46.656058-07:00
+12	Who invented Peanut Butter?	George Washington Carver	2	4	2021-06-30T20:11:46.656058-07:00
+13	What is the largest lake in Africa?	Lake Victoria	2	3	2021-06-30T20:10:46.656058-07:00
+14	In which royal palace would you find the Hall of Mirrors?	The Palace of Versailles	3	3	2021-06-30T20:09:46.656058-07:00
+15	The Taj Mahal is located in which Indian city?	Agra	2	3	2021-06-30T20:08:46.656058-07:00
+16	Which Dutch graphic artist–initials M C was a creator of optical illusions?	Escher	1	2	2021-06-30T20:06:46.656058-07:00
+17	La Giaconda is better known as what?	Mona Lisa	3	2	2021-06-30T20:04:46.656058-07:00
+18	How many paintings did Van Gogh sell in his lifetime?	One	4	2	2021-06-30T20:03:46.656058-07:00
+19	Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?	Jackson Pollock	2	2	2021-06-30T20:02:46.656058-07:00
+20	What is the heaviest organ in the human body?	The Liver	4	1	2021-06-30T20:01:46.656058-07:00
+21	Who discovered penicillin?	Alexander Fleming	3	1	2021-06-30T19:18:46.656058-07:00
+22	Hematology is a branch of medicine involving the study of what?	Blood	4	1	2021-06-30T19:17:46.656058-07:00
+23	Which dung beetle was worshipped by the ancient Egyptians?	Scarab	4	4	2021-06-30T19:11:46.656058-07:00
 \.
 
 

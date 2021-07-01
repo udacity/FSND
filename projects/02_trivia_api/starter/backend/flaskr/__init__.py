@@ -88,7 +88,7 @@ def create_app(test_config=None):
         start = (page - 1) * 10
         end = start + 10
 
-        all_questions = db.session.query(Question, Category).join(Category, Question.category == Category.id).order_by(Question.difficulty.asc())
+        all_questions = db.session.query(Question, Category).join(Category, Question.category == Category.id).order_by(Question.created_at.desc())
         questions = [q.Question.format() for q in all_questions[start:end]]
 
         data = {
@@ -135,7 +135,7 @@ def create_app(test_config=None):
     category, and difficulty score.
 
     TEST: When you submit a question on the "Add" tab, 
-    the form will clear and the question will appear at the end of the last page
+    the form will clear and the question will appear at the top of the first page
     of the questions list in the "List" tab.  
     '''
     @app.route(f'/api/{app_version}/questions', methods=['POST'])

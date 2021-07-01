@@ -1,14 +1,13 @@
+from datetime import timezone
 import os
-from sqlalchemy import Column, String, Integer, create_engine
+from sqlalchemy import Column, String, Integer, DateTime, create_engine
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 import json
 import config
 from dataclasses import dataclass
 
-
-# database_name = "trivia"
 database_path = config.DATABASE_URI
-# database_path = "postgresql://{}/{}".format(database_path, database_name)
 
 db = SQLAlchemy()
 
@@ -48,12 +47,14 @@ class Question(db.Model):
     answer = Column(String)
     category = Column(Integer)
     difficulty = Column(Integer)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     def __init__(self, question, answer, category, difficulty):
         self.question = question
         self.answer = answer
         self.category = category
         self.difficulty = difficulty
+        self.created_at = func.now()
 
     def insert(self):
         db.session.add(self)
