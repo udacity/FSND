@@ -161,7 +161,6 @@ def create_app(test_config=None):
 
 
     '''
-    @TODO: 
     Create a POST endpoint to get questions based on a search term. 
     It should return any questions for whom the search term 
     is a substring of the question. 
@@ -174,7 +173,7 @@ def create_app(test_config=None):
     @cross_origin()
     def search_questions():
         searchTerm = json.loads(request.data).get('searchTerm')
-        results = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).order_by(Question.difficulty.asc()).all()
+        results = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).order_by(Question.created_at.desc()).all()
         questions = [q.format() for q in results]
 
         data = {
@@ -187,7 +186,6 @@ def create_app(test_config=None):
         return jsonify(data)
 
     '''
-    @TODO: 
     Create a GET endpoint to get questions based on category. 
 
     TEST: In the "List" tab / main screen, clicking on one of the 
@@ -196,7 +194,7 @@ def create_app(test_config=None):
     '''
     @app.route(f'/api/{app_version}/categories/<int:category_id>/questions', methods=['GET'])
     def get_category_questions(category_id):
-        questions = Question.query.filter(Question.category==category_id).order_by(Question.difficulty.asc())
+        questions = Question.query.filter(Question.category==category_id).order_by(Question.created_at.desc())
         category = Category.query.filter(Category.id==category_id).one_or_none()
         data = {
             "questions": [q.format() for q in questions],
@@ -212,7 +210,7 @@ def create_app(test_config=None):
     This endpoint should take category and previous question parameters 
     and return a random questions within the given category, 
     if provided, and that is not one of the previous questions. 
-
+ 
     TEST: In the "Play" tab, after a user selects "All" or a category,
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not. 
@@ -228,7 +226,7 @@ def create_app(test_config=None):
         quiz_category = request_data.get('quiz_category')
         category_id = None
         if quiz_category is not None:
-            category_id = quiz_category.get('id')
+            category_id = quiz_category.get('id')    
 
         if category_id is not None:
             query = Question.query.filter(Question.category == category_id)
@@ -243,7 +241,7 @@ def create_app(test_config=None):
         # select random one from previously unanswered questions
         random_question = None
         if len(unanswered_questions) > 0:
-            random_question = unanswered_questions[random.randint(0, len(unanswered_questions))]
+            random_question = unanswered_questions[random.randint(0, len(unanswered_questions)-1)]
 
         data = {
             "question": random_question.format() if random_question is not None else '',
