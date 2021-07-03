@@ -58,6 +58,7 @@ def create_app(test_config=None):
         category_names = [c.format() for c in all_categories]
         return category_names
 
+
     '''
     Create an endpoint to handle GET requests
     for all available categories.
@@ -227,9 +228,12 @@ def create_app(test_config=None):
         if quiz_category is not None:
             category_id = quiz_category.get('id')    
 
-        if category_id is not None:
+        if category_id > 0:
             query = Question.query.filter(Question.category == category_id)
-            total_questions = len(query.all())
+        else:
+            query = Question.query
+            
+        total_questions = len(query.all())
 
         # filter by previously unanswered questions only
         previous_questions = request_data.get('previous_questions')
