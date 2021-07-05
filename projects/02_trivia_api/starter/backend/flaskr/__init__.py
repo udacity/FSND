@@ -65,9 +65,12 @@ def create_app(test_config=None):
     '''
     @app.route(f'/api/{app_version}/categories', methods=['GET'])
     def get_categories():
-        category_names = get_category_names()
-
-        return jsonify(categories=category_names)
+        try: 
+            category_names = get_category_names()
+        except:
+            abort(422)
+        finally:
+            return jsonify(categories=category_names)
 
 
     '''
@@ -141,9 +144,11 @@ def create_app(test_config=None):
     @app.route(f'/api/{app_version}/questions', methods=['POST'])
     def create_questions():
         # page default value of 1
-        question = json.loads(request.data)
-
-        new_question = Question(**question)
+        try:
+            question = json.loads(request.data)
+            new_question = Question(**question)
+        except:
+            abort(400)
 
         try:
             db.session.add(new_question)
@@ -151,6 +156,7 @@ def create_app(test_config=None):
             db.session.refresh(new_question)
         except:
             db.session.rollback()
+            abort(422)
         finally:
             data = {
                 'success': True,
@@ -172,10 +178,13 @@ def create_app(test_config=None):
     @app.route(f'/api/{app_version}/search/questions', methods=['POST'])
     @cross_origin()
     def search_questions():
-        searchTerm = json.loads(request.data).get('searchTerm')
-        results = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).order_by(Question.created_at.desc()).all()
-        questions = [q.format() for q in results]
-
+        try:
+            searchTerm = json.loads(request.data).get('searchTerm')
+            results = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).order_by(Question.created_at.desc()).all()
+            questions = [q.format() for q in results]
+        except:
+            abort(422)
+        
         data = {
             "questions": questions,
             "total_questions": len(questions), 
@@ -220,40 +229,46 @@ def create_app(test_config=None):
         total_questions = 0
         query = None
         
-        request_data = json.loads(request.data)
+        try:
+            request_data = json.loads(request.data)
+            # filter by category if provided
+            quiz_category = request_data.get('quiz_category')
+        except:
+            abort(400)
 
-        # filter by category if provided
-        quiz_category = request_data.get('quiz_category')
-        category_id = None
-        if quiz_category is not None:
-            category_id = quiz_category.get('id')    
+        try:
+            category_id = None
+            if quiz_category is not None:
+                category_id = quiz_category.get('id')    
 
-        if category_id > 0:
-            query = Question.query.filter(Question.category == category_id)
-        else:
-            query = Question.query
-            
-        total_questions = len(query.all())
+            if category_id > 0:
+                query = Question.query.filter(Question.category == category_id)
+            else:
+                query = Question.query
+                
+            total_questions = len(query.all())
 
-        # filter by previously unanswered questions only
-        previous_questions = request_data.get('previous_questions')
-        unanswered_questions = None
-        if previous_questions is not None:
-            unanswered_questions = query.filter(Question.id.notin_(previous_questions)).all()
+            # filter by previously unanswered questions only
+            previous_questions = request_data.get('previous_questions')
+            unanswered_questions = None
+            if previous_questions is not None:
+                unanswered_questions = query.filter(Question.id.notin_(previous_questions)).all()
 
-        # select random one from previously unanswered questions
-        random_question = None
-        if len(unanswered_questions) > 0:
-            random_question = unanswered_questions[random.randint(0, len(unanswered_questions)-1)]
+            # select random one from previously unanswered questions
+            random_question = None
+            if len(unanswered_questions) > 0:
+                random_question = unanswered_questions[random.randint(0, len(unanswered_questions)-1)]
 
-        data = {
-            "question": random_question.format() if random_question is not None else '',
-            "total_questions": total_questions, 
-            "categories": get_category_names(),
-            "current_category": category_id,
-        }
-        return jsonify(data)
+            data = {
+                "question": random_question.format() if random_question is not None else '',
+                "total_questions": total_questions, 
+                "categories": get_category_names(),
+                "current_category": category_id,
+            }
+            return jsonify(data)
 
+        except: 
+            abort(422)
 
     '''
     Create error handlers for all expected errors 
@@ -289,6 +304,6 @@ def create_app(test_config=None):
             "success": False,
             "error": 500,
             "message": "Internal error"
-        }), 422
+        }), 500
 
     return app
