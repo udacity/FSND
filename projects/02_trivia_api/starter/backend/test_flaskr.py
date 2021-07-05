@@ -34,7 +34,7 @@ class TriviaTestCase(unittest.TestCase):
         """Executed after reach test"""
         # psql_command = "psql -U postgres -d {} -f trivia_teardown.psql".format(self.database_name)
         # subprocess.call(psql_command)
-        pass
+        # pass
 
     """
     TODO
@@ -56,13 +56,23 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'][0]['id'])
 
     def test_get_paginated_questions(self):
-        res = self.client().get('/api/v1.0/questions')
+        res = self.client().get('/api/v1.0/questions?page=2')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['total_questions'])
+        self.assertEqual(data['total_questions'], 19)
         self.assertTrue(len(data['questions']))
+        self.assertEqual(len(data['questions']), 9)
         self.assertTrue(data['categories'])
+
+    def test_zero_questions_returned_when_requesting_beyond_valid_page(self):
+        res = self.client().get('/api/v1.0/questions?page=1000')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(data['questions']), 0)
+        self.assertTrue(data['total_questions'])
 
     def test_delete_question(self):
         question = Question.query.first()
@@ -77,13 +87,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], "Deleted {}".format(question.id))
         self.assertEqual(after_question, None)
         
-    def test_zero_questions_returned_when_requesting_beyond_valid_page(self):
-        res = self.client().get('/api/v1.0/questions?page=1000')
+    def test_delete_invalid_question(self):
+        res = self.client().delete('/api/v1.0/questions/{}'.format(999999))
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(len(data['questions']), 0)
-        self.assertTrue(data['total_questions'])
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], "Resource not found.")
 
     new_question = {
         'question': "What is the answer?",
@@ -103,6 +113,16 @@ class TriviaTestCase(unittest.TestCase):
         qid = data['qid']
         question = Question.query.filter(Question.id==qid).first()
         self.assertEquals(question.question, 'What is the answer?')
+
+
+    def test_create_invalid_question(self):
+        res = self.client().post('/api/v1.0/questions', json={})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEquals(data['message'], 'Bad request due to invalid syntax.')
+
 
     def test_get_questions_in_category(self):
         cat_id = 3
@@ -135,6 +155,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'])
         self.assertEqual(data['current_category'], cat_id)
 
+    def test_get_quiz_fails(self):
+        res = self.client().post('/api/v1.0/quizzes', json={})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        
     def test_get_previously_unanswered_quiz_question(self):
         cat_id = 4
 
@@ -167,6 +194,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['total_questions'], len(matches))
         self.assertTrue(data['categories'])
         self.assertEqual(data['current_category'], '')
+
+    def test_search_questions_no_result(self):
+        res = self.client().post('/api/v1.0/search/questions', json={})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(data['questions']), 0)
+        self.assertEqual(data['total_questions'], 0)
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
