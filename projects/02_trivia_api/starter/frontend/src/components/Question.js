@@ -18,17 +18,17 @@ class Question extends Component {
 
     return (
       <div className="Question-holder">
-        <div class="question-category">
+        <div className="question-category">
           <img className="category" alt="category" src={`${category.toLowerCase()}.svg`}/>
           <div className="Question">{question}</div>
           <div className="question-actions">
-            <div class="difficulty">
+            <div className="difficulty">
               <img className="category" alt="category" src="progress-bar.png"/>
               Difficulty: {difficulty}
             </div>
             <div
               onClick={() => this.flipVisibility()}>
-              <img src={this.state.visibleAnswer?'no-visible.png':'visible.png'} class="visible" alt="visibility" />
+              <img src={this.state.visibleAnswer?'no-visible.png':'visible.png'} className="visible" alt="visibility" />
             </div>
             <img src="delete.svg" className="delete" alt="delete"  onClick={() => this.props.questionAction('DELETE')}/>
           </div>

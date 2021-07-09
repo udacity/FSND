@@ -12,7 +12,7 @@ class Header extends Component {
     return (
       <div className="App-header">
         <h1 onClick={() => {this.navTo('')}}>
-          <img src="udacity-logo.svg" class="udacity-logo" alt="udacity-logo" />
+          <img src="udacity-logo.svg" className="udacity-logo" alt="udacity-logo" />
           Udacitrivia
         </h1>
         <h2 onClick={() => {this.navTo('')}}>List</h2>

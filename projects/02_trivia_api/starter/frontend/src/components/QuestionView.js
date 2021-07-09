@@ -46,9 +46,9 @@ class QuestionView extends Component {
     }).then((res) => res.json())
       .then(({questions, totalQuestions, currentCategory}) => {
         this.setState({
-            questions: questions,
-            totalQuestions: totalQuestions,
-            currentCategory: currentCategory })
+            questions,
+            totalQuestions,
+            currentCategory })
       }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
       return;
@@ -82,9 +82,9 @@ class QuestionView extends Component {
     }).then((res) => res.json())
     .then(({questions, totalQuestions, currentCategory}) => {
       this.setState({
-          questions: questions,
-          totalQuestions: totalQuestions,
-          currentCategory: currentCategory })
+          questions,
+          totalQuestions,
+          currentCategory })
     }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
       return;
@@ -101,9 +101,9 @@ class QuestionView extends Component {
     }).then((res) => res.json())
     .then(({questions, totalQuestions, currentCategory}) => {
       this.setState({
-          questions: questions,
-          totalQuestions: totalQuestions,
-          currentCategory: currentCategory })
+          questions,
+          totalQuestions,
+          currentCategory })
     }).catch((error) => {
         alert('Unable to load questions. Please try your request again')
       return;
@@ -150,7 +150,7 @@ class QuestionView extends Component {
             <div>
               <Search submitSearch={this.submitSearch}/>
             </div>
-            <div class="question-container">
+            <div className="question-container">
               {!_.isEmpty(this.state.categories) && this.state.questions.map((q) => {
             return (
               <Question
