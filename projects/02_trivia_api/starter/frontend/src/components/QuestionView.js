@@ -157,7 +157,7 @@ class QuestionView extends Component {
                 key={q.id}
                 question={q.question}
                 answer={q.answer}
-                category={this.state.categories.find((c) => c.id == q.category)['type']} 
+                category={this.state.categories.find((c) => c.id === q.category)['type']} 
                 difficulty={q.difficulty}
                 questionAction={this.questionAction(q.id)}
               />
