@@ -1,7 +1,9 @@
 from datetime import datetime
-from flask_wtf import Form
+from flask_wtf import FlaskForm as Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
 from wtforms.validators import DataRequired, AnyOf, URL
+import re
+# from app import Genre, State
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -16,7 +18,28 @@ class ShowForm(Form):
         default= datetime.today()
     )
 
+def is_valid_phone(number):
+    regex = re.compile('^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$')
+    return regex.match(number)
+
 class VenueForm(Form):
+
+    # def validate(self):
+    #     rv = Form.validate(self)
+    #     if not rv:
+    #         return False
+    #     if not is_valid_phone(self.phone.data):
+    #         self.phone.errors.append('Invalid phone.')
+    #         return False
+    #     if not set(self.genres.data).issubset(dict(Genre.choices()).keys()):
+    #         self.genres.errors.append('Invalid genres.')
+    #         return False
+    #     if self.state.data not in dict(State.choices()).keys():
+    #         self.state.errors.append('Invalid state.')
+    #         return False
+    #     # if pass validation
+    #     return True
+
     name = StringField(
         'name', validators=[DataRequired()]
     )

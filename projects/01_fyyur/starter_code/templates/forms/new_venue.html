@@ -2,7 +2,7 @@
 {% block title %}New Venue{% endblock %}
 {% block content %}
   <div class="form-wrapper">
-    <form method="post" class="form">
+    <form method="post" class="form" action="/venues/create">
       <h3 class="form-heading">List a new venue <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
       <div class="form-group">
         <label for="name">Name</label>
@@ -50,7 +50,7 @@
 
        <div class="form-group">
              <label for="seeking_talent">Looking for Talent</label>
-             {{ form.seeking_talent(class_ = 'form-control', placeholder='Venue', autofocus = true) }}
+             {{ form.seeking_talent(placeholder='Venue', autofocus = true) }}
        </div>
 
        <div class="form-group">

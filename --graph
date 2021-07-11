@@ -1,0 +1,86 @@
+[33ma30dde0[m[33m ([m[1;36mHEAD -> [m[1;32mpr/134[m[33m, [m[1;31mgithub-desktop-iMishaDev/feat/general-frontend-enhancement[m[33m)[m removing consoles and cleanup
+[33m0995ad2[m code enhancment
+[33m1c1184a[m update readme to include seeder.py option
+[33m750cec2[m applying the css classes
+[33m8e1b546[m adding udacity logo and enhance forms design
+[33m53d7983[m add seeder.py file
+[33m4b1c419[m use fetch in formView
+[33m3383255[m ehnance the ui andadding new assets
+[33m4a014b7[m refactor components and use fetch to fetch data instead of jquery
+[33m0af82a3[m enhance App.js
+[33m1b2682a[m remove jquery, update react  and add fetch, lodash
+[33m66d2a59[m[33m ([m[1;31mgithub-desktop-iMishaDev/fix/seeking_venue_checkbox[m[33m)[m fix seeking venue checkbox style
+[33m9dd6b2f[m[33m ([m[1;31mgithub-desktop-iMishaDev/master[m[33m)[m Merge pull request #127 from anjalikul/anjalikul-patch-1
+[33m95a0366[m Update README.md
+[33maa75416[m Update manual.yml
+[33m21242f2[m Update .gitignore
+[33mfc2ff6b[m Create manual.yml
+[33mfcb79ca[m Update README, Trivia project
+[33m29f974b[m Merge pull request #125 from udacity/2021-course-maintenance
+[33m684cd4c[m Update README.md
+[33m238a0e8[m update dependency versions
+[33m5767835[m 401 for public, 403 for nopermissions
+[33mec19514[m Update README.md
+[33me253bff[m Merge pull request #78 from hadi-alnehlawi/master
+[33m63353b9[m Merge pull request #97 from KhogaEslam/patch-1
+[33m4310f6a[m Merge branch 'master' into patch-1
+[33m1d89e21[m Merge pull request #33 from Dev-Nebe/patch-1
+[33md74e8df[m Merge branch 'master' into patch-1
+[33m81db346[m Update app.py
+[33me024c11[m Update Question.js
+[33mfbd33fe[m Update QuestionView.js
+[33me698dd2[m Update Werkzeug package. Refer https://stackoverflow.com/questions/60140174/basic-flask-app-not-running-typeerror-required-field-type-ignores-missing-fr
+[33m8ef63d6[m Merge pull request #19 from ivanolmo/ivanolmo-patch-1
+[33mdd66d44[m Merge pull request #93 from sameh-farouk/patch-1
+[33me5f1db9[m Update requirements.txt
+[33ma08260b[m Merge pull request #85 from BenMini/master
+[33me280684[m Merge pull request #117 from robinlamb/master
+[33m25ff47d[m Fix format_datetime method
+[33ma67dbf5[m Add edit button to show_venue.html
+[33me0a9e82[m Add edit button to show_artist.html
+[33m5a7a012[m Fix edit_venue.html
+[33ma8da1d8[m Fix edit_artist.html
+[33mf211510[m Fix broken form and add missing fields
+[33m0f888c6[m Add missing fields to forms.py
+[33m7c8008f[m Add missing fields to new_artist.html
+[33m3f5d68c[m Update new_artist.html
+[33mb72eed6[m Update README.md
+[33m5be3bb9[m bugfix/evaluating-quiz-answers-fix
+[33me9c096d[m Update README.md
+[33m6b73e64[m Update README.md
+[33m0fca231[m fix: Readme typos
+[33m3e7813c[m fix: Fixed typos in readme
+[33m487b1a2[m add one demo record in the table at running db_drop_and_create_all()
+[33m1fcef0f[m docs: Fixed errors in README.md
+[33m1804c34[m Change second endpoint to show correct response
+[33mee22b4e[m Typo fix
+[33mdabb506[m Typo fix
+[33ma9ba439[m Merge pull request #16 from amyhua/patch-2
+[33m618efba[m Remove reference to 'models.py' in README
+[33m8fbf35d[m Merge pull request #15 from amyhua/patch-1
+[33ma4f60d3[m Update README.md
+[33m6a68c43[m Create test_app.py
+[33m03835e3[m Create setup.sh
+[33m8bd166d[m Create models.py
+[33m412c7ce[m added capstone starter code
+[33m1a4ea3a[m Add Fyyur project starter code.
+[33medfdb2c[m Update Trivia API back-end README to correct the directory (from src to backend).
+[33m4844bf1[m lodash upgrade
+[33me1c9dab[m Merge branch 'master' of https://github.com/udacity/FSND
+[33mbbcd3d1[m Add starter code for trivia API project
+[33mfd2bd57[m BasicFlaskAuthFollowAlong
+[33m74c19a1[m Update testing step
+[33m9550089[m Delete .DS_Store
+[33mce80931[m Delete .DS_Store
+[33mdf9e2d8[m Delete .DS_Store
+[33ma18582d[m Add gitignore
+[33mdef644f[m Update gitignore
+[33me427618[m Add starter code for coffee shop full stack
+[33m5304ac3[m fixed js redir
+[33m4a38f72[m obfuscated js and console note
+[33mae90804[m Update README.md
+[33m62af981[m Set up site
+[33md7b7c22[m Set theme jekyll-theme-minimal
+[33mdeb7024[m FlaskRecap
+[33mf53f3fb[m local storage exercise
+[33mef6ca3d[m Initial commit
