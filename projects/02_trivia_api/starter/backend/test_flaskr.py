@@ -14,8 +14,7 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
-        self.database_path = "postgres://{}/{}".format('localhost:5432', self.database_name)
+        self.database_path = 'postgresql://postgres:1234@localhost:5432/trivia_test'
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context
@@ -67,7 +66,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
 
     def test_404_if_question_does_not_exist(self):
-        res = self.client().delete('/questions/1000')
+        res = self.client().delete('/questions/500')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -90,7 +89,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_search_question_with_results(self):
         res = self.client().post('/questions/search',
-                                    json={'searchTerm': 'city'})
+                                    json={'searchTerm': 'Peanut'})
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -101,7 +100,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_search_question_without_results(self):
         res = self.client().post('/questions/search',
-                                    json={'searchTerm': 'asrar'})
+                                    json={'searchTerm': 'susuki'})
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -112,7 +111,7 @@ class TriviaTestCase(unittest.TestCase):
 
     # get questions by category
 
-    def test_retrieve_questions_by_category(self):
+    def test_questions_category(self):
         res = self.client().get('/categories/1/questions')
         data = json.loads(res.data)
 
@@ -124,8 +123,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'])
         res = self.client().get('/categories')
 
-    def test_404_retrieve_questions_by_category(self):
-        res = self.client().get('/categories/10/questions')
+    def test_404_questions_category(self):
+        res = self.client().get('/categories/12/questions')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -137,8 +136,8 @@ class TriviaTestCase(unittest.TestCase):
 
     # play quizze
 
-    def test_play_quizze_if_category_all(self):
-        res = self.client().post('/quizzes',
+    def test_play_category_all(self):
+        res = self.client().post('/play',
                                     json={'previous_questions': [], 'quiz_category': {'type': "all", 'id': 0}})
         data = json.loads(res.data)
 
@@ -148,8 +147,8 @@ class TriviaTestCase(unittest.TestCase):
 
     # test other categories
 
-    def test_play_quizze_if_category_not_all(self):
-        res = self.client().post('/quizzes',
+    def test_play_category(self):
+        res = self.client().post('/play',
                                     json={'previous_questions': [5, 7], 'quiz_category': {'type': "Science", 'id': 1}})
         data = json.loads(res.data)
 
@@ -157,8 +156,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['question'])
 
-    def test_404_if_playing_quizze_fails(self):
-        res = self.client().post('/quizzes',
+    def test_404_playing(self):
+        res = self.client().post('/play',
                                     json={'previous_questions': [5, 7], 'quiz_category': {'type': "all", 'id': 1000}})
         data = json.loads(res.data)
 
