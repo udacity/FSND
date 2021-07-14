@@ -19,7 +19,8 @@ class Question extends Component {
     return (
       <div className="Question-holder">
         <div className="question-category">
-          <img className="category" alt="category" src={`${category.toLowerCase()}.svg`}/>
+          {/* <img className="category" alt="category" src={`${category.toLowerCase()}.svg`}/> */}
+          <img className="category" alt="category" src={`${category}.svg`}/>
           <div className="Question">{question}</div>
           <div className="question-actions">
             <div className="difficulty">

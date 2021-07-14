@@ -1,7 +1,7 @@
 from flask import Flask
 from models import Category, Question
 from flask_sqlalchemy import SQLAlchemy
-database_path = "postgresql://postgres@localhost:5432/myTrivia"
+database_path = "postgresql://postgres@localhost:5432/trivia"
 app = Flask(__name__)
 
 db = SQLAlchemy()
