@@ -15,6 +15,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Hotskull!000@loca
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-migrate = Migrate(app)
+migrate = Migrate(app, db)
 
 import application.contoller
