@@ -1,8 +1,7 @@
 .quiz-play-holder {
-    width: 80%;
-    margin-left: 10%;
     text-align: center;
-    margin-top: 40px;
+    background-color: #14141c;
+    color: white;
 }
 
 .category-holder {
@@ -16,20 +15,24 @@
 }
 
 .play-category:hover {
-    color: dodgerblue;
+    color: #02b3e4;
 }
 
 .button {
     width: 100px;
-    margin-top: 5px;
-    background-color: dodgerblue;
+    background-color: #02b3e4;
+    border-radius: 7px;
+    border: none;
     color: white;
-    padding: 3px 5px;
+    padding:5px;
+    margin-left: 10px;
     align-self: center;
+    margin-right: 10px;
 }
 
 div.button {
-    margin-top: 20px;
+    /* margin-top: 20px; */
+    width: 130px;
     margin-left: calc(50% - 50px);
 }
 
@@ -39,9 +42,36 @@ div.button {
 }
 
 .correct {
-    color: green;
+    color: #a5ce84;
 }
 
 .wrong {
-    color: red;
+    color: #d16858;
+}
+
+.form-input {
+    padding: 0.3rem !important;
+    border-radius: 0.5rem !important;
+    border: none;
+    background-color: #ffffff24;
+    color: white;
+}
+
+.form-search-input {
+    padding: 0.3rem !important;
+    border-radius: 0.5rem !important;
+    border: none;
+    width: 100%;
+    color: white;
+    height: 30px;
+    background-color: #ffffff24;
+}
+
+.question-container{
+    max-height: 600px;
+    overflow: scroll;
+}
+
+.submit-guess {
+    margin-top: 10px;
 }

@@ -4,8 +4,6 @@ import {
   Route,
   Switch
 } from 'react-router-dom'
-
-// import logo from './logo.svg';
 import './stylesheets/App.css';
 import FormView from './components/FormView';
 import QuestionView from './components/QuestionView';
@@ -14,22 +12,33 @@ import QuizView from './components/QuizView';
 
 
 class App extends Component {
-  render() {
-    return (
-    <div className="App">
-      <Header path />
-      <Router>
-        <Switch>
-          <Route path="/" exact component={QuestionView} />
-          <Route path="/add" component={FormView} />
-          <Route path="/play" component={QuizView} />
-          <Route component={QuestionView} />
-        </Switch>
-      </Router>
-    </div>
-  );
 
+
+
+  render (){
+    return (
+      <div className="App">
+        <Header path />
+        <Router>
+          <Switch>
+            <Route path="/" exact>
+              <QuestionView />
+            </Route>
+            <Route path="/add">
+              <FormView/>
+            </Route>
+            <Route path="/play">
+              <QuizView />
+            </Route>
+            <Route>
+              <QuestionView />
+            </Route>
+          </Switch>
+        </Router>
+      </div>
+  );
   }
+
 }
 
 export default App;

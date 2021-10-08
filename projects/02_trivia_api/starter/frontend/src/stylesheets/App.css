@@ -1,6 +1,13 @@
-.App-header {
-  background-color: #222;
+.App {
+  height: 100vh;
+  background-color: #14141c;
   color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.App-header {
   display: flex;
   justify-content: space-between;
   height: 75px;
@@ -10,7 +17,7 @@
 }
 
 .App-header > h1 {
-  color: dodgerblue;
+  color: #02b3e4;
 }
 
 .App-intro {
@@ -22,8 +29,11 @@ h2 {
 }
 
 li {
-  text-align: center;
+  text-align:left;
   margin: 5px 0px;
+  display: flex;
+  align-items: center;
+  padding-left: 40%;
 }
 
 ul {
@@ -34,6 +44,6 @@ ul {
 form {
   display: flex;
   flex-direction: column;
-  width: 80%;
+  width: 10%;
   margin: auto;
 }

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import $ from 'jquery';
 
 import '../stylesheets/FormView.css';
 
@@ -11,51 +10,45 @@ class FormView extends Component {
       answer: "",
       difficulty: 1,
       category: 1,
-      categories: {}
+      categories: []
     }
   }
 
   componentDidMount(){
-    $.ajax({
-      url: `/categories`, //TODO: update request URL
-      type: "GET",
-      success: (result) => {
-        this.setState({ categories: result.categories })
-        return;
+    fetch('/categories',{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
       },
-      error: (error) => {
-        alert('Unable to load categories. Please try your request again')
-        return;
-      }
+    }).then((res) => res.json())
+    .then(({categories}) => {
+      this.setState({categories});
+    }).catch((error) => {
+      alert('Unable to load categories. Please try your request again')
+      return;
     })
   }
 
-
   submitQuestion = (event) => {
     event.preventDefault();
-    $.ajax({
-      url: '/questions', //TODO: update request URL
-      type: "POST",
-      dataType: 'json',
-      contentType: 'application/json',
-      data: JSON.stringify({
+    fetch(`/questions`,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify({
         question: this.state.question,
         answer: this.state.answer,
-        difficulty: this.state.difficulty,
-        category: this.state.category
+        difficulty: Number(this.state.difficulty),
+        category: Number(this.state.category)
       }),
-      xhrFields: {
-        withCredentials: true
-      },
-      crossDomain: true,
-      success: (result) => {
-        document.getElementById("add-question-form").reset();
-        return;
-      },
-      error: (error) => {
+    })
+    .then( () => {
+      document.getElementById("add-question-form").reset();
+      return;
+    }).catch((error) => {
         alert('Unable to add question. Please try your request again')
         return;
-      }
     })
   }
 
@@ -70,15 +63,15 @@ class FormView extends Component {
         <form className="form-view" id="add-question-form" onSubmit={this.submitQuestion}>
           <label>
             Question
-            <input type="text" name="question" onChange={this.handleChange}/>
+            <input type="text" className="form-input" name="question" onChange={this.handleChange}/>
           </label>
           <label>
             Answer
-            <input type="text" name="answer" onChange={this.handleChange}/>
+            <input type="text"  className="form-input" name="answer" onChange={this.handleChange}/>
           </label>
           <label>
             Difficulty
-            <select name="difficulty" onChange={this.handleChange}>
+            <select name="difficulty"  className="form-input" onChange={this.handleChange}>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -88,10 +81,10 @@ class FormView extends Component {
           </label>
           <label>
             Category
-            <select name="category" onChange={this.handleChange}>
-              {Object.keys(this.state.categories).map(id => {
+            <select name="category"  className="form-input" onChange={this.handleChange}>
+              {this.state.categories.map(({id, type}) => {
                   return (
-                    <option key={id} value={id}>{this.state.categories[id]}</option>
+                    <option key={id} value={id}>{type}</option>
                   )
                 })}
             </select>

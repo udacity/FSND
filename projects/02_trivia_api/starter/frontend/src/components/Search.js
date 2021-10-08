@@ -18,9 +18,10 @@ class Search extends Component {
 
   render() {
     return (
-      <form onSubmit={this.getInfo}>
+      <form onSubmit={this.getInfo} className="search-component">
         <input
           placeholder="Search questions..."
+          className="form-search-input"
           ref={input => this.search = input}
           onChange={this.handleInputChange}
         />
