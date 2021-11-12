@@ -15,7 +15,7 @@ CORS(app)
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
-!! Running this funciton will add one
+!! Running this function will add one
 '''
 # db_drop_and_create_all()
 
