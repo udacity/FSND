@@ -48,8 +48,8 @@ class Venue(db.Model):
     seeking_talent= db.Column(db.Boolean)
     seeking_description= db.Column(db.String(500))
     website = db.Column(db.String(120))
-    
-    artists_id = db.relationship("Show", backref="venues")
+    #Relation Many Shows to One venue. Venue is the Parent
+    venues = db.relationship("Show", backref="venue")
     
     def __repr__(self):
         return f'<Venue {self.id} {self.name}>' 
@@ -70,7 +70,8 @@ class Artist(db.Model):
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(120))
-    venues_id = db.relationship("Show", backref="artist")
+    #Relation Many Shows to One venue. Venue is the Parent
+    artists = db.relationship("Show", backref="artist")
     
     # [ ] TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -79,12 +80,13 @@ class Artist(db.Model):
 class Show(db.Model):
   __tablename__ = 'Show'
   
-  artist_id = db.Column(db.ForeignKey('Artist.id'), primary_key=True)
-  venue_id = db.Column(db.ForeignKey('Venue.id'), primary_key=True)
+  id = db.Column(db.Integer, primary_key=True)
   start_time = db.Column(db.DateTime)
+  #Relation Many Shows to One venue. Show is the Child
+  venue_id = db.Column(db.Integer,db.ForeignKey('Venue.id'), nullable=False)
+  #Relation Many Shows to One Artist. Show is the Child
+  artist_id = db.Column(db.Integer,db.ForeignKey('Artist.id'), nullable=False)
   
-  artist = db.relationship("Artist", backref="venues_id")
-  venues = db.relationship("Venue", backref="artists_id")
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
