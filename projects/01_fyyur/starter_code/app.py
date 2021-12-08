@@ -93,7 +93,17 @@ class Show(db.Model):
   venue_id = db.Column(db.Integer,db.ForeignKey('Venue.id'), nullable=False)
   #Relation Many Shows to One Artist. Show is the Child
   artist_id = db.Column(db.Integer,db.ForeignKey('Artist.id'), nullable=False)
-  
+
+def get_case_upfront():
+  '''
+  This case method is used several times to cound the number of show that are upfront, this way we can rehuse it
+  '''
+  return case(
+    [
+        (Show.start_time>datetime.now(), 1)  
+    ],
+    else_=0
+  )  
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -126,8 +136,9 @@ def venues():
   #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
   unique_venues_location = Venue.query.with_entities(Venue.city, Venue.state).group_by(Venue.city, Venue.state).all()
   data=[]
+  print(unique_venues_location)
   for location in unique_venues_location:
-    venues = Venue.query.filter(Venue.city == location.city and Venue.state == location.state).join(Show,Show.venue_id==Venue.id).filter(Show.start_time>datetime.now()).with_entities(Venue.id, Venue.name,Venue.city, Venue.state ,func.count(Show.id).label("num_upcoming_shows")).group_by(Venue.id, Venue.name,Venue.city, Venue.state ).order_by(Venue.id).all()
+    venues = Venue.query.filter(Venue.city == location.city and Venue.state == location.state).join(Show,Show.venue_id==Venue.id, isouter=True).with_entities(Venue.id, Venue.name,Venue.city, Venue.state ,func.count(get_case_upfront()).label("num_upcoming_shows")).group_by(Venue.id, Venue.name,Venue.city, Venue.state ).order_by(Venue.id).all()
     if venues:
       list_location={}
       list_location["city"]=location.city
@@ -151,13 +162,7 @@ def search_venues():
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
   
   search_name = request.form.get('search_term', '')
-  case_statement=case(
-    [
-        (Show.start_time>datetime.now(), 1)  
-    ],
-    else_=0
-  )
-  venues = Venue.query.filter(Venue.name.ilike('%{}%'.format(search_name))).join(Show,Show.venue_id==Venue.id).with_entities(Venue.id, Venue.name, func.count(case_statement).label("num_upcoming_shows")).group_by(Venue.id, Venue.name).order_by(Venue.id).all()
+  venues = Venue.query.filter(Venue.name.ilike('%{}%'.format(search_name))).join(Show,Show.venue_id==Venue.id, isouter=True).with_entities(Venue.id, Venue.name, func.count(get_case_upfront()).label("num_upcoming_shows")).group_by(Venue.id, Venue.name).order_by(Venue.id).all()
   response = {}
   data=[]
   count_venues = 0
@@ -231,27 +236,27 @@ def create_venue_submission():
   # [x] TODO: modify data to be the data object returned from db insertion
   try:
     input = request.form
+    print("new venue")
     venue_name = input['name']
     venue_city = input['city']
     venue_state = input['state']
     venue_address = input['address']
     venue_phone = input['phone']
     venue_image_link = input['image_link']
-    #In case that multiples genres are chosed, the same key appears multiple time, to concat them to string this is needed
-    venue_genres = ', '.join(dict(input.lists())['genres'])
+    #In case that multiples genres are chosed, the same key appears multiple time, to concat them to string this method is needed
+    print("starting new method works")
+    print(input)
+    venue_genres = concat_genre(input)
+    print("new method works")
     venue_facebook_link = input['facebook_link']
     venue_website_link = input['website_link']
-    if input.get('seeking_talent','f') == 'y':
-      venue_seeking_talent = True
-    else:
-      venue_seeking_talent = False
-    print("seeking_talent")
+    venue_seeking_talent = get_boolean_value_dict(input,'seeking_talent')
+    
     venue_seeking_description = input['seeking_description']
-    print("creating venue")
     venue = Venue(name=venue_name, city=venue_city, state=venue_state, address=venue_address,
                 phone=venue_phone, image_link=venue_image_link, facebook_link=venue_facebook_link,
                 genres=venue_genres, seeking_talent=venue_seeking_talent, seeking_description=venue_seeking_description, website=venue_website_link)
-  
+    print("adding")
     db.session.add(venue)
     #commit the session in the DB
     db.session.commit() 
@@ -307,13 +312,7 @@ def search_artists():
   # search for "band" should return "The Wild Sax Band".
   
   search_name = request.form.get('search_term', '')
-  case_statement=case(
-    [
-        (Show.start_time>datetime.now(), 1)  
-    ],
-    else_=0
-  )
-  artists = Artist.query.filter(Artist.name.ilike('%{}%'.format(search_name))).join(Show,Show.artist_id==Artist.id).with_entities(Artist.id, Artist.name, func.sum(case_statement).label("num_upcoming_shows")).group_by(Artist.id, Artist.name).order_by(Artist.id).all()
+  artists = Artist.query.filter(Artist.name.ilike('%{}%'.format(search_name))).join(Show,Show.artist_id==Artist.id, isouter=True).with_entities(Artist.id, Artist.name, func.sum(get_case_upfront()).label("num_upcoming_shows")).group_by(Artist.id, Artist.name).order_by(Artist.id).all()
   response = {}
   data=[]
   count_shows = 0
@@ -359,6 +358,7 @@ def show_artist(artist_id):
     show_dict["venue_name"] = artist.name
     show_dict["venue_image_link"] = artist.image_link
     show_dict["venue_id"] = artist.id
+    #To know if the show is upcoming or not, we check the date of the show vs the current date
     if isShowUpcoming(show.start_time):
       upcoming_shows_count += 1 
       upcoming_shows.append(show_dict)
@@ -377,53 +377,94 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
-  # [ ] TODO: populate form with fields from artist with ID <artist_id>
-  return render_template('forms/edit_artist.html', form=form, artist=artist)
+  artist = Artist.query.get(artist_id)
+  artist_data={}
+  artist_data["id"]=artist.id
+  artist_data["name"]=artist.name
+  artist_data["genres"]=artist.genres.split(',')
+  artist_data["city"]=artist.city
+  artist_data["state"]=artist.state
+  artist_data["phone"]=artist.phone
+  artist_data["website"]=artist.website
+  artist_data["facebook_link"]=artist.facebook_link
+  artist_data["seeking_venue"]=artist.seeking_venue
+  artist_data["seeking_description"]=artist.seeking_description
+  artist_data["image_linkd"]=artist.image_link
+  # [ x] TODO: populate form with fields from artist with ID <artist_id>
+  return render_template('forms/edit_artist.html', form=form, artist=artist_data)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # [ ] TODO: take values from the form submitted, and update existing
+  # [x] TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
-
+  try:
+    print(request.form)
+    input = request.form
+    artist = Artist.query.get(artist_id)
+    artist.name=input['name']
+    artist.city=input['city']
+    artist.state=input['state']
+    artist.phone=input['phone']
+    artist.image_link=input['image_link']
+    artist.facebook_link=input['facebook_link']
+    artist.website=input['website_link']
+    artist.seeking_description=input['seeking_description']
+    #In case that multiples genres are chosed, the same key appears multiple time, to concat them to string this is needed
+    artist.genres = concat_genre(input)
+    artist.seeking_venue = get_boolean_value_dict(input, 'seeking_venue')
+    
+    db.session.commit()
+  except:
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be edited.')
+  finally:
+    db.session.close()  
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
-  # [ ] TODO: populate form with values from venue with ID <venue_id>
-  return render_template('forms/edit_venue.html', form=form, venue=venue)
+  venue = Venue.query.get(venue_id)
+  venue_data={}
+  venue_data["id"]=venue.id
+  venue_data["name"]=venue.name
+  venue_data["genres"]=venue.genres.split(',')
+  venue_data["city"]=venue.city
+  venue_data["state"]=venue.state
+  venue_data["address"]=venue.address
+  venue_data["phone"]=venue.phone
+  venue_data["website"]=venue.website
+  venue_data["facebook_link"]=venue.facebook_link
+  venue_data["seeking_talent"]=venue.seeking_talent
+  venue_data["seeking_description"]=venue.seeking_description
+  venue_data["image_linkd"]=venue.image_link
+
+  # [x] TODO: _datapopulate form with values from venue with ID <venue_id>
+  return render_template('forms/edit_venue.html', form=form, venue=venue_data)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # [ ] TODO: take values from the form submitted, and update existing
+  # [x] TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+  try:
+    input = request.form
+    venue = Venue.query.get(venue_id)
+    venue.name = input['name']
+    venue.city = input['city']
+    venue.state = input['state']
+    venue.address = input['address']
+    venue.phone = input['phone']
+    venue.image_link = input['image_link']
+    #In case that multiples genres are chosed, the same key appears multiple time, to concat them to string this is needed
+    venue.genres = concat_genre(input)
+    venue.facebook_link = input['facebook_link']
+    venue.website_link = input['website_link']
+    venue.seeking_talent = get_boolean_value_dict(input,'seeking_talent')
+    venue.seeking_description = input['seeking_description']
+    db.session.commit()
+  except:
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be edited.')
+  finally:
+    db.session.close()  
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
@@ -442,7 +483,6 @@ def create_artist_submission():
   # on successful db insert, flash success
   try:
     input = request.form
-    print(request.form)
     artist_name=input['name']
     artist_city=input['city']
     artist_state=input['state']
@@ -452,12 +492,9 @@ def create_artist_submission():
     artist_website=input['website_link']
     artist_seeking_description=input['seeking_description']
      #In case that multiples genres are chosed, the same key appears multiple time, to concat them to string this is needed
-    artist_genres = ', '.join(dict(input.lists())['genres'])
-    if input.get('seeking_venue','f') == 'y':
-      artist_seeking_venue = True
-    else:
-      artist_seeking_venue = False
-    print("artis")
+    artist_genres = concat_genre(input)
+    artist_seeking_venue = get_boolean_value_dict(input,'seeking_venue')
+    
     artist = Artist(name=artist_name, city=artist_city, state=artist_state,
                     phone=artist_phone, genres=artist_genres, image_link=artist_image_link,
                     facebook_link=artist_facebook_link, website=artist_website, seeking_venue=artist_seeking_venue, seeking_description=artist_seeking_description)
