@@ -16,6 +16,8 @@ from sqlalchemy.orm import backref
 from forms import *
 from flask_migrate import Migrate
 from datetime import datetime
+from helpers import *
+from sqlalchemy import func
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -149,18 +151,25 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # [ ] TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+  # [ x ] TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-
-  response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }
+  
+  search_name = request.form.get('search_term', '')
+  venues = Venue.query.filter(Venue.name.ilike('%{}%'.format(search_name))).join(Show,Show.venue_id==Venue.id).filter(Show.start_time>datetime.now()).with_entities(Venue.id, Venue.name, func.count(Show.id).label("num_upcoming_shows")).group_by(Venue.id, Venue.name).all()
+  response = {}
+  data=[]
+  count_venues = 0
+  for venue in venues:
+    info={}
+    info["id"] = venue.id
+    info["name"] = venue.name
+    info["num_upcoming_shows"] = venue.num_upcoming_shows
+    data.append(venue)
+    count_venues += 1
+  response["count"] = count_venues
+  response["data"]=data
+  
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
@@ -188,12 +197,12 @@ def show_venue(venue_id):
   past_shows_count=0
   for show in shows:
     show_dict={}
-    show_dict["start_time"]= show.start_time.strftime("%Y-%m-%dT%H:%M:%S")
+    show_dict["start_time"]= castStart_time(show.start_time)
     artist = Artist.query.get(show.artist_id)
     show_dict["artist_name"] = artist.name
     show_dict["artist_image_link"] = artist.image_link
     show_dict["artist_id"] = artist.id
-    if datetime.now() >= show.start_time:
+    if isShowUpcoming(show.start_time):
       upcoming_shows_count += 1 
       upcoming_shows.append(show_dict)
     else:
