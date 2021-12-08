@@ -256,7 +256,7 @@ def create_venue_submission():
     venue = Venue(name=venue_name, city=venue_city, state=venue_state, address=venue_address,
                 phone=venue_phone, image_link=venue_image_link, facebook_link=venue_facebook_link,
                 genres=venue_genres, seeking_talent=venue_seeking_talent, seeking_description=venue_seeking_description, website=venue_website_link)
-    print("adding")
+    print(venue)
     db.session.add(venue)
     #commit the session in the DB
     db.session.commit() 

@@ -33,7 +33,5 @@ def concat_genre(input_form):
     '''
     In case that multiples genres are chosed, the same key appears multiple time, to concat them to string this method is needed
     '''
-    print("entering concat")
     genre_casted = ', '.join(dict(input_form.lists())['genres'])
-    print(genre_casted)
     return genre_casted
