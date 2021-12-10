@@ -173,26 +173,21 @@ def create_venue_submission():
   # [x] TODO: modify data to be the data object returned from db insertion
   try:
     form = VenueForm(request.form)
-    print(form.genres.data)
-    venue = Venue(
-      name = form.name.data,
-      city = form.city.data,
-      state = form.state.data,
-      address = form.address.data,
-      phone = form.phone.data,
-      image_link = form.image_link.data,
+    if form.validate():
+      venue = Venue()
+      #Populate the values of the form to the Venue obj
+      form.populate_obj(venue)
+      ##We define the genre because in the Model is different than in the form
+      venue.website = form.website_link.data
       #In case that there are multiple genres, it is a list and needs to be concated
-      genres= concat_genres(form.genres.data),
-      facebook_link = form.facebook_link.data,
-      website = form.website_link.data,
-      seeking_talent = form.seeking_talent.data,
-      seeking_description = form.seeking_description.data
-    )
-    session.add(venue)
-    #commit the session in the DB
-    session.commit() 
-    # on successful db insert, flash success
-    flash('Venue ' + venue.name + ' was successfully listed!')
+      venue.genres = concat_genres(form.genres.data)   
+      session.add(venue)
+      #commit the session in the DB
+      session.commit() 
+      # on successful db insert, flash success
+      flash('Venue ' + venue.name + ' was successfully listed!')
+    else:
+      flash('A validation error occurred. Venue {} could not be listed.'.format(request.form['name']))
   except:
     session.rollback()
     # [x] TODO: on unsuccessful db insert, flash an error instead.
@@ -329,13 +324,17 @@ def edit_artist_submission(artist_id):
   # artist record with ID <artist_id> using the new attributes
   try:
     form = ArtistForm(request.form)
-    #In case that there are multiple genres, it is a list and needs to be concated
-    form.genres.data = concat_genres(form.genres.data)
-    artist = session.query(Artist).get(artist_id)
-    #Populate the values of the form to the Artist obj
-    form.populate_obj(artist)
-    form.validate()
-    session.commit()
+    if form.validate():
+      artist = session.query(Artist).get(artist_id)
+      #Populate the values of the form to the Artist obj
+      form.populate_obj(artist)
+      ##We define the genre because in the Model is different than in the form
+      artist.website = form.website_link.data
+      #In case that there are multiple genres, it is a list and needs to be concated
+      artist.genres = concat_genres(form.genres.data)   
+      session.commit()
+    else:
+      flash('A validation error occurred. Artist ' + request.form['name'] + ' could not be edited.')
   except:
     flash('An error occurred. Artist ' + request.form['name'] + ' could not be edited.')
   finally:
@@ -369,13 +368,17 @@ def edit_venue_submission(venue_id):
   # venue record with ID <venue_id> using the new attributes
   try:
     form = VenueForm(request.form)
-    #In case that there are multiple genres, it is a list and needs to be concated
-    form.genres.data = concat_genres(form.genres.data)
-    venue = session.query(Venue).get(venue_id)
-    #Populate the values of the form to the Venue obj
-    form.populate_obj(venue)
-    form.validate()
-    session.commit()
+    if form.validate():
+      venue = session.query(Venue).get(venue_id)
+      #Populate the values of the form to the Venue obj
+      form.populate_obj(venue)
+      ##We define the genre because in the Model is different than in the form
+      venue.website = form.website_link.data
+      #In case that there are multiple genres, it is a list and needs to be concated
+      venue.genres = concat_genres(form.genres.data)   
+      session.commit()
+    else:
+      flash('A validation error occurred. Venue ' + request.form['name'] + ' could not be edited.')
   except:
     flash('An error occurred. Venue ' + request.form['name'] + ' could not be edited.')
   finally:
@@ -398,24 +401,23 @@ def create_artist_submission():
   # on successful db insert, flash success
   try:
     form = ArtistForm(request.form)
-    artist = Artist(
-      name=form.name.data,
-      city=form.city.data,
-      state=form.state.data,
-      phone=form.phone.data,
-      image_link=form.image_link.data,
-      facebook_link=form.facebook_link.data,
-      website=form.website_link.data,
-      seeking_description=form.seeking_description.data,
+    #Validate that there is no error in the form
+    if form.validate():
+      #Create an empty atist
+      artist = Artist()
+      form.populate_obj(artist)
+      ##We define the genre because in the Model is different than in the form
+      artist.website = form.website_link.data
       #In case that there are multiple genres, it is a list and needs to be concated
-      genres = concat_genres(form.genres.data),
-      seeking_venue = form.seeking_venue.data
-    )
-    session.add(artist)
-    #commit the session in the DB
-    session.commit() 
-    # on successful db insert, flash success
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
+      artist.genres = concat_genres(form.genres.data)
+      #Add the artist to the session
+      session.add(artist)
+      #commit the session in the DB
+      session.commit() 
+      # on successful db insert, flash success
+      flash('Artist ' + request.form['name'] + ' was successfully listed!')
+    else:
+      flash('An error occurred validating the form. Artist ' + request.form['name'] + ' could not be listed.')
   except:
     session.rollback()
     # [x] TODO: on unsuccessful db insert, flash an error instead.
