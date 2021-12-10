@@ -30,7 +30,7 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 
-engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
+engine = create_engine(app.config["DB_PATH"])
 Base.metadata.create_all(engine, checkfirst=True)
 Session = sessionmaker(bind=engine)
 session = Session()

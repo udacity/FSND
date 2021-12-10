@@ -10,5 +10,8 @@ DEBUG = True
 
 
 # IMPLEMENT DATABASE URL
-SQLALCHEMY_DATABASE_URI = 'postgresql://jserra02@localhost:5432/fyyur'
+DB_HOST = os.getenv('DB_HOST', 'localhost:5432')
+DB_USER = os.getenv('DB_USER', 'jserra02')
+DB_NAME = os.getenv('DB_NAME', 'fyyur')
+DB_PATH = 'postgresql://{}@{}/{}'.format(DB_USER, DB_HOST, DB_NAME)
 SQLALCHEMY_TRACK_MODIFICATIONS  = False
