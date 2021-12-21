@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from models import setup_db
+from flask_cors import CORS
 
 def create_app(test_config=None):
 
@@ -12,7 +13,8 @@ def create_app(test_config=None):
     def get_greeting():
         excited = os.environ['EXCITED']
         greeting = "Hello" 
-        if excited == 'true': greeting = greeting + "!!!!!"
+        if excited == 'true': 
+            greeting = greeting + "!!!!! You are doing great in this Udacity project."
         return greeting
 
     @app.route('/coolkids')
