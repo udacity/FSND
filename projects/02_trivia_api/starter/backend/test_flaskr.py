@@ -5,6 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
 from models import setup_db, Question, Category
+from dotenv import load_dotenv
+
+load_dotenv()
+
+dbUser = os.getenv("DB_USER")
+dbPwd = os.getenv("DB_PWD")
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -15,7 +21,8 @@ class TriviaTestCase(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = "trivia_test"
-        self.database_path = "postgresql://mali:mali@{}/{}".format(
+        self.database_path = "postgresql://{}:{}@{}/{}".format(
+            dbUser, dbPwd,
             'localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 

@@ -89,7 +89,6 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['GET'])
     def get_all_questions():
 
-        print("here in questions")
         questions = Question.query.order_by(Question.id).all()
         current_questions = paginate_questions(request, questions)
         formatted_categories = get_categories_from_db()
