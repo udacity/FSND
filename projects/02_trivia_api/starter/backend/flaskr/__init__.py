@@ -286,7 +286,7 @@ def create_app(test_config=None):
                         Question.id.notin_(idList)).first()
 
         if question is None:
-            abort(404)
+            return jsonify({})
         else:
             formatted_Question = question.format()
             return jsonify({

@@ -28,14 +28,14 @@ class TriviaTestCase(unittest.TestCase):
 
         self.new_question = {
             "question": "What is the best football team?",
-            "answer": "Fenerbahçe",
+            "answer": "Fenerbahce",
             "difficulty": "5",
             "category": "6"
         }
 
         self.new_badQuestion = {
             "ques": "What is the best football team?",
-            "ans": "Fenerbahçe",
+            "ans": "Fenerbahce",
             "diff": "5",
             "cat": "6"
         }
@@ -110,7 +110,7 @@ class TriviaTestCase(unittest.TestCase):
     '''Delete Question Positive Test'''
 
     def test_deleteQuestion_positive(self):
-        res = self.client().delete('/questions/30')
+        res = self.client().delete('/questions/40')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -192,8 +192,9 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/quizzes', json=self.quizBadRequest)
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
-        self.assertEqual(data['success'], False)
+        self.assertEqual(len(data),0)
+        self.assertEqual(res.status_code, 200)
+       
 
 
 # Make the tests conveniently executable
