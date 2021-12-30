@@ -5,7 +5,7 @@ import '../stylesheets/FormView.css';
 
 class FormView extends Component {
   constructor(props){
-    super();
+    super(props);
     this.state = {
       question: "",
       answer: "",

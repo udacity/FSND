@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import '../stylesheets/Question.css';
 
 class Question extends Component {
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
     this.state = {
       visibleAnswer: false
     }
