@@ -11,8 +11,10 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
+from sqlalchemy.orm import backref, relationship
 from forms import *
 from flask_migrate import Migrate
+import sys
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -46,6 +48,8 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description =db.Column(db.String())
 
+    artists = relationship('Artist', secondary='Shows')
+
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
@@ -62,6 +66,24 @@ class Artist(db.Model):
     website = db.Column(db.String())
     seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String())
+
+    venues = relationship('Venue', secondary = 'Shows')
+
+class Show(db.Model):
+  __tablename__ = 'Shows'
+
+  id = db.Column(db.Integer, primary_key=True)
+
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+  start_time = db.Column(db.DateTime, nullable=False)
+
+  artist = relationship(Artist, backref=backref('Shows'))
+  venue = relationship(Venue, backref=backref('Shows'))
+
+
+
+
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 migrate = Migrate(app, db)
@@ -230,9 +252,41 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  error = False
+  try:
+    name=request.form.get("name")
+    city=request.form.get("city")
+    state =request.form.get("state")
+    phone = request.form.get("phone")
+    address = request.form.get("address")
+    genres = request.form.get("genres")
+    facebook_link = request.form.get("facebook_link")
+    image_link = request.form.get("image_link")
+    website = request.form.get("website_link")
+    seeking_talent = True if request.form['seeking_talent'] == 'Yes' else False
+    seeking_description = request.form.get("seeking_description")
+
+    venue = Venue(name=name,city=city,address=address,state=state,phone=phone,genres=genres,facebook_link=facebook_link,image_link=image_link,website=website,seeking_talent=seeking_talent,seeking_description=seeking_description)
+
+
+
+    db.session.add(venue)
+    db.session.commit()
+
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info)
+  finally:
+    db.session.close()
+
+  if error:
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+  else:
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
 
   # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  #flash('Venue ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
@@ -424,9 +478,38 @@ def create_artist_submission():
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  error = False
+  try:
+    name=request.form.get("name")
+    city=request.form.get("city")
+    state =request.form.get("state")
+    phone = request.form.get("phone")
+    genres = request.form.get("genres")
+    facebook_link = request.form.get("facebook_link")
+    image_link = request.form.get("image_link")
+    website = request.form.get("website_link")
+    seeking_venue = True if request.form.get("seeking_venue") == 'Yes' else False
+    seeking_description = request.form.get("seeking_description")
+
+    artist = Artist(name=name,city=city,state=state,phone=phone,genres=genres,facebook_link=facebook_link,image_link=image_link,website=website,seeking_venue=seeking_venue,seeking_description=seeking_description)
+
+    db.session.add(artist)
+    db.session.commit()
+
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info)
+  finally:
+    db.session.close()
+
+  if error:
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
+  else:
+    flash('Artist ' + request.form['name'] + ' was successfully listed!')
 
   # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  #flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   return render_template('pages/home.html')
@@ -488,8 +571,32 @@ def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # TODO: insert form data as a new Show record in the db, instead
 
+  error=False
+  try:
+    artist_id = request.form.get("artist_id")
+    venue_id = request.form.get("venue_id")
+    start_time=request.form['start_time']
+    # start_time=datetime.fromisoformat(request.form['start_time'])
+    show = Show(artist_id=artist_id,venue_id=venue_id,start_time = start_time)
+
+
+    db.session.add(show)
+    db.session.commit()
+
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info)
+  finally:
+    db.session.close()
+
+  if error:
+    flash('An error occurred. Show could not be listed.')
+  else:
+    flash('Show was successfully listed!')
+
   # on successful db insert, flash success
-  flash('Show was successfully listed!')
+  #flash('Show was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Show could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
