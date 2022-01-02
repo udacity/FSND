@@ -12,6 +12,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -40,6 +41,10 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    genres = db.Column(db.String())
+    website = db.Column(db.String())
+    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
+    seeking_description =db.Column(db.String())
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -54,8 +59,12 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    website = db.Column(db.String())
+    seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
+    seeking_description = db.Column(db.String())
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+migrate = Migrate(app, db)
 
 #----------------------------------------------------------------------------#
 # Filters.
