@@ -7,7 +7,7 @@ const questionsPerPlay = 5;
 
 class QuizView extends Component {
   constructor(props){
-    super();
+    super(props);
     this.state = {
         quizCategory: null,
         previousQuestions: [],
