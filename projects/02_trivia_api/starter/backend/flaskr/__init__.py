@@ -16,16 +16,31 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
+  CORS(app)
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
+  @app.after_request
+  def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTION')
+    return response
 
   '''
   @TODO:
   Create an endpoint to handle GET requests
   for all available categories.
   '''
+
+  @app.route('/categories', methods=['GET'])
+  def categories():
+    categories = Category.query.order_by(Category.id).all()
+    list_categories = [category.format() for category in categories]
+    return jsonify({
+      'success':True,
+      'categories':list_categories
+    })
 
 
   '''
