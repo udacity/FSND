@@ -119,6 +119,16 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.
   '''
+  '''
+  @TODO:
+  Create a POST endpoint to get questions based on a search term.
+  It should return any questions for whom the search term
+  is a substring of the question.
+
+  TEST: Search by any phrase. The questions list will update to include
+  only question that include that string within their question.
+  Try using the word "title" to start.
+  '''
   @app.route('/questions', methods=['POST'])
   def create_new_and_search_question():
 
@@ -148,16 +158,7 @@ def create_app(test_config=None):
     except:
       abort(422)
 
-  '''
-  @TODO:
-  Create a POST endpoint to get questions based on a search term.
-  It should return any questions for whom the search term
-  is a substring of the question.
 
-  TEST: Search by any phrase. The questions list will update to include
-  only question that include that string within their question.
-  Try using the word "title" to start.
-  '''
 
 
 
@@ -185,8 +186,6 @@ def create_app(test_config=None):
       'currentCategory':current_category.type
     })
 
-
-
   '''
   @TODO:
   Create a POST endpoint to get questions to play the quiz.
@@ -198,6 +197,36 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not.
   '''
+
+  @app.route('/quizzes', methods=['POST'])
+  def quezzes():
+    body = request.get_json()
+    previous_questions = body.get("previous_questions")
+    category_id = body.get("quiz_category")['id']
+
+    if category_id:
+      questions = Question.query.filter(Question.category==category_id).filter(~Question.id.in_(previous_questions)).all()
+    else:
+      questions = Question.query.filter(~Question.id.in_(previous_questions)).all()
+
+    if len(questions)==0:
+      abort(404)
+
+    new_question = random.choice(questions)
+
+    return jsonify({
+      "success":True,
+      "question":new_question.format()
+    })
+
+
+
+
+
+
+
+
+
 
 
   '''
@@ -223,12 +252,28 @@ def create_app(test_config=None):
     }), 422)
 
   @app.errorhandler(405)
-  def not_found(error):
+  def method_not_allowed(error):
     return (
       jsonify({
         "success": False,
         "error": 405,
         "message": "Method Not Allowed."
     }), 405)
+
+  @app.errorhandler(500)
+  def server_error(error):
+    return (jsonify({
+      "success":False,
+      'error':500,
+      "message":"Internal Server Error."
+    }), 500)
+
+  @app.errorhandler(400)
+  def bad_request(error):
+    return (jsonify({
+      "success":False,
+      "error":400,
+      "message":"Bad Request"
+    }))
 
   return app

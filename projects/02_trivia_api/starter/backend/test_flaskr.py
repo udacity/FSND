@@ -3,6 +3,7 @@ import re
 import unittest
 import json
 from flask.json import jsonify
+from flask.scaffold import F
 from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
@@ -68,33 +69,33 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], "The requested resource doesn't exist.")
 
-    # def test_delete_question(self):
-    #     res = self.client().delete('/questions/25')
-    #     data = json.loads(res.data)
+    def test_delete_question(self):
+        res = self.client().delete('/questions/25')
+        data = json.loads(res.data)
 
-    #     question  = Question.query.filter(Question.id==25).one_or_none()
+        question  = Question.query.filter(Question.id==25).one_or_none()
 
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #     self.assertTrue(data['id'])
-    #     self.assertEqual(question, None)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['id'])
+        self.assertEqual(question, None)
 
-    # def test_422_if_question_does_not_exist(self):
-    #     res = self.client().delete('/questions/1000')
-    #     data = json.loads(res.data)
+    def test_422_if_question_does_not_exist(self):
+        res = self.client().delete('/questions/1000')
+        data = json.loads(res.data)
 
-    #     self.assertEqual(res.status_code, 422)
-    #     self.assertEqual(data['success'], False)
-    #     self.assertEqual(data['message'], 'Unprocessable Entity.')
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Unprocessable Entity.')
 
 
-    # def test_create_question(self):
-    #     res = self.client().post('/questions', json = self.new_question)
-    #     data = json.loads(res.data)
+    def test_create_question(self):
+        res = self.client().post('/questions', json = self.new_question)
+        data = json.loads(res.data)
 
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #     self.assertTrue(data['created'])
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['created'])
 
     def test_405_if_plant_creation_not_allowed(self):
         res = self.client().post('/questions/50', json = self.new_question)
@@ -141,12 +142,26 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'],"The requested resource doesn't exist.")
 
+    def test_get_new_question(self):
+        res = self.client().post('/quizzes', json = {
+            'previous_questions':[],
+            'quiz_category':{'type':'Art', 'id':2}
+        })
+        data = json.loads(res.data)
 
+        self.assertEqual(res.status_code,200)
+        self.assertTrue(len(data['question']))
 
+    def test_404_send_requesting_invalid_category(self):
+        res = self.client().post('/quizzes', json = {
+            'previous_questions':[],
+            'quiz_category':{'type':'Invalid', 'id':100}
+        })
+        data = json.loads(res.data)
 
-
-
-
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'],"The requested resource doesn't exist.")
 
 
 # Make the tests conveniently executable
