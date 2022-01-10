@@ -46,7 +46,7 @@ def create_app(test_config=None):
   @app.route('/categories', methods=['GET'])
   def categories():
     categories = Category.query.order_by(Category.id).all()
-    list_categories = [category.format() for category in categories]
+    list_categories = {category.id : category.type for category in categories}
     return jsonify({
       'success':True,
       'categories':list_categories
@@ -76,7 +76,7 @@ def create_app(test_config=None):
 
 
     categories = Category.query.order_by(Category.id).all()
-    list_categories = [category.format() for category in categories]
+    list_categories = {category.id : category.type for category in categories}
 
     return jsonify({
       'success':True,
