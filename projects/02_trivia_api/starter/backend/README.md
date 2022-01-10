@@ -76,7 +76,7 @@ The API will return following error types when requests fail:
 - General: Returns a list of categories
 - Sample `curl http://127.0.0.1:5000/categories`
 
-'''
+'''bash
 {
   "categories": {
     "1": "Science",
@@ -95,7 +95,8 @@ The API will return following error types when requests fail:
     - Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
 - Sample: `curl http://127.0.0.1:5000/questions?page=2`
 
-''' {
+'''bash
+{
   "categories": {
     "1": "Science",
     "2": "Art",
@@ -199,7 +200,7 @@ The API will return following error types when requests fail:
     - Returns id of the created question and success value
 - Sample: `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{ "question": "The consept of gravity was discovered by which famous phisicist?", "answer": "Sir Isaac Newton", "difficulty": 3, "category": "1" }'`
 
-'''
+'''bash
 {
   "created": 25,
   "success": true
@@ -213,7 +214,7 @@ The API will return following error types when requests fail:
     - Results are paginated in groups of 10.
 - Sample: `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"searchTerm":"What"}'`
 
-'''
+'''bash
  "questions": [
     {
       "answer": "Muhammad Ali",
@@ -283,7 +284,7 @@ The API will return following error types when requests fail:
     -Return a list of questions, number of total questions, current category, categories.
 - Sample: `curl http://127.0.0.1:5000/categories/3/questions`
 
-'''
+'''bash
 {
   "currentCategory": "Geography",
   "questions": [
@@ -321,7 +322,7 @@ The API will return following error types when requests fail:
     - Returns the random question which is not in previous questions, with the given category and success value
 - Sample: `curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"previous_questions": [], "quiz_category": {"type": "History", "id": "4"}}'`
 
-'''
+'''bash
 {
   "question": {
     "answer": "Muhammad Ali",
