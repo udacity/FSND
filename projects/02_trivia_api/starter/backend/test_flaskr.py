@@ -70,10 +70,10 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], "The requested resource doesn't exist.")
 
     def test_delete_question(self):
-        res = self.client().delete('/questions/25')
+        res = self.client().delete('/questions/10')
         data = json.loads(res.data)
 
-        question  = Question.query.filter(Question.id==25).one_or_none()
+        question  = Question.query.filter(Question.id==10).one_or_none()
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)

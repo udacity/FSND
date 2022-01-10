@@ -204,20 +204,26 @@ def create_app(test_config=None):
     previous_questions = body.get("previous_questions")
     category_id = body.get("quiz_category")['id']
 
-    if category_id:
-      questions = Question.query.filter(Question.category==category_id).filter(~Question.id.in_(previous_questions)).all()
-    else:
-      questions = Question.query.filter(~Question.id.in_(previous_questions)).all()
+    try:
+      if category_id:
+        questions = Question.query.filter(Question.category==category_id).filter(~Question.id.in_(previous_questions)).all()
+      else:
+        questions = Question.query.filter(~Question.id.in_(previous_questions)).all()
 
-    if len(questions)==0:
-      abort(404)
+      if len(questions)>0:
+        new_question = random.choice(questions).format()
+      else:
+        new_question = None
 
-    new_question = random.choice(questions)
 
-    return jsonify({
-      "success":True,
-      "question":new_question.format()
-    })
+      if new_question is None:
+        return jsonify({})
+      return jsonify({
+        "success":True,
+        "question":new_question
+      }),200
+    except:
+      abort(422)
 
 
 
