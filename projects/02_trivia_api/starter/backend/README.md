@@ -76,7 +76,7 @@ The API will return following error types when requests fail:
 - General: Returns a list of categories
 - Sample `curl http://127.0.0.1:5000/categories`
 
-'''bash
+```bash
 {
   "categories": {
     "1": "Science",
@@ -88,14 +88,14 @@ The API will return following error types when requests fail:
   },
   "success": true
 }
-'''
+```
 #### GET /questions
 - General:
     - Returns a list of questions, number of total questions, current category, categories.
     - Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
 - Sample: `curl http://127.0.0.1:5000/questions?page=2`
 
-'''bash
+```bash
 {
   "categories": {
     "1": "Science",
@@ -181,31 +181,31 @@ The API will return following error types when requests fail:
   "success": true,
   "total_questions": 20
 }
-'''
+```
 
 #### DELETE /question/<int:id>
 - General
     - Deletes the question of the given ID if it exists
     - Returns the id of the deleted question
 - Sample: `curl http://127.0.0.1:5000/questions/4 -X DELETE`
-'''
+```bash
 {
   "success":True,
   "id":4,
 }
-'''
+```
 #### POST /questions  to create new question
 - General
     - Creates new question.
     - Returns id of the created question and success value
 - Sample: `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{ "question": "The consept of gravity was discovered by which famous phisicist?", "answer": "Sir Isaac Newton", "difficulty": 3, "category": "1" }'`
 
-'''bash
+```bash
 {
   "created": 25,
   "success": true
 }
-'''
+```
 #### POST /questions  to search question
 - General
     - Searches questions based on search term
@@ -214,7 +214,7 @@ The API will return following error types when requests fail:
     - Results are paginated in groups of 10.
 - Sample: `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"searchTerm":"What"}'`
 
-'''bash
+```bash
  "questions": [
     {
       "answer": "Muhammad Ali",
@@ -276,7 +276,7 @@ The API will return following error types when requests fail:
   "success": true,
   "total_questions": 8
 }
-'''
+```
 
 #### GET /categories/<category_id>/questions
 - General
@@ -284,7 +284,7 @@ The API will return following error types when requests fail:
     -Return a list of questions, number of total questions, current category, categories.
 - Sample: `curl http://127.0.0.1:5000/categories/3/questions`
 
-'''bash
+```bash
 {
   "currentCategory": "Geography",
   "questions": [
@@ -313,7 +313,7 @@ The API will return following error types when requests fail:
   "success": true,
   "total_questions": 3
 }
-'''
+```
 
 #### Post/quizzes
 - General
@@ -322,7 +322,7 @@ The API will return following error types when requests fail:
     - Returns the random question which is not in previous questions, with the given category and success value
 - Sample: `curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"previous_questions": [], "quiz_category": {"type": "History", "id": "4"}}'`
 
-'''bash
+```bash
 {
   "question": {
     "answer": "Muhammad Ali",
@@ -333,7 +333,7 @@ The API will return following error types when requests fail:
   },
   "success": true
 }
-'''
+```
 
 ### Authors
 This project was created by  Udacity as a project template for the Full Stack Web Developer Nanodegree.
