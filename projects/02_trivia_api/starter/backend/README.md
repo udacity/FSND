@@ -5,6 +5,27 @@ This project  in the  cource “API Development and Documentation” of the Full
 ### Pre-requisites
 ### Installing Dependencies
 Developers using this project should already have postgresql, Python3, pip and node installed on their local machines.
+### Virtual Environment
+To activate virtual environment from the backend folder in terminal run the following command:
+```bash
+source venv/Scripts/acitvate
+```
+
+
+Once you have activated virtual environment, install dependencies, run the following command:
+```bash
+pip install -r requirements.txt
+```
+
+### Environment variables
+Set some environment variables. Put environment variables to `.env`
+- set the database uri for SQLAlchemy:
+    ```
+    DEVELOPMENT_DATABASE_URI="postgresql://postgres:7907@localhost:5432/trivia"
+    TEST_DATABASE_URI="postgresql://postgres:7907@localhost:5432/trivia_test"
+    ```
+
+
 
 ### Database Setup
 With Postgres running, restore a database using the trivia.psql file provided. From the backend folder in terminal run:

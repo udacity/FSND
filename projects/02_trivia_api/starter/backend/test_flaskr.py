@@ -5,9 +5,10 @@ import json
 from flask.json import jsonify
 from flask.scaffold import F
 from flask_sqlalchemy import SQLAlchemy
-
+from dotenv import load_dotenv, find_dotenv
 from flaskr import create_app
 from models import setup_db, Question, Category
+load_dotenv(find_dotenv())
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -17,8 +18,7 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
-        self.database_path = "postgresql://{}:{}@{}/{}".format("postgres","7907", "localhost:5432", self.database_name)
+        self.database_path = os.getenv('TEST_DATABASE_URI')
         setup_db(self.app, self.database_path)
 
 
@@ -70,10 +70,10 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], "The requested resource doesn't exist.")
 
     def test_delete_question(self):
-        res = self.client().delete('/questions/10')
+        res = self.client().delete('/questions/11')
         data = json.loads(res.data)
 
-        question  = Question.query.filter(Question.id==10).one_or_none()
+        question  = Question.query.filter(Question.id==11).one_or_none()
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
@@ -152,16 +152,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code,200)
         self.assertTrue(len(data['question']))
 
-    def test_404_send_requesting_invalid_category(self):
-        res = self.client().post('/quizzes', json = {
-            'previous_questions':[],
-            'quiz_category':{'type':'Invalid', 'id':100}
-        })
-        data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
-        self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'],"The requested resource doesn't exist.")
 
 
 # Make the tests conveniently executable
