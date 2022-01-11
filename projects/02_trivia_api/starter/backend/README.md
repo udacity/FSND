@@ -8,7 +8,7 @@ Developers using this project should already have postgresql, Python3, pip and n
 ### Virtual Environment
 To activate virtual environment from the backend folder in terminal run the following command:
 ```bash
-source venv/Scripts/acitvate
+source venv/Scripts/activate
 ```
 
 
