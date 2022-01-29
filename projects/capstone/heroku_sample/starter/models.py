@@ -25,10 +25,10 @@ def setup_db(app, database_path=database_path):
 Person
 Have title and release year
 '''
-class Person(db.Model):  
+class Person(db.Model):
   __tablename__ = 'People'
 
-  id = Column(Integer, primary_key=True)
+  id = Column(db.Integer, primary_key=True)
   name = Column(String)
   catchphrase = Column(String)
 
