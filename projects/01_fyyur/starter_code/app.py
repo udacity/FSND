@@ -2,6 +2,7 @@
 # Imports
 #----------------------------------------------------------------------------#
 
+from distutils.command.config import config
 import json
 import dateutil.parser
 import babel
@@ -23,6 +24,8 @@ db = SQLAlchemy(app)
 
 # TODO: connect to a local postgresql database
 
+app.config['SQLALCHEMY_DATABASE_URI'] = config.SQLALCHEMY_DATABASE_URI
+app.config['SQL_TRACK_MODIFICATIONS'] = config.SQLALCHEMY_TRACK_MODIFICATIONS
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
@@ -41,6 +44,9 @@ class Venue(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
+    def __repr__(self):
+        return f'<Venue {self.id} name:{self.name}>'
+
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
@@ -54,6 +60,10 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+
+    def __repr__(self):
+        return f'<Artist {self.id} name: {self.name}>'
+
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
