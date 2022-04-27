@@ -5,7 +5,7 @@ import '../stylesheets/FormView.css';
 
 class FormView extends Component {
   constructor(props){
-    super();
+    super(props);
     this.state = {
       question: "",
       answer: "",
@@ -21,11 +21,9 @@ class FormView extends Component {
       type: "GET",
       success: (result) => {
         this.setState({ categories: result.categories })
-        return;
       },
       error: (error) => {
         alert('Unable to load categories. Please try your request again')
-        return;
       }
     })
   }
@@ -50,11 +48,9 @@ class FormView extends Component {
       crossDomain: true,
       success: (result) => {
         document.getElementById("add-question-form").reset();
-        return;
       },
       error: (error) => {
         alert('Unable to add question. Please try your request again')
-        return;
       }
     })
   }

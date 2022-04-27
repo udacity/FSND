@@ -1,13 +1,13 @@
 Fyyur
 -----
 
-### Introduction
+## Introduction
 
 Fyyur is a musical venue and artist booking site that facilitates the discovery and bookings of shows between local performing artists and venues. This site lets you list new artists and venues, discover them, and list shows with artists as a venue owner.
 
 Your job is to build out the data models to power the API endpoints for the Fyyur site by connecting to a PostgreSQL database for storing, querying, and creating information about artists and venues on Fyyur.
 
-### Overview
+## Overview
 
 This app is nearly complete. It is only missing one thing… real data! While the views and controllers are defined in this application, it is missing models and model interactions to be able to store retrieve, and update data from a database. By the end of this project, you should have a fully functioning site that is at least capable of doing the following, if not more, using a PostgreSQL database:
 
@@ -17,22 +17,44 @@ This app is nearly complete. It is only missing one thing… real data! While th
 
 We want Fyyur to be the next new platform that artists and musical venues can use to find each other, and discover new music shows. Let's make that happen!
 
-### Tech Stack
+## Tech Stack (Dependencies)
 
-Our tech stack will include:
+### 1. Backend Dependencies
+Our tech stack will include the following:
+ * **virtualenv** as a tool to create isolated Python environments
+ * **SQLAlchemy ORM** to be our ORM library of choice
+ * **PostgreSQL** as our database of choice
+ * **Python3** and **Flask** as our server language and server framework
+ * **Flask-Migrate** for creating and running schema migrations
+You can download and install the dependencies mentioned above using `pip` as:
+```
+pip install virtualenv
+pip install SQLAlchemy
+pip install postgres
+pip install Flask
+pip install Flask-Migrate
+```
+> **Note** - If we do not mention the specific version of a package, then the default latest stable package will be installed. 
 
-* **SQLAlchemy ORM** to be our ORM library of choice
-* **PostgreSQL** as our database of choice
-* **Python3** and **Flask** as our server language and server framework
-* **Flask-Migrate** for creating and running schema migrations
-* **HTML**, **CSS**, and **Javascript** with [Bootstrap 3](https://getbootstrap.com/docs/3.4/customize/) for our website's frontend
+### 2. Frontend Dependencies
+You must have the **HTML**, **CSS**, and **Javascript** with [Bootstrap 3](https://getbootstrap.com/docs/3.4/customize/) for our website's frontend. Bootstrap can only be installed by Node Package Manager (NPM). Therefore, if not already, download and install the [Node.js](https://nodejs.org/en/download/). Windows users must run the executable as an Administrator, and restart the computer after installation. After successfully installing the Node, verify the installation as shown below.
+```
+node -v
+npm -v
+```
+Install [Bootstrap 3](https://getbootstrap.com/docs/3.3/getting-started/) for the website's frontend:
+```
+npm init -y
+npm install bootstrap@3
+```
 
-### Main Files: Project Structure
+
+## Main Files: Project Structure
 
   ```sh
   ├── README.md
   ├── app.py *** the main driver of the app. Includes your SQLAlchemy models.
-                    "python app.py" to run after installing dependences
+                    "python app.py" to run after installing dependencies
   ├── config.py *** Database URLs, CSRF generation, etc
   ├── error.log
   ├── forms.py *** Your forms
@@ -72,15 +94,16 @@ Instructions
 1. Understand the Project Structure (explained above) and where important files are located.
 2. Build and run local development following the Development Setup steps below.
 3. Fill in the missing functionality in this application: this application currently pulls in fake data, and needs to now connect to a real database and talk to a real backend.
-3. Fill out every `TODO` section throughout the codebase. We suggest going in order of the following:
+4. Fill out every `TODO` section throughout the codebase. We suggest going in order of the following:
+    * Connect to a database in `config.py`. A project submission that uses a local database connection is fine.
+    * Using SQLAlchemy, set up normalized models for the objects we support in our web app in the Models section of `app.py`. Check out the sample pages provided at /artists/1, /venues/1, and /shows for examples of the data we want to model, using all of the learned best practices in database schema design. Implement missing model properties and relationships using database migrations via Flask-Migrate.
+    * Implement form submissions for creating new Venues, Artists, and Shows. There should be proper constraints, powering the `/create` endpoints that serve the create form templates, to avoid duplicate or nonsensical form submissions. Submitting a form should create proper new records in the database.
+    * Implement the controllers for listing venues, artists, and shows. Note the structure of the mock data used. We want to keep the structure of the mock data.
+    * Implement search, powering the `/search` endpoints that serve the application's search functionalities.
+    * Serve venue and artist detail pages, powering the `<venue|artist>/<id>` endpoints that power the detail pages.
 
-  1. Connect to a database in `config.py`. A project submission that uses a local database connection is fine.
-  2. Using SQLAlchemy, set up normalized models for the objects we support in our web app in the Models section of `app.py`. Check out the sample pages provided at /artists/1, /venues/1, and /shows/1 for examples of the data we want to model, using all of the learned best practices in database schema design. Implement missing model properties and relationships using database migrations via Flask-Migrate.
-  3. Implement form submissions for creating new Venues, Artists, and Shows. There should be proper constraints, powering the `/create` endpoints that serve the create form templates, to avoid duplicate or nonsensical form submissions. Submitting a form should create proper new records in the database.
-  4. Implement the controllers for listing venues, artists, and shows. Note the structure of the mock data used. We want to keep the structure of the mock data.
-  5. Implement search, powering the `/search` endpoints that serve the application's search functionalities.
-  6. Serve venue and artist detail pages, powering the `<venue|artist>/<id>` endpoints that power the detail pages.
-
+#### Data Handling with `Flask-WTF` Forms
+The starter codes use an interactive form builder library called [Flask-WTF](https://flask-wtf.readthedocs.io/). This library provides useful functionality, such as form validation and error handling. You can peruse the Show, Venue, and Artist form builders in `forms.py` file. The WTForms are instantiated in the `app.py` file. For example, in the `create_shows()` function, the Show form is instantiated from the command: `form = ShowForm()`. To manage the request from Flask-WTF form, each field from the form has a `data` attribute containing the value from user input. For example, to handle the `venue_id` data from the Venue form, you can use: `show = Show(venue_id=form.venue_id.data)`, instead of using `request.form['venue_id']`.
 
 Acceptance Criteria
 -----
@@ -96,6 +119,7 @@ Acceptance Criteria
   * A user should be able to click on the venue for an upcoming show in the Artist's page, and on that Venue's page, see the same show in the Venue Page's upcoming shows section.
 4. As a fellow developer on this application, I should be able to run `flask db migrate`, and have my local database (once set up and created) be populated with the right tables to run this application and have it interact with my local postgres server, serving the application's needs completely with real data I can seed my local database with.
   * The models should be completed (see TODOs in the `Models` section of `app.py`) and model the objects used throughout Fyyur.
+  * Define the models in a different file to follow [Separation of Concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) design principles. You can refactor the models to a new file, such as `models.py`.
   * The right _type_ of relationship and parent-child dynamics between models should be accurately identified and fit the needs of this particular application.
   * The relationship between the models should be accurately configured, and referential integrity amongst the models should be preserved.
   * `flask db migrate` should work, and populate my local postgres database with properly configured tables for this application's objects, including proper columns, column data types, constraints, defaults, and relationships that completely satisfy the needs of this application. The proper type of relationship between venues, artists, and shows should be configured.
@@ -110,34 +134,50 @@ Looking to go above and beyond? This is the right section for you! Here are some
 
 Best of luck in your final project! Fyyur depends on you!
 
-### Development Setup
 
-First, [install Flask](http://flask.pocoo.org/docs/1.0/installation/#install-flask) if you haven't already.
+## Development Setup
+1. **Download the project starter code locally**
+```
+git clone https://github.com/udacity/FSND.git
+cd FSND/projects/01_fyyur/starter_code 
+```
 
-  ```
-  $ cd ~
-  $ sudo pip3 install Flask
-  ```
+2. **Create an empty repository in your Github account online. To change the remote repository path in your local repository, use the commands below:**
+```
+git remote -v 
+git remote remove origin 
+git remote add origin <https://github.com/<USERNAME>/<REPO_NAME>.git>
+git branch -M master
+```
+Once you have finished editing your code, you can push the local repository to your Github account using the following commands.
+```
+git add . --all   
+git commit -m "your comment"
+git push -u origin master
+```
 
-To start and run the local development server,
+3. **Initialize and activate a virtualenv using:**
+```
+python -m virtualenv env
+source env/bin/activate
+```
+>**Note** - In Windows, the `env` does not have a `bin` directory. Therefore, you'd use the analogous command shown below:
+```
+source env/Scripts/activate
+```
 
-1. Initialize and activate a virtualenv:
-  ```
-  $ cd YOUR_PROJECT_DIRECTORY_PATH/
-  $ virtualenv --no-site-packages env
-  $ source env/bin/activate
-  ```
+4. **Install the dependencies:**
+```
+pip install -r requirements.txt
+```
 
-2. Install the dependencies:
-  ```
-  $ pip install -r requirements.txt
-  ```
+5. **Run the development server:**
+```
+export FLASK_APP=myapp
+export FLASK_ENV=development # enables debug mode
+python3 app.py
+```
 
-3. Run the development server:
-  ```
-  $ export FLASK_APP=myapp
-  $ export FLASK_ENV=development # enables debug mode
-  $ python3 app.py
-  ```
+6. **Verify on the Browser**<br>
+Navigate to project homepage [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or [http://localhost:5000](http://localhost:5000) 
 
-4. Navigate to Home page [http://localhost:5000](http://localhost:5000)
