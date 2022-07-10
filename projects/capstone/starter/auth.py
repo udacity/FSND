@@ -1,15 +1,16 @@
-import json
+import json, os
 from flask import request, _request_ctx_stack, abort
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-AUTH0_DOMAIN = 'dev-garvita.us.auth0.com'
-ALGORITHMS = ['RS256']
-API_AUDIENCE = 'casting_agency'
-CLIENT_ID = 'hp0XU8ycu5BG048SA2d9LdOHZECjvRHg'
+AUTH0_DOMAIN = os.environ['AUTH0_DOMAIN']
+ALGORITHMS = os.environ['ALGORITHMS']
+API_AUDIENCE = os.environ['API_AUDIENCE']
+CLIENT_ID = os.environ['CLIENT_ID']
 
 ## AuthError Exception
+
 '''
 AuthError Exception
 A standardized way to communicate auth failure modes
@@ -18,7 +19,6 @@ class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
-
 
 ## Auth Header
 
