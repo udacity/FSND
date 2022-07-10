@@ -1,0 +1,5 @@
+Requirement already satisfied: python-jose in c:\users\hp\appdata\local\programs\python\python37\lib\site-packages (3.3.0)
+Requirement already satisfied: ecdsa!=0.15 in c:\users\hp\appdata\local\programs\python\python37\lib\site-packages (from python-jose) (0.18.0)
+Requirement already satisfied: rsa in c:\users\hp\appdata\local\programs\python\python37\lib\site-packages (from python-jose) (4.8)
+Requirement already satisfied: pyasn1 in c:\users\hp\appdata\local\programs\python\python37\lib\site-packages (from python-jose) (0.4.8)
+Requirement already satisfied: six>=1.9.0 in c:\users\hp\appdata\local\programs\python\python37\lib\site-packages (from ecdsa!=0.15->python-jose) (1.16.0)
